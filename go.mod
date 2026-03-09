@@ -6,6 +6,7 @@ require (
 	github.com/GoCodeAlone/workflow v0.3.27
 	github.com/go-webauthn/webauthn v0.16.0
 	github.com/pquerna/otp v1.5.0
+	github.com/wneessen/go-mail v0.7.2
 	golang.org/x/crypto v0.48.0
 )
 
