@@ -6,6 +6,10 @@ import (
 	sdk "github.com/GoCodeAlone/workflow/plugin/external/sdk"
 )
 
+// Version is set at build time via -ldflags
+// "-X github.com/GoCodeAlone/workflow-plugin-auth/internal.Version=X.Y.Z"
+var Version = "dev"
+
 var allStepTypes = []string{
 	"step.auth_passkey_begin_register",
 	"step.auth_passkey_finish_register",
@@ -30,7 +34,7 @@ func NewAuthPlugin() sdk.PluginProvider {
 func (p *authPlugin) Manifest() sdk.PluginManifest {
 	return sdk.PluginManifest{
 		Name:        "workflow-plugin-auth",
-		Version:     "0.1.0",
+		Version:     Version,
 		Author:      "GoCodeAlone",
 		Description: "Passwordless authentication plugin: WebAuthn/passkeys, TOTP, email magic links",
 	}
