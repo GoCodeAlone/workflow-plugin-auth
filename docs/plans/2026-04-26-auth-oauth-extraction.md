@@ -171,6 +171,8 @@ Test cases:
 - Passkey requires both `webauthn_rp_id` and `webauthn_origin`.
 - Email code requires SMTP host and sender.
 - SMS code requires routes enabled, SMS enabled, Verify service SID, and either auth token or API key/secret.
+- TOTP is disabled by default and enabled only when `totp_auth_enabled` parses
+  strictly true.
 - OAuth providers include Google only when client ID, secret, redirect URL, and routes enabled are present.
 - Missing/templated values containing `{{` are treated as absent.
 
@@ -191,6 +193,9 @@ Create `internal/step_methods_policy.go`:
   `password_enabled`, `password_auth_enabled`, `totp_enabled`,
   `oauth_providers`, and `primary_method_count`.
 - `step.auth_methods_response` mirrors the stable response shape.
+- Do not modify existing magic-link send defaults, subject copy, or environment
+  alias behavior in this task; that coupling is documented as existing
+  behavior and must not expand as part of method policy extraction.
 
 **Step 3: Add audit step tests**
 
@@ -236,11 +241,14 @@ git commit -m "feat: add auth methods policy steps"
 Test cases:
 - `step.auth_oauth_provider_config` returns Google provider metadata when configured.
 - Incomplete Google config returns `available: false`.
+- Facebook, Instagram, X, and Bluesky provider requests return
+  `available: false`, `disabled_reason`, and do not appear in
+  `step.auth_methods_policy` enabled provider lists.
 - `step.auth_oauth_start` constrains empty return paths to `/auth/callback`.
 - `step.auth_oauth_start` rejects absolute external `return_to` URLs.
 - `step.auth_oauth_start` emits `state`, `authorization_url`, `expires_at`, and PKCE values when required.
 - `step.auth_oauth_exchange` posts code, redirect URI, client credentials, and optional `code_verifier` to a test token endpoint.
-- `step.auth_oauth_userinfo` fetches userinfo and outputs `provider`, `provider_subject`, `email`, `email_verified`, `name`, and `picture`.
+- `step.auth_oauth_userinfo` fetches userinfo and outputs `provider`, `provider_subject`, `email`, `email_verified`, `name`, `picture`, and `raw_claims`.
 - Non-2xx token/userinfo responses return clear errors.
 
 Run: `GOWORK=off go test ./internal -run 'TestOAuth' -count=1`
@@ -252,6 +260,8 @@ Expected: FAIL because the step types are unknown.
 Create `internal/step_oauth.go`:
 
 - Add Google constants for auth/token/userinfo URLs and scopes.
+- Add disabled metadata for Facebook, Instagram, X, and Bluesky without
+  marking those providers available.
 - Allow tests/apps to override URLs via config keys:
   `google_oauth_authorization_url`, `google_oauth_token_url`,
   `google_oauth_userinfo_url`.
@@ -269,6 +279,9 @@ Register:
 - `step.auth_oauth_userinfo`
 
 Outputs must preserve BMW-compatible snake_case names.
+`step.auth_oauth_userinfo` must include `raw_claims` as a map for callers that
+need provider-specific policy, while retaining top-level normalized fields for
+BMW's current YAML.
 
 Run: `GOWORK=off go test ./internal -run 'TestOAuth' -count=1`
 
@@ -311,7 +324,24 @@ Create or update `README.md` with:
 Update `plugin.json` if it has an explicit step list. Keep the Go manifest and
 JSON manifest aligned.
 
-**Step 3: Verify plugin build and tests**
+**Step 3: Run wfctl/plugin manifest validation where available**
+
+Check the local wfctl surface first:
+
+```bash
+wfctl --help
+wfctl plugin --help
+wfctl validate --help
+```
+
+If a plugin manifest validation command exists, run it against `plugin.json`.
+Expected: command exits 0 and reports the manifest is valid.
+
+If no plugin manifest validation command exists, record that gap in the PR body
+and rely on the runtime manifest/instantiation tests in this task as the
+fallback. Do not add a custom validator in this PR.
+
+**Step 4: Verify plugin build and tests**
 
 Run:
 
@@ -325,7 +355,7 @@ Expected:
 - Tests pass.
 - `go build` exits 0.
 
-**Step 4: Runtime plugin load smoke test**
+**Step 5: Runtime plugin load smoke test**
 
 Use the repo's existing wftest integration or a minimal Workflow plugin SDK
 execution test to instantiate every advertised step type through `NewAuthPlugin`.
@@ -334,7 +364,7 @@ Run: `GOWORK=off go test ./internal -run 'TestPluginManifest|TestWfTest' -count=
 
 Expected: PASS and all advertised step types instantiate.
 
-**Step 5: Commit**
+**Step 6: Commit**
 
 ```bash
 git add README.md plugin.json .github/workflows/ci.yml internal
