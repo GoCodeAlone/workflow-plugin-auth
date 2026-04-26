@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/url"
+	"strings"
 
 	"github.com/go-webauthn/webauthn/webauthn"
 )
@@ -25,6 +26,10 @@ func (m *credentialModule) Init() error {
 
 	if rpDisplayName == "" {
 		rpDisplayName = "Workflow App"
+	}
+	if (rpID == "" || origin == "") && configBool(m.config, "optional") {
+		unregisterModule(m.name)
+		return nil
 	}
 	if rpID == "" {
 		// Extract from origin
@@ -63,4 +68,15 @@ func (m *credentialModule) Start(_ context.Context) error { return nil }
 func (m *credentialModule) Stop(_ context.Context) error {
 	unregisterModule(m.name)
 	return nil
+}
+
+func configBool(config map[string]any, key string) bool {
+	switch value := config[key].(type) {
+	case bool:
+		return value
+	case string:
+		return strings.EqualFold(strings.TrimSpace(value), "true")
+	default:
+		return false
+	}
 }
