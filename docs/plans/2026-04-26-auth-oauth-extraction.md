@@ -75,8 +75,13 @@ git commit -m "feat: add password hash auth steps"
 
 Test cases:
 - `step.auth_challenge_generate` emits a six-digit `code`, `code_hash`, `destination`, and RFC3339 `expires_at`.
+- Generate trims and lowercases email destinations before hashing/emitting
+  `destination`, and trims phone-like destinations without changing E.164
+  punctuation.
 - Generate accepts `destination`, `signing_secret`, and optional `ttl_minutes`.
 - Verify returns `valid: true` for the generated code/hash.
+- Verify normalizes the submitted destination with the same contract before
+  recomputing the hash.
 - Verify returns `valid: false` for wrong code.
 - Verify returns `valid: false` for expired `expires_at`.
 
@@ -89,6 +94,8 @@ Expected: FAIL because the step types are unknown.
 Create `internal/step_challenge.go`:
 
 - Generate a random six-digit code with `crypto/rand`.
+- Normalize destinations through a helper before hashing and output the
+  normalized value.
 - Hash `destination + ":" + code` using HMAC-SHA256 when `signing_secret` is set; otherwise SHA-256 for non-secret dev flows.
 - Default TTL: 10 minutes.
 - Verify recomputes the same hash and checks expiry if provided.
