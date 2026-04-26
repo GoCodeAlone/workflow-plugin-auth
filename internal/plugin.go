@@ -21,6 +21,18 @@ var allStepTypes = []string{
 	"step.auth_magic_link_generate",
 	"step.auth_magic_link_verify",
 	"step.auth_magic_link_send",
+	"step.auth_password_hash",
+	"step.auth_password_verify",
+	"step.auth_challenge_generate",
+	"step.auth_challenge_verify",
+	"step.auth_normalize_phone",
+	"step.auth_methods_policy",
+	"step.auth_methods_response",
+	"step.auth_policy_audit",
+	"step.auth_oauth_provider_config",
+	"step.auth_oauth_start",
+	"step.auth_oauth_exchange",
+	"step.auth_oauth_userinfo",
 	"step.auth_credential_list",
 	"step.auth_credential_revoke",
 }
@@ -79,6 +91,30 @@ func (p *authPlugin) CreateStep(typeName, name string, config map[string]any) (s
 		return newMagicLinkVerifyStep(name, config), nil
 	case "step.auth_magic_link_send":
 		return newMagicLinkSendStep(name, config), nil
+	case "step.auth_password_hash":
+		return newPasswordHashStep(name, config), nil
+	case "step.auth_password_verify":
+		return newPasswordVerifyStep(name, config), nil
+	case "step.auth_challenge_generate":
+		return newChallengeGenerateStep(name, config), nil
+	case "step.auth_challenge_verify":
+		return newChallengeVerifyStep(name, config), nil
+	case "step.auth_normalize_phone":
+		return newNormalizePhoneStep(name, config), nil
+	case "step.auth_methods_policy":
+		return newAuthMethodsPolicyStep(name, config), nil
+	case "step.auth_methods_response":
+		return newAuthMethodsResponseStep(name, config), nil
+	case "step.auth_policy_audit":
+		return newAuthPolicyAuditStep(name, config), nil
+	case "step.auth_oauth_provider_config":
+		return newOAuthProviderConfigStep(name, config), nil
+	case "step.auth_oauth_start":
+		return newOAuthStartStep(name, config), nil
+	case "step.auth_oauth_exchange":
+		return newOAuthExchangeStep(name, config), nil
+	case "step.auth_oauth_userinfo":
+		return newOAuthUserinfoStep(name, config), nil
 	case "step.auth_credential_list":
 		return newCredentialListStep(name, config), nil
 	case "step.auth_credential_revoke":

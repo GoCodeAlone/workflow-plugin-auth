@@ -4,11 +4,12 @@ import (
 	"context"
 	"testing"
 
+	sdk "github.com/GoCodeAlone/workflow/plugin/external/sdk"
 	"golang.org/x/crypto/bcrypt"
 )
 
 func TestPasswordHash_EmitsHashWithoutPassword(t *testing.T) {
-	step := newPasswordHashStep("test", nil)
+	step := mustCreatePasswordStep(t, "step.auth_password_hash")
 
 	result, err := step.Execute(context.Background(), nil, nil, map[string]any{
 		"password": "correct horse battery staple",
@@ -34,7 +35,7 @@ func TestPasswordVerify_ReturnsTrueForMatchingPassword(t *testing.T) {
 	if err != nil {
 		t.Fatalf("hash fixture: %v", err)
 	}
-	step := newPasswordVerifyStep("test", nil)
+	step := mustCreatePasswordStep(t, "step.auth_password_verify")
 
 	result, err := step.Execute(context.Background(), nil, nil, map[string]any{
 		"password": "secret-password",
@@ -54,7 +55,7 @@ func TestPasswordVerify_ReturnsFalseForWrongPassword(t *testing.T) {
 	if err != nil {
 		t.Fatalf("hash fixture: %v", err)
 	}
-	step := newPasswordVerifyStep("test", nil)
+	step := mustCreatePasswordStep(t, "step.auth_password_verify")
 
 	result, err := step.Execute(context.Background(), nil, nil, map[string]any{
 		"password": "wrong-password",
@@ -70,7 +71,7 @@ func TestPasswordVerify_ReturnsFalseForWrongPassword(t *testing.T) {
 }
 
 func TestPasswordVerify_ReturnsFalseAndErrorForMissingInput(t *testing.T) {
-	step := newPasswordVerifyStep("test", nil)
+	step := mustCreatePasswordStep(t, "step.auth_password_verify")
 
 	result, err := step.Execute(context.Background(), nil, nil, map[string]any{}, nil, nil)
 	if err != nil {
@@ -83,4 +84,14 @@ func TestPasswordVerify_ReturnsFalseAndErrorForMissingInput(t *testing.T) {
 	if _, ok := result.Output["error"].(string); !ok {
 		t.Fatal("expected error string for missing input")
 	}
+}
+
+func mustCreatePasswordStep(t *testing.T, stepType string) sdk.StepInstance {
+	t.Helper()
+	provider := NewAuthPlugin().(sdk.StepProvider)
+	step, err := provider.CreateStep(stepType, "test", map[string]any{})
+	if err != nil {
+		t.Fatalf("CreateStep(%q): %v", stepType, err)
+	}
+	return step
 }
