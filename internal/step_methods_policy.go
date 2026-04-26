@@ -142,6 +142,9 @@ func oauthPolicyProviders(source map[string]any) []string {
 		!policyPresent(source, "google_oauth_redirect_url") {
 		return nil
 	}
+	if _, disabledReason := oauthProviderConfig(source, "google"); disabledReason != "" {
+		return nil
+	}
 	return []string{"google"}
 }
 

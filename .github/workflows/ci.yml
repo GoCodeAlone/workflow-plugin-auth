@@ -12,5 +12,9 @@ jobs:
       - uses: actions/setup-go@v6
         with:
           go-version-file: go.mod
+      - uses: GoCodeAlone/setup-wfctl@v1
+        with:
+          version: v0.18.15
       - run: go build ./...
       - run: go test ./... -v -race -count=1
+      - run: wfctl plugin validate -file plugin.json

@@ -70,12 +70,18 @@ func (s *challengeVerifyStep) Execute(_ context.Context, _ map[string]any, _ map
 		return &sdk.StepResult{Output: map[string]any{"valid": false, "error": "missing channel, code, code_hash, destination, tenant_id, purpose, or signing_secret"}}, nil
 	}
 
-	attempts, attemptsOK := currentInt(current, "attempts")
-	if !attemptsOK {
+	attempts, attemptsPresent, attemptsOK := currentInt(current, "attempts")
+	if attemptsPresent && !attemptsOK {
+		return &sdk.StepResult{Output: map[string]any{"valid": false, "error": "invalid attempts"}}, nil
+	}
+	if !attemptsPresent {
 		attempts = 0
 	}
-	maxAttempts, maxAttemptsOK := currentInt(current, "max_attempts")
-	if !maxAttemptsOK {
+	maxAttempts, maxAttemptsPresent, maxAttemptsOK := currentInt(current, "max_attempts")
+	if maxAttemptsPresent && !maxAttemptsOK {
+		return &sdk.StepResult{Output: map[string]any{"valid": false, "error": "invalid max_attempts"}}, nil
+	}
+	if !maxAttemptsPresent {
 		maxAttempts = 5
 	}
 	if maxAttempts <= 0 {
@@ -129,23 +135,23 @@ func hashChallengeCode(channel, destination, tenantID, purpose, code, signingSec
 	return hex.EncodeToString(mac.Sum(nil))
 }
 
-func currentInt(current map[string]any, key string) (int, bool) {
+func currentInt(current map[string]any, key string) (int, bool, bool) {
 	value, ok := current[key]
 	if !ok {
-		return 0, false
+		return 0, false, false
 	}
 	switch v := value.(type) {
 	case int:
-		return v, true
+		return v, true, true
 	case int64:
-		return int(v), true
+		return int(v), true, true
 	case float64:
-		return int(v), true
+		return int(v), true, true
 	case string:
 		i, err := strconv.Atoi(strings.TrimSpace(v))
-		return i, err == nil
+		return i, true, err == nil
 	default:
-		return 0, false
+		return 0, true, false
 	}
 }
 

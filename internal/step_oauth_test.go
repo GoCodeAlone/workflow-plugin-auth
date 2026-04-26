@@ -198,6 +198,55 @@ func TestOAuthExchange_PostsTokenRequestWithPKCE(t *testing.T) {
 	}
 }
 
+func TestOAuthEndpointOverride_RequiresStrictBooleanTestFlag(t *testing.T) {
+	tokenServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		_ = json.NewEncoder(w).Encode(map[string]any{"access_token": "access-123"})
+	}))
+	defer tokenServer.Close()
+
+	step := newOAuthExchangeStep("test", googleOAuthTestConfig(map[string]any{
+		"google_oauth_token_url":              tokenServer.URL,
+		"allow_insecure_test_oauth_endpoints": "true",
+	}))
+
+	result, err := step.Execute(context.Background(), nil, nil, map[string]any{
+		"provider": "google",
+		"code":     "code-123",
+	}, nil, nil)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if result.Output["exchanged"] != false {
+		t.Fatalf("expected string test flag to be rejected, got %#v", result.Output)
+	}
+	if !strings.Contains(result.Output["error"].(string), "expected Google hostname") {
+		t.Fatalf("expected endpoint safety error, got %v", result.Output["error"])
+	}
+}
+
+func TestAuthMethodsPolicy_DoesNotAdvertiseRejectedOAuthEndpoint(t *testing.T) {
+	output := executeMethodsPolicy(t, map[string]any{
+		"auth_routes_enabled":        true,
+		"google_oauth_client_id":     "client-id",
+		"google_oauth_client_secret": "client-secret",
+		"google_oauth_redirect_url":  "https://example.com/auth/google/callback",
+		"google_oauth_token_url":     "https://evil.example.com/token",
+	})
+	assertProviders(t, output, nil)
+}
+
+func TestAuthMethodsPolicy_AdvertisesTestOAuthEndpointWithStrictFlag(t *testing.T) {
+	output := executeMethodsPolicy(t, map[string]any{
+		"auth_routes_enabled":                 true,
+		"google_oauth_client_id":              "client-id",
+		"google_oauth_client_secret":          "client-secret",
+		"google_oauth_redirect_url":           "https://example.com/auth/google/callback",
+		"google_oauth_token_url":              "http://127.0.0.1/token",
+		"allow_insecure_test_oauth_endpoints": true,
+	})
+	assertProviders(t, output, []string{"google"})
+}
+
 func TestOAuthUserinfo_FetchesGoogleClaims(t *testing.T) {
 	userinfoServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.Header.Get("Authorization") != "Bearer access-123" {

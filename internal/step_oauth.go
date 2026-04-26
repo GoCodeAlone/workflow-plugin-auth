@@ -318,7 +318,7 @@ func oauthEndpointURL(config map[string]any, key, def, expectedHost string) (str
 	if err != nil || parsed.Host == "" {
 		return "", false
 	}
-	if oauthBool(config, "allow_insecure_test_oauth_endpoints") {
+	if oauthStrictBool(config, "allow_insecure_test_oauth_endpoints") {
 		return value, true
 	}
 	if parsed.Scheme == "https" && strings.EqualFold(parsed.Hostname(), expectedHost) {
@@ -406,6 +406,14 @@ func oauthBool(values map[string]any, key string) bool {
 	default:
 		return false
 	}
+}
+
+func oauthStrictBool(values map[string]any, key string) bool {
+	if values == nil {
+		return false
+	}
+	value, ok := values[key].(bool)
+	return ok && value
 }
 
 func oauthStateTTL(config map[string]any) time.Duration {

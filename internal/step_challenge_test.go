@@ -157,6 +157,59 @@ func TestChallengeVerify_DefaultsMaxAttemptsWhenOmitted(t *testing.T) {
 	}
 }
 
+func TestChallengeVerify_FailsClosedForMalformedAttemptCounters(t *testing.T) {
+	genStep := newChallengeGenerateStep("generate", nil)
+	genResult, err := genStep.Execute(context.Background(), nil, nil, map[string]any{
+		"channel":        "email",
+		"destination":    "user@example.com",
+		"tenant_id":      "tenant-123",
+		"purpose":        "login",
+		"signing_secret": "test-secret",
+	}, nil, nil)
+	if err != nil {
+		t.Fatalf("unexpected generate error: %v", err)
+	}
+
+	verifyStep := newChallengeVerifyStep("verify", nil)
+	for _, tc := range []struct {
+		name  string
+		field string
+		value any
+	}{
+		{name: "invalid attempts string", field: "attempts", value: "not-a-number"},
+		{name: "invalid max_attempts string", field: "max_attempts", value: "not-a-number"},
+		{name: "invalid attempts type", field: "attempts", value: []string{"0"}},
+		{name: "invalid max_attempts type", field: "max_attempts", value: []string{"5"}},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			input := map[string]any{
+				"channel":        "email",
+				"code":           genResult.Output["code"],
+				"code_hash":      genResult.Output["code_hash"],
+				"destination":    "user@example.com",
+				"tenant_id":      "tenant-123",
+				"purpose":        "login",
+				"signing_secret": "test-secret",
+				"expires_at":     genResult.Output["expires_at"],
+				"attempts":       0,
+				"max_attempts":   5,
+			}
+			input[tc.field] = tc.value
+
+			result, err := verifyStep.Execute(context.Background(), nil, nil, input, nil, nil)
+			if err != nil {
+				t.Fatalf("unexpected verify error: %v", err)
+			}
+			if result.Output["valid"] != false {
+				t.Fatalf("expected malformed %s to fail closed, got %#v", tc.field, result.Output)
+			}
+			if _, ok := result.Output["error"].(string); !ok {
+				t.Fatalf("expected error for malformed %s", tc.field)
+			}
+		})
+	}
+}
+
 func TestChallengeVerify_BindsChannelTenantAndPurpose(t *testing.T) {
 	genStep := newChallengeGenerateStep("generate", nil)
 	genResult, err := genStep.Execute(context.Background(), nil, nil, map[string]any{

@@ -3,7 +3,6 @@ package internal
 import (
 	"context"
 	"strings"
-	"unicode"
 
 	sdk "github.com/GoCodeAlone/workflow/plugin/external/sdk"
 )
@@ -43,7 +42,7 @@ func stripPhoneFormatting(phone string) string {
 	var b strings.Builder
 	for i, r := range phone {
 		switch {
-		case unicode.IsDigit(r):
+		case isASCIIDigit(r):
 			b.WriteRune(r)
 		case r == '+' && i == 0:
 			b.WriteRune(r)
@@ -69,6 +68,9 @@ func validPhoneResult(phone string) *sdk.StepResult {
 func invalidPhoneResult(message string) *sdk.StepResult {
 	return &sdk.StepResult{Output: map[string]any{
 		"valid":       false,
+		"phone_e164":  "",
+		"country":     "",
+		"phone":       "",
 		"phone_valid": false,
 		"error":       message,
 	}}
@@ -83,9 +85,13 @@ func phoneCountry(phone string) string {
 
 func allDigits(value string) bool {
 	for _, r := range value {
-		if !unicode.IsDigit(r) {
+		if !isASCIIDigit(r) {
 			return false
 		}
 	}
 	return true
+}
+
+func isASCIIDigit(r rune) bool {
+	return r >= '0' && r <= '9'
 }
