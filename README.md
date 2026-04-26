@@ -24,6 +24,7 @@ Authentication primitives for Workflow applications.
 - `step.auth_challenge_verify`
 - `step.auth_normalize_phone`
 - `step.auth_methods_policy`
+- `step.auth_policy_gate`
 - `step.auth_methods_response`
 - `step.auth_policy_audit`
 - `step.auth_oauth_provider_config`
@@ -68,6 +69,13 @@ SMS code auth requires routes enabled, SMS enabled, `twilio_verify_service_sid`,
 and either `twilio_account_sid` plus `twilio_auth_token`, or
 `twilio_api_key_sid` plus `twilio_api_key_secret`.
 
+`step.auth_policy_gate` filters a previous policy step before public auth
+conditionals or responses use it. It disables email-code auth unless a concrete
+`signing_secret` is available, filters OAuth providers to supported
+implementations (Google by default), and recomputes `primary_method_count`.
+Keep app-specific challenge storage, tenant scoping, identity linking, and JWT
+issuance in the consuming app.
+
 `step.auth_methods_response` converts policy output into a stable response
 shape. `step.auth_policy_audit` reports production password policy violations
 for CI or operational checks.
@@ -94,6 +102,7 @@ true`.
 ## BMW Migration Map
 
 - `step.bmw.auth_policy` -> `step.auth_methods_policy`
+- `step.bmw.auth_policy_gate` -> `step.auth_policy_gate`
 - `step.bmw.auth_methods_response` -> `step.auth_methods_response`
 - `step.bmw.oauth_provider_config` -> `step.auth_oauth_provider_config`
 - `step.bmw.oauth_start` -> `step.auth_oauth_start`

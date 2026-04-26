@@ -27,6 +27,7 @@ var allStepTypes = []string{
 	"step.auth_challenge_verify",
 	"step.auth_normalize_phone",
 	"step.auth_methods_policy",
+	"step.auth_policy_gate",
 	"step.auth_methods_response",
 	"step.auth_policy_audit",
 	"step.auth_oauth_provider_config",
@@ -103,6 +104,8 @@ func (p *authPlugin) CreateStep(typeName, name string, config map[string]any) (s
 		return newNormalizePhoneStep(name, config), nil
 	case "step.auth_methods_policy":
 		return newAuthMethodsPolicyStep(name, config), nil
+	case "step.auth_policy_gate":
+		return newAuthPolicyGateStep(name, config), nil
 	case "step.auth_methods_response":
 		return newAuthMethodsResponseStep(name, config), nil
 	case "step.auth_policy_audit":

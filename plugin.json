@@ -51,6 +51,7 @@
     "step.auth_challenge_verify",
     "step.auth_normalize_phone",
     "step.auth_methods_policy",
+    "step.auth_policy_gate",
     "step.auth_methods_response",
     "step.auth_policy_audit",
     "step.auth_oauth_provider_config",
