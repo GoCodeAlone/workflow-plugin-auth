@@ -74,11 +74,13 @@ Add:
 - `step.auth_challenge_generate`
 - `step.auth_challenge_verify`
 
-The generate step emits a short numeric code, an HMAC or SHA-256 storage hash,
-the normalized destination, and an expiration timestamp. The verify step checks
-a submitted code against the stored hash and optional expiration. The plugin
-does not store the challenge; apps store it using their chosen database plugin
-or provider.
+The generate step emits a short numeric code, an HMAC-SHA256 storage hash, the
+normalized destination, and an expiration timestamp. Hashing must require a
+signing secret and bind `channel`, `destination`, `tenant_id`, `purpose`, and
+`code` so a stored hash cannot be replayed across tenants or auth flows. The
+verify step checks a submitted code against the stored hash, expiration, and
+attempt limits. The plugin does not store the challenge; apps store it using
+their chosen database plugin or provider.
 
 ### Phone Normalization
 
@@ -88,7 +90,9 @@ Add:
 
 The first version should handle pragmatic E.164 normalization for US-focused
 phone numbers and pass through already-normalized E.164 input. It should report
-invalid input without panics. A later version can add libphonenumber if
+invalid input without panics. It must emit both generic outputs
+(`valid`, `phone_e164`, `country`) and BMW-compatible aliases (`phone`,
+`phone_valid`) for migration safety. A later version can add libphonenumber if
 international behavior needs stronger validation.
 
 ### Method Policy
@@ -121,11 +125,15 @@ Add:
 
 The first release supports Google as complete and exposes disabled/incomplete
 provider metadata for future providers without advertising them as login-ready.
+Provider endpoint URLs must be built in or constrained to expected HTTPS
+provider hosts in production. Test endpoint overrides are allowed only when
+explicitly marked as test-only to avoid sending OAuth credentials to arbitrary
+configured URLs.
 Start generates state, optional PKCE verifier/challenge, a constrained
 `return_to`, an authorization URL, and expiration. Exchange posts the code to
 the provider token endpoint, including `code_verifier` when present. Userinfo
-returns provider subject, email, email verification status, name, picture, and
-raw claims where useful.
+returns provider subject, the BMW-compatible `provider_user` alias, email,
+email verification status, name, picture, and raw claims where useful.
 
 The plugin does not store OAuth state. Apps must persist `state`,
 `code_verifier`, `return_to`, `provider`, tenant/app context, and expiration in

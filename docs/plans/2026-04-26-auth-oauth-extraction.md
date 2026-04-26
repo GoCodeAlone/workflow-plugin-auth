@@ -78,10 +78,18 @@ Test cases:
 - Generate trims and lowercases email destinations before hashing/emitting
   `destination`, and trims phone-like destinations without changing E.164
   punctuation.
-- Generate accepts `destination`, `signing_secret`, and optional `ttl_minutes`.
+- Generate requires `channel`, `destination`, `tenant_id`, `purpose`, and
+  `signing_secret`, plus optional `ttl_minutes`.
+- Generate returns an error output or Go error when `signing_secret` is absent;
+  it must not hash six-digit codes with plain SHA-256 or a default public
+  secret.
 - Verify returns `valid: true` for the generated code/hash.
 - Verify normalizes the submitted destination with the same contract before
   recomputing the hash.
+- Verify recomputes the HMAC over `channel`, normalized `destination`,
+  `tenant_id`, `purpose`, and `code`.
+- Verify returns `valid: false` when `attempts >= max_attempts`; default
+  `max_attempts` is 5 when omitted.
 - Verify returns `valid: false` for wrong code.
 - Verify returns `valid: false` for expired `expires_at`.
 
@@ -96,9 +104,12 @@ Create `internal/step_challenge.go`:
 - Generate a random six-digit code with `crypto/rand`.
 - Normalize destinations through a helper before hashing and output the
   normalized value.
-- Hash `destination + ":" + code` using HMAC-SHA256 when `signing_secret` is set; otherwise SHA-256 for non-secret dev flows.
+- Hash with HMAC-SHA256 using `signing_secret`.
+- Bind hash material as `channel`, normalized `destination`, `tenant_id`,
+  `purpose`, and `code` with unambiguous separators.
 - Default TTL: 10 minutes.
-- Verify recomputes the same hash and checks expiry if provided.
+- Verify recomputes the same hash, checks expiry if provided, and enforces
+  attempt limits.
 - Return errors in output, not panics, for missing inputs.
 
 **Step 3: Add integration coverage**
@@ -129,6 +140,8 @@ git commit -m "feat: add auth challenge steps"
 Test cases:
 - `(555) 123-4567` normalizes to `+15551234567` with country `US`.
 - `+15551234567` remains unchanged.
+- Valid phone output includes generic fields `valid`, `phone_e164`, `country`
+  and BMW compatibility aliases `phone`, `phone_valid`.
 - Empty input returns `valid: false`.
 - Too-short input returns `valid: false` and `error`.
 
@@ -146,6 +159,8 @@ Create `internal/step_phone.go`:
 - For 10 digits, prefix `+1`.
 - For 11 digits starting with `1`, prefix `+`.
 - Output `valid`, `phone_e164`, `country`, and `error` where applicable.
+- Also output `phone` and `phone_valid` as compatibility aliases for BMW's
+  existing YAML.
 
 **Step 3: Add integration coverage**
 
@@ -255,7 +270,10 @@ Test cases:
 - `step.auth_oauth_start` rejects absolute external `return_to` URLs.
 - `step.auth_oauth_start` emits `state`, `authorization_url`, `expires_at`, and PKCE values when required.
 - `step.auth_oauth_exchange` posts code, redirect URI, client credentials, and optional `code_verifier` to a test token endpoint.
-- `step.auth_oauth_userinfo` fetches userinfo and outputs `provider`, `provider_subject`, `email`, `email_verified`, `name`, `picture`, and `raw_claims`.
+- `step.auth_oauth_userinfo` fetches userinfo and outputs `provider`, `provider_subject`, BMW compatibility alias `provider_user`, `email`, `email_verified`, `name`, `picture`, and `raw_claims`.
+- Production config rejects arbitrary OAuth endpoint URL overrides; test
+  overrides are accepted only when `allow_insecure_test_oauth_endpoints` is
+  strictly true.
 - Non-2xx token/userinfo responses return clear errors.
 
 Run: `GOWORK=off go test ./internal -run 'TestOAuth' -count=1`
@@ -269,9 +287,12 @@ Create `internal/step_oauth.go`:
 - Add Google constants for auth/token/userinfo URLs and scopes.
 - Add disabled metadata for Facebook, Instagram, X, and Bluesky without
   marking those providers available.
-- Allow tests/apps to override URLs via config keys:
+- Allow tests to override URLs via config keys only when
+  `allow_insecure_test_oauth_endpoints` is strictly true:
   `google_oauth_authorization_url`, `google_oauth_token_url`,
   `google_oauth_userinfo_url`.
+- Without that test flag, require Google endpoint URLs to use HTTPS and the
+  expected Google hostnames.
 - Add generic helper functions for config values, provider normalization,
   random URL-safe tokens, PKCE challenge, same-site `return_to` normalization,
   and JSON response decoding with a 1 MiB body limit.
@@ -289,6 +310,7 @@ Outputs must preserve BMW-compatible snake_case names.
 `step.auth_oauth_userinfo` must include `raw_claims` as a map for callers that
 need provider-specific policy, while retaining top-level normalized fields for
 BMW's current YAML.
+It must also emit `provider_user` as an alias for `provider_subject`.
 
 Run: `GOWORK=off go test ./internal -run 'TestOAuth' -count=1`
 
