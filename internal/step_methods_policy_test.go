@@ -222,6 +222,168 @@ func TestAuthMethodsResponse(t *testing.T) {
 	}
 }
 
+func TestAuthPolicyGate(t *testing.T) {
+	basePolicy := map[string]any{
+		"passkey_enabled":       true,
+		"email_code_enabled":    true,
+		"sms_code_enabled":      false,
+		"password_enabled":      true,
+		"password_auth_enabled": true,
+		"totp_enabled":          true,
+		"oauth_providers":       []string{"google", "github"},
+		"primary_method_count":  4,
+	}
+
+	tests := []struct {
+		name          string
+		config        map[string]any
+		current       map[string]any
+		runtimeConfig map[string]any
+		steps         map[string]map[string]any
+		wantPasskey   bool
+		wantEmail     bool
+		wantSMS       bool
+		wantPassword  bool
+		wantTOTP      bool
+		wantProviders []string
+		wantCount     int
+	}{
+		{
+			name: "email code enabled without signing secret becomes disabled and count decrements",
+			steps: map[string]map[string]any{
+				"policy": basePolicy,
+			},
+			wantPasskey:   true,
+			wantEmail:     false,
+			wantPassword:  true,
+			wantTOTP:      true,
+			wantProviders: []string{"google"},
+			wantCount:     3,
+		},
+		{
+			name: "email code remains enabled with signing secret",
+			config: map[string]any{
+				"signing_secret": "secret",
+			},
+			steps: map[string]map[string]any{
+				"policy": basePolicy,
+			},
+			wantPasskey:   true,
+			wantEmail:     true,
+			wantPassword:  true,
+			wantTOTP:      true,
+			wantProviders: []string{"google"},
+			wantCount:     4,
+		},
+		{
+			name: "templated signing secret is treated as missing",
+			config: map[string]any{
+				"signing_secret": "{{ config \"auth_signing_secret\" }}",
+			},
+			steps: map[string]map[string]any{
+				"policy": basePolicy,
+			},
+			wantPasskey:   true,
+			wantEmail:     false,
+			wantPassword:  true,
+			wantTOTP:      true,
+			wantProviders: []string{"google"},
+			wantCount:     3,
+		},
+		{
+			name: "unsupported OAuth providers are filtered to Google by default",
+			config: map[string]any{
+				"signing_secret": "secret",
+			},
+			steps: map[string]map[string]any{
+				"policy": basePolicy,
+			},
+			wantPasskey:   true,
+			wantEmail:     true,
+			wantPassword:  true,
+			wantTOTP:      true,
+			wantProviders: []string{"google"},
+			wantCount:     4,
+		},
+		{
+			name: "explicit empty OAuth support list disables provider fallback",
+			config: map[string]any{
+				"signing_secret":            "secret",
+				"oauth_supported_providers": []string{},
+			},
+			steps: map[string]map[string]any{
+				"policy": basePolicy,
+			},
+			wantPasskey:   true,
+			wantEmail:     true,
+			wantPassword:  true,
+			wantTOTP:      true,
+			wantProviders: []string{},
+			wantCount:     3,
+		},
+		{
+			name: "templated current signing secret does not mask concrete runtime secret",
+			current: map[string]any{
+				"signing_secret": "{{ config \"jwt_secret\" }}",
+			},
+			runtimeConfig: map[string]any{
+				"signing_secret": "runtime-secret",
+			},
+			steps: map[string]map[string]any{
+				"policy": basePolicy,
+			},
+			wantPasskey:   true,
+			wantEmail:     true,
+			wantPassword:  true,
+			wantTOTP:      true,
+			wantProviders: []string{"google"},
+			wantCount:     4,
+		},
+		{
+			name:          "missing policy step output returns disabled policy",
+			steps:         map[string]map[string]any{},
+			wantEmail:     false,
+			wantProviders: []string{},
+			wantCount:     0,
+		},
+		{
+			name: "custom policy step and runtime signing secret are supported",
+			config: map[string]any{
+				"policy_step": "tenant_policy",
+			},
+			runtimeConfig: map[string]any{
+				"signing_secret": "secret",
+			},
+			steps: map[string]map[string]any{
+				"tenant_policy": basePolicy,
+			},
+			wantPasskey:   true,
+			wantEmail:     true,
+			wantPassword:  true,
+			wantTOTP:      true,
+			wantProviders: []string{"google"},
+			wantCount:     4,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			output := executeAuthPolicyGate(t, tt.config, tt.current, tt.runtimeConfig, tt.steps)
+
+			assertBool(t, output, "passkey_enabled", tt.wantPasskey)
+			assertBool(t, output, "email_code_enabled", tt.wantEmail)
+			assertBool(t, output, "sms_code_enabled", tt.wantSMS)
+			assertBool(t, output, "password_enabled", tt.wantPassword)
+			assertBool(t, output, "password_auth_enabled", tt.wantPassword)
+			assertBool(t, output, "totp_enabled", tt.wantTOTP)
+			assertProviders(t, output, tt.wantProviders)
+			if got := output["primary_method_count"]; got != tt.wantCount {
+				t.Fatalf("primary_method_count = %v, want %v", got, tt.wantCount)
+			}
+		})
+	}
+}
+
 func TestAuthPolicyAudit(t *testing.T) {
 	t.Run("production password auth request fails", func(t *testing.T) {
 		output := executePolicyAudit(t, map[string]any{
@@ -259,6 +421,16 @@ func executeMethodsPolicy(t *testing.T, current map[string]any) map[string]any {
 	t.Helper()
 	step := newAuthMethodsPolicyStep("policy", nil)
 	result, err := step.Execute(context.Background(), nil, nil, current, nil, nil)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	return result.Output
+}
+
+func executeAuthPolicyGate(t *testing.T, config, current, runtimeConfig map[string]any, steps map[string]map[string]any) map[string]any {
+	t.Helper()
+	step := newAuthPolicyGateStep("gate", config)
+	result, err := step.Execute(context.Background(), nil, steps, current, nil, runtimeConfig)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}

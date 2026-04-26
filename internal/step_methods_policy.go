@@ -129,6 +129,95 @@ func buildAuthMethodsResponse(current map[string]any) map[string]any {
 	return response
 }
 
+type authPolicyGateStep struct {
+	name   string
+	config map[string]any
+}
+
+func newAuthPolicyGateStep(name string, config map[string]any) *authPolicyGateStep {
+	return &authPolicyGateStep{name: name, config: config}
+}
+
+func (s *authPolicyGateStep) Execute(_ context.Context, _ map[string]any, steps map[string]map[string]any, current, _, runtimeConfig map[string]any) (*sdk.StepResult, error) {
+	policyStep := policyString(s.config, "policy_step")
+	if policyStep == "" {
+		policyStep = "policy"
+	}
+
+	policy := steps[policyStep]
+	output := map[string]any{
+		"passkey_enabled":       policyBool(policy, "passkey_enabled"),
+		"email_code_enabled":    policyBool(policy, "email_code_enabled"),
+		"sms_code_enabled":      policyBool(policy, "sms_code_enabled"),
+		"password_enabled":      policyBool(policy, "password_enabled"),
+		"password_auth_enabled": policyBool(policy, "password_auth_enabled"),
+		"totp_enabled":          policyBool(policy, "totp_enabled"),
+		"oauth_providers":       filterPolicyOAuthProviders(policyStringSlice(policy, "oauth_providers"), supportedPolicyOAuthProviders(s.config)),
+	}
+
+	signingSecret := firstPolicyString("signing_secret", s.config, runtimeConfig, current)
+	if signingSecret == "" {
+		signingSecret = firstPolicyString("jwt_secret", s.config, runtimeConfig, current)
+	}
+	if output["email_code_enabled"] == true && signingSecret == "" {
+		output["email_code_enabled"] = false
+	}
+	output["primary_method_count"] = countPrimaryPolicyMethods(output)
+
+	return &sdk.StepResult{Output: output}, nil
+}
+
+func supportedPolicyOAuthProviders(config map[string]any) map[string]struct{} {
+	providers, ok := policyStringSliceIfPresent(config, "oauth_supported_providers")
+	if !ok {
+		providers = []string{"google"}
+	}
+
+	supported := make(map[string]struct{}, len(providers))
+	for _, provider := range providers {
+		provider = strings.ToLower(strings.TrimSpace(provider))
+		if provider != "" {
+			supported[provider] = struct{}{}
+		}
+	}
+	return supported
+}
+
+func firstPolicyString(key string, sources ...map[string]any) string {
+	for _, source := range sources {
+		if value := policyString(source, key); value != "" {
+			return value
+		}
+	}
+	return ""
+}
+
+func filterPolicyOAuthProviders(providers []string, supported map[string]struct{}) []string {
+	filtered := make([]string, 0, len(providers))
+	for _, provider := range providers {
+		provider = strings.ToLower(strings.TrimSpace(provider))
+		if _, ok := supported[provider]; ok {
+			filtered = append(filtered, provider)
+		}
+	}
+	return filtered
+}
+
+func countPrimaryPolicyMethods(output map[string]any) int {
+	count := 0
+	for _, enabled := range []bool{
+		policyBool(output, "passkey_enabled"),
+		policyBool(output, "email_code_enabled"),
+		policyBool(output, "sms_code_enabled"),
+		policyBool(output, "password_enabled"),
+	} {
+		if enabled {
+			count++
+		}
+	}
+	return count + len(policyStringSlice(output, "oauth_providers"))
+}
+
 func oauthPolicyProviders(source map[string]any) []string {
 	provider := strings.ToLower(policyString(source, "oauth_provider"))
 	if provider != "" && provider != "google" {
@@ -304,6 +393,13 @@ func policyStringSlice(source map[string]any, key string) []string {
 	default:
 		return nil
 	}
+}
+
+func policyStringSliceIfPresent(source map[string]any, key string) ([]string, bool) {
+	if _, ok := source[key]; !ok {
+		return nil, false
+	}
+	return policyStringSlice(source, key), true
 }
 
 func isProduction(environment string) bool {
