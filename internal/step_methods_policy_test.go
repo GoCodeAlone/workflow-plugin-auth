@@ -364,6 +364,101 @@ func TestAuthPolicyGate(t *testing.T) {
 			wantProviders: []string{"google"},
 			wantCount:     4,
 		},
+		{
+			name: "missing required runtime key disables tenant scoped methods",
+			config: map[string]any{
+				"required_runtime_keys": []string{"tenant_id"},
+				"signing_secret":        "secret",
+			},
+			runtimeConfig: map[string]any{
+				"tenant_id": "{{ config \"tenant_id\" }}",
+			},
+			steps: map[string]map[string]any{
+				"policy": {
+					"passkey_enabled":       true,
+					"email_code_enabled":    true,
+					"sms_code_enabled":      true,
+					"password_enabled":      false,
+					"password_auth_enabled": false,
+					"totp_enabled":          false,
+					"oauth_providers":       []string{"google"},
+				},
+			},
+			wantPasskey:   true,
+			wantEmail:     false,
+			wantSMS:       false,
+			wantProviders: []string{},
+			wantCount:     1,
+		},
+		{
+			name: "scalar required runtime key is accepted",
+			config: map[string]any{
+				"required_runtime_keys": "tenant_id",
+				"signing_secret":        "secret",
+			},
+			runtimeConfig: map[string]any{
+				"tenant_id": "tenant-123",
+			},
+			steps: map[string]map[string]any{
+				"policy": {
+					"passkey_enabled":    false,
+					"email_code_enabled": true,
+					"sms_code_enabled":   true,
+					"oauth_providers":    []string{"google"},
+				},
+			},
+			wantEmail:     true,
+			wantSMS:       true,
+			wantProviders: []string{"google"},
+			wantCount:     3,
+		},
+		{
+			name: "static config cannot satisfy required runtime key",
+			config: map[string]any{
+				"required_runtime_keys": []string{"tenant_id"},
+				"tenant_id":             "tenant-123",
+				"signing_secret":        "secret",
+			},
+			steps: map[string]map[string]any{
+				"policy": {
+					"passkey_enabled":    true,
+					"email_code_enabled": true,
+					"sms_code_enabled":   true,
+					"oauth_providers":    []string{"google"},
+				},
+			},
+			wantPasskey:   true,
+			wantEmail:     false,
+			wantSMS:       false,
+			wantProviders: []string{},
+			wantCount:     1,
+		},
+		{
+			name: "present required runtime key keeps tenant scoped methods",
+			config: map[string]any{
+				"required_runtime_keys": []string{"tenant_id"},
+				"signing_secret":        "secret",
+			},
+			runtimeConfig: map[string]any{
+				"tenant_id": "tenant-123",
+			},
+			steps: map[string]map[string]any{
+				"policy": {
+					"passkey_enabled":       true,
+					"email_code_enabled":    true,
+					"sms_code_enabled":      true,
+					"password_enabled":      false,
+					"password_auth_enabled": false,
+					"totp_enabled":          false,
+					"oauth_providers":       []string{"google"},
+				},
+			},
+			wantPasskey:   true,
+			wantEmail:     true,
+			wantSMS:       true,
+			wantProviders: []string{"google"},
+			wantCount:     4,
+		},
 	}
 
 	for _, tt := range tests {
