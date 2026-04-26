@@ -61,10 +61,19 @@ func TestAuthMethodsPolicy(t *testing.T) {
 		})
 		assertBool(t, missingCredentials, "sms_code_enabled", false)
 
+		missingAccountSID := executeMethodsPolicy(t, map[string]any{
+			"auth_routes_enabled":       true,
+			"sms_auth_enabled":          true,
+			"twilio_verify_service_sid": "VA123",
+			"twilio_auth_token":         "token",
+		})
+		assertBool(t, missingAccountSID, "sms_code_enabled", false)
+
 		withAuthToken := executeMethodsPolicy(t, map[string]any{
 			"auth_routes_enabled":       true,
 			"sms_auth_enabled":          true,
 			"twilio_verify_service_sid": "VA123",
+			"twilio_account_sid":        "AC123",
 			"twilio_auth_token":         "token",
 		})
 		assertBool(t, withAuthToken, "sms_code_enabled", true)
@@ -82,6 +91,7 @@ func TestAuthMethodsPolicy(t *testing.T) {
 			"routes_enabled":            true,
 			"sms_enabled":               true,
 			"twilio_verify_service_sid": "VA123",
+			"twilio_account_sid":        "AC123",
 			"twilio_auth_token":         "token",
 		})
 		assertBool(t, withGenericNames, "sms_code_enabled", true)
