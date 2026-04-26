@@ -89,6 +89,38 @@ pipelines:
 	}
 }
 
+func TestIntegration_PasswordPipeline(t *testing.T) {
+	hashRec := wftest.RecordStep("step.auth_password_hash")
+	verifyRec := wftest.RecordStep("step.auth_password_verify")
+	h := wftest.New(t,
+		wftest.WithYAML(`
+pipelines:
+  password-flow:
+    steps:
+      - name: hash
+        type: step.auth_password_hash
+      - name: verify
+        type: step.auth_password_verify
+`),
+		hashRec.WithOutput(map[string]any{"hash": "$2a$10$example"}),
+		verifyRec.WithOutput(map[string]any{"valid": true}),
+	)
+
+	result := h.ExecutePipeline("password-flow", map[string]any{"password": "secret"})
+	if result.Error != nil {
+		t.Fatalf("pipeline error: %v", result.Error)
+	}
+	if hashRec.CallCount() != 1 {
+		t.Errorf("expected hash called once, got %d", hashRec.CallCount())
+	}
+	if verifyRec.CallCount() != 1 {
+		t.Errorf("expected verify called once, got %d", verifyRec.CallCount())
+	}
+	if result.StepResults["verify"]["valid"] != true {
+		t.Errorf("expected valid=true, got %v", result.StepResults["verify"]["valid"])
+	}
+}
+
 func TestIntegration_CredentialListPipeline(t *testing.T) {
 	rec := wftest.RecordStep("step.auth_credential_list")
 	h := wftest.New(t,

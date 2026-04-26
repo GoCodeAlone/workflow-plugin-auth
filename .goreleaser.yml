@@ -3,7 +3,7 @@ version: 2
 before:
   hooks:
     - go mod tidy
-    - "sed -i.bak 's/\"version\": \".*\"/\"version\": \"{{ .Version }}\"/' plugin.json && rm -f plugin.json.bak"
+    - "sed -i.bak -e 's/\"version\": \".*\"/\"version\": \"{{ .Version }}\"/' -e 's#/releases/download/v[0-9][0-9A-Za-z.-]*/workflow-plugin-auth_[0-9][0-9A-Za-z.-]*_#/releases/download/v{{ .Version }}/workflow-plugin-auth_{{ .Version }}_#g' plugin.json && rm -f plugin.json.bak"
 
 builds:
   - id: workflow-plugin-auth
