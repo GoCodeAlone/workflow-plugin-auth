@@ -11,6 +11,28 @@
   "keywords": ["auth", "webauthn", "passkey", "totp", "magic-link", "passwordless"],
   "homepage": "https://github.com/GoCodeAlone/workflow-plugin-auth",
   "repository": "https://github.com/GoCodeAlone/workflow-plugin-auth",
+  "downloads": [
+    {
+      "os": "linux",
+      "arch": "amd64",
+      "url": "https://github.com/GoCodeAlone/workflow-plugin-auth/releases/download/v0.1.5/workflow-plugin-auth_0.1.5_linux_amd64.tar.gz"
+    },
+    {
+      "os": "linux",
+      "arch": "arm64",
+      "url": "https://github.com/GoCodeAlone/workflow-plugin-auth/releases/download/v0.1.5/workflow-plugin-auth_0.1.5_linux_arm64.tar.gz"
+    },
+    {
+      "os": "darwin",
+      "arch": "amd64",
+      "url": "https://github.com/GoCodeAlone/workflow-plugin-auth/releases/download/v0.1.5/workflow-plugin-auth_0.1.5_darwin_amd64.tar.gz"
+    },
+    {
+      "os": "darwin",
+      "arch": "arm64",
+      "url": "https://github.com/GoCodeAlone/workflow-plugin-auth/releases/download/v0.1.5/workflow-plugin-auth_0.1.5_darwin_arm64.tar.gz"
+    }
+  ],
   "moduleTypes": ["auth.credential"],
   "stepTypes": [
     "step.auth_passkey_begin_register",
