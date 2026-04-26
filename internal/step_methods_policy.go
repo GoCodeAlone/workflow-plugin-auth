@@ -155,8 +155,11 @@ func (s *authPolicyGateStep) Execute(_ context.Context, _ map[string]any, steps 
 		"oauth_providers":       filterPolicyOAuthProviders(policyStringSlice(policy, "oauth_providers"), supportedPolicyOAuthProviders(s.config)),
 	}
 
-	secretSource := mergePolicyInputs(s.config, runtimeConfig, current)
-	if output["email_code_enabled"] == true && policyString(secretSource, "signing_secret") == "" {
+	signingSecret := firstPolicyString("signing_secret", s.config, runtimeConfig, current)
+	if signingSecret == "" {
+		signingSecret = firstPolicyString("jwt_secret", s.config, runtimeConfig, current)
+	}
+	if output["email_code_enabled"] == true && signingSecret == "" {
 		output["email_code_enabled"] = false
 	}
 	output["primary_method_count"] = countPrimaryPolicyMethods(output)
@@ -165,8 +168,8 @@ func (s *authPolicyGateStep) Execute(_ context.Context, _ map[string]any, steps 
 }
 
 func supportedPolicyOAuthProviders(config map[string]any) map[string]struct{} {
-	providers := policyStringSlice(config, "oauth_supported_providers")
-	if len(providers) == 0 {
+	providers, ok := policyStringSliceIfPresent(config, "oauth_supported_providers")
+	if !ok {
 		providers = []string{"google"}
 	}
 
@@ -178,6 +181,15 @@ func supportedPolicyOAuthProviders(config map[string]any) map[string]struct{} {
 		}
 	}
 	return supported
+}
+
+func firstPolicyString(key string, sources ...map[string]any) string {
+	for _, source := range sources {
+		if value := policyString(source, key); value != "" {
+			return value
+		}
+	}
+	return ""
 }
 
 func filterPolicyOAuthProviders(providers []string, supported map[string]struct{}) []string {
@@ -381,6 +393,13 @@ func policyStringSlice(source map[string]any, key string) []string {
 	default:
 		return nil
 	}
+}
+
+func policyStringSliceIfPresent(source map[string]any, key string) ([]string, bool) {
+	if _, ok := source[key]; !ok {
+		return nil, false
+	}
+	return policyStringSlice(source, key), true
 }
 
 func isProduction(environment string) bool {

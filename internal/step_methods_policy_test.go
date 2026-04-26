@@ -240,7 +240,11 @@ func TestAuthPolicyGate(t *testing.T) {
 		current       map[string]any
 		runtimeConfig map[string]any
 		steps         map[string]map[string]any
+		wantPasskey   bool
 		wantEmail     bool
+		wantSMS       bool
+		wantPassword  bool
+		wantTOTP      bool
 		wantProviders []string
 		wantCount     int
 	}{
@@ -249,7 +253,10 @@ func TestAuthPolicyGate(t *testing.T) {
 			steps: map[string]map[string]any{
 				"policy": basePolicy,
 			},
+			wantPasskey:   true,
 			wantEmail:     false,
+			wantPassword:  true,
+			wantTOTP:      true,
 			wantProviders: []string{"google"},
 			wantCount:     3,
 		},
@@ -261,7 +268,10 @@ func TestAuthPolicyGate(t *testing.T) {
 			steps: map[string]map[string]any{
 				"policy": basePolicy,
 			},
+			wantPasskey:   true,
 			wantEmail:     true,
+			wantPassword:  true,
+			wantTOTP:      true,
 			wantProviders: []string{"google"},
 			wantCount:     4,
 		},
@@ -273,7 +283,10 @@ func TestAuthPolicyGate(t *testing.T) {
 			steps: map[string]map[string]any{
 				"policy": basePolicy,
 			},
+			wantPasskey:   true,
 			wantEmail:     false,
+			wantPassword:  true,
+			wantTOTP:      true,
 			wantProviders: []string{"google"},
 			wantCount:     3,
 		},
@@ -285,7 +298,44 @@ func TestAuthPolicyGate(t *testing.T) {
 			steps: map[string]map[string]any{
 				"policy": basePolicy,
 			},
+			wantPasskey:   true,
 			wantEmail:     true,
+			wantPassword:  true,
+			wantTOTP:      true,
+			wantProviders: []string{"google"},
+			wantCount:     4,
+		},
+		{
+			name: "explicit empty OAuth support list disables provider fallback",
+			config: map[string]any{
+				"signing_secret":            "secret",
+				"oauth_supported_providers": []string{},
+			},
+			steps: map[string]map[string]any{
+				"policy": basePolicy,
+			},
+			wantPasskey:   true,
+			wantEmail:     true,
+			wantPassword:  true,
+			wantTOTP:      true,
+			wantProviders: []string{},
+			wantCount:     3,
+		},
+		{
+			name: "templated current signing secret does not mask concrete runtime secret",
+			current: map[string]any{
+				"signing_secret": "{{ config \"jwt_secret\" }}",
+			},
+			runtimeConfig: map[string]any{
+				"signing_secret": "runtime-secret",
+			},
+			steps: map[string]map[string]any{
+				"policy": basePolicy,
+			},
+			wantPasskey:   true,
+			wantEmail:     true,
+			wantPassword:  true,
+			wantTOTP:      true,
 			wantProviders: []string{"google"},
 			wantCount:     4,
 		},
@@ -307,7 +357,10 @@ func TestAuthPolicyGate(t *testing.T) {
 			steps: map[string]map[string]any{
 				"tenant_policy": basePolicy,
 			},
+			wantPasskey:   true,
 			wantEmail:     true,
+			wantPassword:  true,
+			wantTOTP:      true,
 			wantProviders: []string{"google"},
 			wantCount:     4,
 		},
@@ -317,12 +370,12 @@ func TestAuthPolicyGate(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			output := executeAuthPolicyGate(t, tt.config, tt.current, tt.runtimeConfig, tt.steps)
 
-			assertBool(t, output, "passkey_enabled", tt.wantCount != 0)
+			assertBool(t, output, "passkey_enabled", tt.wantPasskey)
 			assertBool(t, output, "email_code_enabled", tt.wantEmail)
-			assertBool(t, output, "sms_code_enabled", false)
-			assertBool(t, output, "password_enabled", tt.wantCount != 0)
-			assertBool(t, output, "password_auth_enabled", tt.wantCount != 0)
-			assertBool(t, output, "totp_enabled", tt.wantCount != 0)
+			assertBool(t, output, "sms_code_enabled", tt.wantSMS)
+			assertBool(t, output, "password_enabled", tt.wantPassword)
+			assertBool(t, output, "password_auth_enabled", tt.wantPassword)
+			assertBool(t, output, "totp_enabled", tt.wantTOTP)
 			assertProviders(t, output, tt.wantProviders)
 			if got := output["primary_method_count"]; got != tt.wantCount {
 				t.Fatalf("primary_method_count = %v, want %v", got, tt.wantCount)
