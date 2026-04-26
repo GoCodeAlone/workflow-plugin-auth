@@ -64,6 +64,9 @@ through valid E.164 input. It emits generic outputs (`valid`, `phone_e164`,
 `step.auth_methods_policy` computes which auth methods are currently available
 from configuration. Missing, empty, templated, or incomplete values disable the
 method. Password auth is disabled in production even when requested.
+SMS code auth requires routes enabled, SMS enabled, `twilio_verify_service_sid`,
+and either `twilio_account_sid` plus `twilio_auth_token`, or
+`twilio_api_key_sid` plus `twilio_api_key_secret`.
 
 `step.auth_methods_response` converts policy output into a stable response
 shape. `step.auth_policy_audit` reports production password policy violations

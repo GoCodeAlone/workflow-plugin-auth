@@ -157,7 +157,7 @@ func smsPolicyReady(source map[string]any) bool {
 		return false
 	}
 	if policyPresent(source, "twilio_auth_token") {
-		return true
+		return policyPresent(source, "twilio_account_sid")
 	}
 	return policyPresent(source, "twilio_api_key_sid") && policyPresent(source, "twilio_api_key_secret")
 }
