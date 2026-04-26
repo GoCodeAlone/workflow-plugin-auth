@@ -162,9 +162,33 @@ func (s *authPolicyGateStep) Execute(_ context.Context, _ map[string]any, steps 
 	if output["email_code_enabled"] == true && signingSecret == "" {
 		output["email_code_enabled"] = false
 	}
+	if !requiredRuntimePolicyReady(s.config, runtimeConfig, current) {
+		output["email_code_enabled"] = false
+		output["sms_code_enabled"] = false
+		output["oauth_providers"] = []string{}
+	}
 	output["primary_method_count"] = countPrimaryPolicyMethods(output)
 
 	return &sdk.StepResult{Output: output}, nil
+}
+
+func requiredRuntimePolicyReady(config, runtimeConfig, current map[string]any) bool {
+	for _, key := range requiredPolicyKeys(config, "required_runtime_keys") {
+		if firstPolicyString(key, runtimeConfig, current) == "" {
+			return false
+		}
+	}
+	return true
+}
+
+func requiredPolicyKeys(source map[string]any, key string) []string {
+	if value, ok := source[key].(string); ok {
+		value = strings.TrimSpace(value)
+		if value != "" && !strings.Contains(value, "{{") {
+			return []string{value}
+		}
+	}
+	return policyStringSlice(source, key)
 }
 
 func supportedPolicyOAuthProviders(config map[string]any) map[string]struct{} {
