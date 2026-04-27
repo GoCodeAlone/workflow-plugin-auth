@@ -16,6 +16,7 @@ install: build
 	mkdir -p $(DESTDIR)/$(INSTALL_DIR)
 	cp bin/$(BINARY_NAME) $(DESTDIR)/$(INSTALL_DIR)/
 	cp plugin.json $(DESTDIR)/$(INSTALL_DIR)/
+	cp plugin.contracts.json $(DESTDIR)/$(INSTALL_DIR)/
 
 cross-build:
 	@mkdir -p bin

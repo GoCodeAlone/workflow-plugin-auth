@@ -1,0 +1,211 @@
+{
+  "version": "v1",
+  "contracts": [
+    {
+      "kind": "module",
+      "type": "auth.credential",
+      "mode": "strict",
+      "config": "workflow.plugins.auth.v1.CredentialModuleConfig"
+    },
+    {
+      "kind": "step",
+      "type": "step.auth_passkey_begin_register",
+      "mode": "strict",
+      "config": "workflow.plugins.auth.v1.PasskeyStepConfig",
+      "input": "workflow.plugins.auth.v1.PasskeyBeginRegisterInput",
+      "output": "workflow.plugins.auth.v1.PasskeyBeginRegisterOutput"
+    },
+    {
+      "kind": "step",
+      "type": "step.auth_passkey_finish_register",
+      "mode": "strict",
+      "config": "workflow.plugins.auth.v1.PasskeyStepConfig",
+      "input": "workflow.plugins.auth.v1.PasskeyFinishRegisterInput",
+      "output": "workflow.plugins.auth.v1.PasskeyFinishRegisterOutput"
+    },
+    {
+      "kind": "step",
+      "type": "step.auth_passkey_begin_login",
+      "mode": "strict",
+      "config": "workflow.plugins.auth.v1.PasskeyStepConfig",
+      "input": "workflow.plugins.auth.v1.PasskeyBeginLoginInput",
+      "output": "workflow.plugins.auth.v1.PasskeyBeginLoginOutput"
+    },
+    {
+      "kind": "step",
+      "type": "step.auth_passkey_finish_login",
+      "mode": "strict",
+      "config": "workflow.plugins.auth.v1.PasskeyStepConfig",
+      "input": "workflow.plugins.auth.v1.PasskeyFinishLoginInput",
+      "output": "workflow.plugins.auth.v1.PasskeyFinishLoginOutput"
+    },
+    {
+      "kind": "step",
+      "type": "step.auth_totp_generate_secret",
+      "mode": "strict",
+      "config": "workflow.plugins.auth.v1.EmptyConfig",
+      "input": "workflow.plugins.auth.v1.TOTPGenerateSecretInput",
+      "output": "workflow.plugins.auth.v1.TOTPGenerateSecretOutput"
+    },
+    {
+      "kind": "step",
+      "type": "step.auth_totp_verify",
+      "mode": "strict",
+      "config": "workflow.plugins.auth.v1.EmptyConfig",
+      "input": "workflow.plugins.auth.v1.TOTPVerifyInput",
+      "output": "workflow.plugins.auth.v1.TOTPVerifyOutput"
+    },
+    {
+      "kind": "step",
+      "type": "step.auth_totp_recovery_codes",
+      "mode": "strict",
+      "config": "workflow.plugins.auth.v1.EmptyConfig",
+      "input": "workflow.plugins.auth.v1.TOTPRecoveryCodesInput",
+      "output": "workflow.plugins.auth.v1.TOTPRecoveryCodesOutput"
+    },
+    {
+      "kind": "step",
+      "type": "step.auth_magic_link_generate",
+      "mode": "strict",
+      "config": "workflow.plugins.auth.v1.EmptyConfig",
+      "input": "workflow.plugins.auth.v1.MagicLinkGenerateInput",
+      "output": "workflow.plugins.auth.v1.MagicLinkGenerateOutput"
+    },
+    {
+      "kind": "step",
+      "type": "step.auth_magic_link_verify",
+      "mode": "strict",
+      "config": "workflow.plugins.auth.v1.EmptyConfig",
+      "input": "workflow.plugins.auth.v1.MagicLinkVerifyInput",
+      "output": "workflow.plugins.auth.v1.MagicLinkVerifyOutput"
+    },
+    {
+      "kind": "step",
+      "type": "step.auth_magic_link_send",
+      "mode": "strict",
+      "config": "workflow.plugins.auth.v1.MagicLinkSendConfig",
+      "input": "workflow.plugins.auth.v1.MagicLinkSendInput",
+      "output": "workflow.plugins.auth.v1.MagicLinkSendOutput"
+    },
+    {
+      "kind": "step",
+      "type": "step.auth_password_hash",
+      "mode": "strict",
+      "config": "workflow.plugins.auth.v1.EmptyConfig",
+      "input": "workflow.plugins.auth.v1.PasswordHashInput",
+      "output": "workflow.plugins.auth.v1.PasswordHashOutput"
+    },
+    {
+      "kind": "step",
+      "type": "step.auth_password_verify",
+      "mode": "strict",
+      "config": "workflow.plugins.auth.v1.EmptyConfig",
+      "input": "workflow.plugins.auth.v1.PasswordVerifyInput",
+      "output": "workflow.plugins.auth.v1.PasswordVerifyOutput"
+    },
+    {
+      "kind": "step",
+      "type": "step.auth_challenge_generate",
+      "mode": "strict",
+      "config": "workflow.plugins.auth.v1.EmptyConfig",
+      "input": "workflow.plugins.auth.v1.ChallengeGenerateInput",
+      "output": "workflow.plugins.auth.v1.ChallengeGenerateOutput"
+    },
+    {
+      "kind": "step",
+      "type": "step.auth_challenge_verify",
+      "mode": "strict",
+      "config": "workflow.plugins.auth.v1.EmptyConfig",
+      "input": "workflow.plugins.auth.v1.ChallengeVerifyInput",
+      "output": "workflow.plugins.auth.v1.ChallengeVerifyOutput"
+    },
+    {
+      "kind": "step",
+      "type": "step.auth_normalize_phone",
+      "mode": "strict",
+      "config": "workflow.plugins.auth.v1.EmptyConfig",
+      "input": "workflow.plugins.auth.v1.NormalizePhoneInput",
+      "output": "workflow.plugins.auth.v1.NormalizePhoneOutput"
+    },
+    {
+      "kind": "step",
+      "type": "step.auth_methods_policy",
+      "mode": "strict",
+      "config": "workflow.plugins.auth.v1.AuthMethodsPolicyConfig",
+      "input": "workflow.plugins.auth.v1.AuthMethodsPolicyInput",
+      "output": "workflow.plugins.auth.v1.AuthMethodsPolicyOutput"
+    },
+    {
+      "kind": "step",
+      "type": "step.auth_policy_gate",
+      "mode": "strict",
+      "config": "workflow.plugins.auth.v1.AuthPolicyGateConfig",
+      "input": "workflow.plugins.auth.v1.AuthPolicyGateInput",
+      "output": "workflow.plugins.auth.v1.AuthMethodsPolicyOutput"
+    },
+    {
+      "kind": "step",
+      "type": "step.auth_methods_response",
+      "mode": "strict",
+      "config": "workflow.plugins.auth.v1.EmptyConfig",
+      "input": "workflow.plugins.auth.v1.AuthMethodsPolicyOutput",
+      "output": "workflow.plugins.auth.v1.AuthMethodsResponseOutput"
+    },
+    {
+      "kind": "step",
+      "type": "step.auth_policy_audit",
+      "mode": "strict",
+      "config": "workflow.plugins.auth.v1.AuthMethodsPolicyConfig",
+      "input": "workflow.plugins.auth.v1.AuthMethodsPolicyInput",
+      "output": "workflow.plugins.auth.v1.AuthPolicyAuditOutput"
+    },
+    {
+      "kind": "step",
+      "type": "step.auth_oauth_provider_config",
+      "mode": "strict",
+      "config": "workflow.plugins.auth.v1.OAuthProviderConfig",
+      "input": "workflow.plugins.auth.v1.OAuthProviderInput",
+      "output": "workflow.plugins.auth.v1.OAuthProviderConfigOutput"
+    },
+    {
+      "kind": "step",
+      "type": "step.auth_oauth_start",
+      "mode": "strict",
+      "config": "workflow.plugins.auth.v1.OAuthProviderConfig",
+      "input": "workflow.plugins.auth.v1.OAuthProviderInput",
+      "output": "workflow.plugins.auth.v1.OAuthStartOutput"
+    },
+    {
+      "kind": "step",
+      "type": "step.auth_oauth_exchange",
+      "mode": "strict",
+      "config": "workflow.plugins.auth.v1.OAuthProviderConfig",
+      "input": "workflow.plugins.auth.v1.OAuthProviderInput",
+      "output": "workflow.plugins.auth.v1.OAuthExchangeOutput"
+    },
+    {
+      "kind": "step",
+      "type": "step.auth_oauth_userinfo",
+      "mode": "strict",
+      "config": "workflow.plugins.auth.v1.OAuthProviderConfig",
+      "input": "workflow.plugins.auth.v1.OAuthProviderInput",
+      "output": "workflow.plugins.auth.v1.OAuthUserinfoOutput"
+    },
+    {
+      "kind": "step",
+      "type": "step.auth_credential_list",
+      "mode": "strict",
+      "config": "workflow.plugins.auth.v1.EmptyConfig",
+      "input": "workflow.plugins.auth.v1.CredentialListInput",
+      "output": "workflow.plugins.auth.v1.CredentialListOutput"
+    },
+    {
+      "kind": "step",
+      "type": "step.auth_credential_revoke",
+      "mode": "strict",
+      "config": "workflow.plugins.auth.v1.EmptyConfig",
+      "input": "workflow.plugins.auth.v1.CredentialRevokeInput",
+      "output": "workflow.plugins.auth.v1.CredentialRevokeOutput"
+    }
+  ]
+}
