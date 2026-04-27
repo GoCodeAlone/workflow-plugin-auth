@@ -1,0 +1,431 @@
+syntax = "proto3";
+
+package workflow.plugins.auth.v1;
+
+option go_package = "github.com/GoCodeAlone/workflow-plugin-auth/internal/contracts";
+
+import "google/protobuf/struct.proto";
+
+message CredentialModuleConfig {
+  string rp_display_name = 1;
+  string rp_id = 2;
+  string origin = 3;
+  bool optional = 4;
+}
+
+message PasskeyStepConfig {
+  string module = 1;
+}
+
+message PasskeyBeginRegisterInput {
+  string user_id = 1;
+  string user_name = 2;
+  string user_display_name = 3;
+}
+
+message PasskeyBeginRegisterOutput {
+  bool success = 1;
+  string credential_creation_options = 2;
+  string session_data = 3;
+  string error = 100;
+}
+
+message PasskeyFinishRegisterInput {
+  string user_id = 1;
+  string user_name = 2;
+  string user_display_name = 3;
+  string credential_response = 4;
+  string session_data = 5;
+}
+
+message PasskeyFinishRegisterOutput {
+  bool verified = 1;
+  string credential_id = 2;
+  string public_key = 3;
+  uint32 sign_count = 4;
+  string error = 100;
+}
+
+message PasskeyBeginLoginInput {
+  string user_id = 1;
+}
+
+message PasskeyBeginLoginOutput {
+  bool success = 1;
+  string credential_assertion_options = 2;
+  string session_data = 3;
+  string error = 100;
+}
+
+message PasskeyFinishLoginInput {
+  string user_id = 1;
+  string credential_assertion = 2;
+  string session_data = 3;
+  string credential_id = 4;
+  string public_key = 5;
+  uint32 sign_count = 6;
+}
+
+message PasskeyFinishLoginOutput {
+  bool verified = 1;
+  string credential_id = 2;
+  uint32 sign_count = 3;
+  string error = 100;
+}
+
+message EmptyConfig {}
+
+message TOTPGenerateSecretInput {
+  string issuer = 1;
+  string account_name = 2;
+}
+
+message TOTPGenerateSecretOutput {
+  string secret = 1;
+  string url = 2;
+  string issuer = 3;
+  string account_name = 4;
+  string error = 100;
+}
+
+message TOTPVerifyInput {
+  string secret = 1;
+  string code = 2;
+}
+
+message TOTPVerifyOutput {
+  bool valid = 1;
+  string error = 100;
+}
+
+message TOTPRecoveryCodesInput {
+  int32 count = 1;
+}
+
+message TOTPRecoveryCodesOutput {
+  repeated string recovery_codes = 1;
+  string error = 100;
+}
+
+message MagicLinkGenerateInput {
+  string email = 1;
+  string signing_secret = 2;
+}
+
+message MagicLinkGenerateOutput {
+  string token = 1;
+  string token_hash = 2;
+  string signature = 3;
+  string email = 4;
+  string expires_at = 5;
+  string error = 100;
+}
+
+message MagicLinkVerifyInput {
+  string token = 1;
+  string stored_hash = 2;
+  string expires_at = 3;
+}
+
+message MagicLinkVerifyOutput {
+  bool valid = 1;
+  string error = 100;
+}
+
+message MagicLinkSendConfig {
+  string smtp_host = 1;
+  int32 smtp_port = 2;
+  string smtp_user = 3;
+  string smtp_pass = 4;
+  string from_address = 5;
+}
+
+message MagicLinkSendInput {
+  string to = 1;
+  string magic_link_url = 2;
+}
+
+message MagicLinkSendOutput {
+  bool sent = 1;
+  bool dev_mode = 2;
+  string magic_link_url = 3;
+  string to = 4;
+  string error = 100;
+}
+
+message PasswordHashInput {
+  string password = 1;
+}
+
+message PasswordHashOutput {
+  string hash = 1;
+  string error = 100;
+}
+
+message PasswordVerifyInput {
+  string password = 1;
+  string hash = 2;
+}
+
+message PasswordVerifyOutput {
+  bool valid = 1;
+  string error = 100;
+}
+
+message ChallengeGenerateInput {
+  string channel = 1;
+  string destination = 2;
+  string tenant_id = 3;
+  string purpose = 4;
+  string signing_secret = 5;
+  int32 ttl_minutes = 6;
+}
+
+message ChallengeGenerateOutput {
+  string code = 1;
+  string code_hash = 2;
+  string channel = 3;
+  string destination = 4;
+  string expires_at = 5;
+  string error = 100;
+}
+
+message ChallengeVerifyInput {
+  string channel = 1;
+  string code = 2;
+  string code_hash = 3;
+  string destination = 4;
+  string tenant_id = 5;
+  string purpose = 6;
+  string signing_secret = 7;
+  int32 attempts = 8;
+  int32 max_attempts = 9;
+  string expires_at = 10;
+}
+
+message ChallengeVerifyOutput {
+  bool valid = 1;
+  string error = 100;
+}
+
+message NormalizePhoneInput {
+  string phone = 1;
+}
+
+message NormalizePhoneOutput {
+  bool valid = 1;
+  string phone_e164 = 2;
+  string country = 3;
+  string phone = 4;
+  bool phone_valid = 5;
+  string error = 100;
+}
+
+message AuthMethodsPolicyConfig {
+  string environment = 1;
+  optional bool password_auth_enabled = 2;
+  optional bool password_enabled = 3;
+  optional bool totp_auth_enabled = 4;
+  optional bool totp_enabled = 5;
+  string webauthn_rp_id = 6;
+  string webauthn_origin = 7;
+  string smtp_host = 8;
+  string smtp_from = 9;
+  optional bool auth_routes_enabled = 10;
+  optional bool routes_enabled = 11;
+  optional bool oauth_routes_enabled = 12;
+  string google_oauth_client_id = 13;
+  string google_oauth_client_secret = 14;
+  string google_oauth_redirect_url = 15;
+  string oauth_provider = 16;
+  optional bool sms_enabled = 17;
+  string twilio_verify_service_sid = 18;
+  string twilio_account_sid = 19;
+  string twilio_auth_token = 20;
+  string twilio_api_key_sid = 21;
+  string twilio_api_key_secret = 22;
+  int32 password_hash_count = 23;
+}
+
+message AuthMethodsPolicyInput {
+  string environment = 1;
+  optional bool password_auth_enabled = 2;
+  optional bool password_enabled = 3;
+  optional bool totp_auth_enabled = 4;
+  optional bool totp_enabled = 5;
+  string webauthn_rp_id = 6;
+  string webauthn_origin = 7;
+  string smtp_host = 8;
+  string smtp_from = 9;
+  optional bool auth_routes_enabled = 10;
+  optional bool routes_enabled = 11;
+  optional bool oauth_routes_enabled = 12;
+  string google_oauth_client_id = 13;
+  string google_oauth_client_secret = 14;
+  string google_oauth_redirect_url = 15;
+  string oauth_provider = 16;
+  optional bool sms_enabled = 17;
+  string twilio_verify_service_sid = 18;
+  string twilio_account_sid = 19;
+  string twilio_auth_token = 20;
+  string twilio_api_key_sid = 21;
+  string twilio_api_key_secret = 22;
+  int32 password_hash_count = 23;
+}
+
+message AuthMethodsPolicyOutput {
+  bool passkey_enabled = 1;
+  bool email_code_enabled = 2;
+  bool sms_code_enabled = 3;
+  bool password_enabled = 4;
+  bool password_auth_enabled = 5;
+  bool totp_enabled = 6;
+  repeated string oauth_providers = 7;
+  int32 primary_method_count = 8;
+  string error = 100;
+}
+
+message AuthPolicyGateConfig {
+  string policy_step = 1;
+  string signing_secret = 2;
+  string jwt_secret = 3;
+  repeated string required_runtime_keys = 4;
+  repeated string oauth_supported_providers = 5;
+}
+
+message AuthPolicyGateInput {
+  bool passkey_enabled = 1;
+  bool email_code_enabled = 2;
+  bool sms_code_enabled = 3;
+  bool password_enabled = 4;
+  bool password_auth_enabled = 5;
+  bool totp_enabled = 6;
+  repeated string oauth_providers = 7;
+  int32 primary_method_count = 8;
+  string signing_secret = 9;
+  string jwt_secret = 10;
+}
+
+message AuthMethodsResponseOutput {
+  bool passkey_enabled = 1;
+  bool email_code_enabled = 2;
+  bool sms_code_enabled = 3;
+  bool password_enabled = 4;
+  bool password_auth_enabled = 5;
+  bool totp_enabled = 6;
+  repeated string oauth_providers = 7;
+  int32 primary_method_count = 8;
+  repeated string methods = 9;
+  string error = 100;
+}
+
+message AuthPolicyAuditOutput {
+  bool passed = 1;
+  repeated string violations = 2;
+  string error = 100;
+}
+
+message OAuthProviderConfig {
+  string provider = 1;
+  string google_oauth_client_id = 2;
+  string google_oauth_client_secret = 3;
+  string google_oauth_redirect_url = 4;
+  string google_oauth_authorization_url = 5;
+  string google_oauth_token_url = 6;
+  string google_oauth_userinfo_url = 7;
+  repeated string google_oauth_scopes = 8;
+  optional bool allow_insecure_test_oauth_endpoints = 9;
+  optional bool pkce_required = 10;
+}
+
+message OAuthProviderInput {
+  string provider = 1;
+  string return_to = 2;
+  string code = 3;
+  string code_verifier = 4;
+  string access_token = 5;
+  optional bool pkce_required = 6;
+}
+
+message OAuthProviderConfigOutput {
+  string provider = 1;
+  bool available = 2;
+  string disabled_reason = 3;
+  string client_id = 4;
+  string redirect_url = 5;
+  string authorization_url = 6;
+  string token_url = 7;
+  string userinfo_url = 8;
+  repeated string scopes = 9;
+  string error = 100;
+}
+
+message OAuthStartOutput {
+  bool started = 1;
+  string provider = 2;
+  string state = 3;
+  string return_to = 4;
+  string expires_at = 5;
+  string redirect_url = 6;
+  string authorization_url = 7;
+  string code_verifier = 8;
+  string code_challenge = 9;
+  string code_challenge_method = 10;
+  string error = 100;
+}
+
+message OAuthExchangeOutput {
+  bool exchanged = 1;
+  string provider = 2;
+  google.protobuf.Struct raw_tokens = 3;
+  string access_token = 4;
+  string refresh_token = 5;
+  string id_token = 6;
+  string token_type = 7;
+  string scope = 8;
+  int32 expires_in = 9;
+  string error = 100;
+}
+
+message OAuthUserinfoOutput {
+  bool fetched = 1;
+  string provider = 2;
+  string provider_subject = 3;
+  string provider_user = 4;
+  string email = 5;
+  bool email_verified = 6;
+  string name = 7;
+  string picture = 8;
+  google.protobuf.Struct raw_claims = 9;
+  string error = 100;
+}
+
+message CredentialListInput {
+  string credentials_json = 1;
+}
+
+message CredentialSummary {
+  string id = 1;
+  string type = 2;
+  string device_name = 3;
+  string created_at = 4;
+  string last_used = 5;
+}
+
+message CredentialListOutput {
+  repeated CredentialSummary credentials = 1;
+  int32 count = 2;
+  string error = 100;
+}
+
+message CredentialRevokeInput {
+  string credential_id = 1;
+  string owner_user_id = 2;
+  string user_id = 3;
+}
+
+message CredentialRevokeOutput {
+  bool authorized = 1;
+  string credential_id = 2;
+  string error = 100;
+}

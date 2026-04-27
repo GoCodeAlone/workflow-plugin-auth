@@ -7,7 +7,7 @@
   "type": "external",
   "tier": "core",
   "private": false,
-  "minEngineVersion": "0.3.27",
+  "minEngineVersion": "0.19.0",
   "keywords": ["auth", "webauthn", "passkey", "totp", "magic-link", "passwordless"],
   "homepage": "https://github.com/GoCodeAlone/workflow-plugin-auth",
   "repository": "https://github.com/GoCodeAlone/workflow-plugin-auth",
