@@ -3,7 +3,7 @@ version: 2
 before:
   hooks:
     - go mod tidy -diff
-    - "PLUGIN_MANIFEST_EXPECT_VERSION={{ .Version }} go test ./internal -run TestIntegration_PluginManifestAndStepTypes -count=1"
+    - "sh -c 'PLUGIN_MANIFEST_EXPECT_VERSION={{ .Version }} go test ./internal -run TestIntegration_PluginManifestAndStepTypes -count=1'"
 
 builds:
   - id: workflow-plugin-auth
