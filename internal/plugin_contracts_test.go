@@ -12,6 +12,8 @@ import (
 	"github.com/GoCodeAlone/workflow-plugin-auth/internal/contracts"
 	pb "github.com/GoCodeAlone/workflow/plugin/external/proto"
 	sdk "github.com/GoCodeAlone/workflow/plugin/external/sdk"
+	"google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/reflect/protoreflect"
 	"google.golang.org/protobuf/types/known/anypb"
 )
 
@@ -127,6 +129,117 @@ func TestTypedPolicyInputOverridesTypedConfigAtBoundary(t *testing.T) {
 	}
 }
 
+func TestMapToProtoRejectsUnknownOutputFields(t *testing.T) {
+	if _, err := mapToProto(map[string]any{"valid": true, "ignored": "drift"}, &contracts.TOTPVerifyOutput{}); err == nil {
+		t.Fatal("mapToProto accepted an unknown output field")
+	}
+}
+
+func TestPasskeyAndTOTPContractsUseRuntimeMapKeys(t *testing.T) {
+	requireProtoFields(t, &contracts.PasskeyBeginRegisterInput{}, "user_id", "email", "display_name")
+	requireProtoFields(t, &contracts.PasskeyBeginRegisterOutput{}, "options", "session_data", "error")
+	requireProtoFields(t, &contracts.PasskeyFinishRegisterInput{}, "user_id", "email", "display_name", "session_data", "attestation")
+	requireProtoFields(t, &contracts.PasskeyFinishRegisterOutput{}, "valid", "credential_id", "public_key", "aaguid", "sign_count", "credential", "error")
+	requireProtoFields(t, &contracts.PasskeyBeginLoginInput{}, "user_id", "credentials")
+	requireProtoFields(t, &contracts.PasskeyBeginLoginOutput{}, "options", "session_data", "error")
+	requireProtoFields(t, &contracts.PasskeyFinishLoginInput{}, "user_id", "email", "credentials", "session_data", "assertion")
+	requireProtoFields(t, &contracts.PasskeyFinishLoginOutput{}, "valid", "credential_id", "sign_count", "error")
+
+	requireProtoFields(t, &contracts.TOTPGenerateSecretInput{}, "email", "issuer")
+	requireProtoFields(t, &contracts.TOTPGenerateSecretOutput{}, "secret", "provisioning_uri", "issuer", "account", "error")
+	requireProtoFields(t, &contracts.TOTPRecoveryCodesOutput{}, "codes", "hashes", "error")
+}
+
+func TestTypedPasskeyOutputsDecodeRuntimeKeys(t *testing.T) {
+	beginRegister, err := mapToProto(map[string]any{
+		"options":      `{"publicKey":{}}`,
+		"session_data": "session",
+	}, &contracts.PasskeyBeginRegisterOutput{})
+	if err != nil {
+		t.Fatalf("decode begin register output: %v", err)
+	}
+	if beginRegister.GetOptions() == "" || beginRegister.GetSessionData() != "session" {
+		t.Fatalf("begin register output = %+v", beginRegister)
+	}
+
+	finishRegister, err := mapToProto(map[string]any{
+		"valid":         true,
+		"credential_id": "credential-id",
+		"public_key":    "public-key",
+		"aaguid":        "aaguid",
+		"sign_count":    7,
+		"credential":    `{"id":"credential-id"}`,
+	}, &contracts.PasskeyFinishRegisterOutput{})
+	if err != nil {
+		t.Fatalf("decode finish register output: %v", err)
+	}
+	if !finishRegister.GetValid() || finishRegister.GetSignCount() != 7 || finishRegister.GetCredential() == "" {
+		t.Fatalf("finish register output = %+v", finishRegister)
+	}
+
+	beginLogin, err := mapToProto(map[string]any{
+		"options":      `{"publicKey":{}}`,
+		"session_data": "login-session",
+	}, &contracts.PasskeyBeginLoginOutput{})
+	if err != nil {
+		t.Fatalf("decode begin login output: %v", err)
+	}
+	if beginLogin.GetOptions() == "" || beginLogin.GetSessionData() != "login-session" {
+		t.Fatalf("begin login output = %+v", beginLogin)
+	}
+
+	finishLogin, err := mapToProto(map[string]any{
+		"valid":         true,
+		"credential_id": "credential-id",
+		"sign_count":    8,
+	}, &contracts.PasskeyFinishLoginOutput{})
+	if err != nil {
+		t.Fatalf("decode finish login output: %v", err)
+	}
+	if !finishLogin.GetValid() || finishLogin.GetSignCount() != 8 {
+		t.Fatalf("finish login output = %+v", finishLogin)
+	}
+}
+
+func TestTypedTOTPStepsDecodeRuntimeOutputs(t *testing.T) {
+	generate := typedLegacyStep[*contracts.EmptyConfig, *contracts.TOTPGenerateSecretInput, *contracts.TOTPGenerateSecretOutput](
+		func(name string, config map[string]any) sdk.StepInstance {
+			return newTOTPGenerateSecretStep(name, config)
+		},
+		&contracts.TOTPGenerateSecretOutput{},
+	)
+	generated, err := generate(context.Background(), sdk.TypedStepRequest[*contracts.EmptyConfig, *contracts.TOTPGenerateSecretInput]{
+		Config: &contracts.EmptyConfig{},
+		Input:  &contracts.TOTPGenerateSecretInput{Email: "alice@example.test", Issuer: "Workflow"},
+	})
+	if err != nil {
+		t.Fatalf("generate TOTP secret: %v", err)
+	}
+	if generated.Output.GetSecret() == "" || generated.Output.GetProvisioningUri() == "" {
+		t.Fatalf("generated TOTP output = %+v", generated.Output)
+	}
+	if generated.Output.GetIssuer() != "Workflow" || generated.Output.GetAccount() != "alice@example.test" {
+		t.Fatalf("generated TOTP issuer/account = %q/%q", generated.Output.GetIssuer(), generated.Output.GetAccount())
+	}
+
+	recoveryCodes := typedLegacyStep[*contracts.EmptyConfig, *contracts.TOTPRecoveryCodesInput, *contracts.TOTPRecoveryCodesOutput](
+		func(name string, config map[string]any) sdk.StepInstance {
+			return newTOTPRecoveryCodesStep(name, config)
+		},
+		&contracts.TOTPRecoveryCodesOutput{},
+	)
+	recovery, err := recoveryCodes(context.Background(), sdk.TypedStepRequest[*contracts.EmptyConfig, *contracts.TOTPRecoveryCodesInput]{
+		Config: &contracts.EmptyConfig{},
+		Input:  &contracts.TOTPRecoveryCodesInput{},
+	})
+	if err != nil {
+		t.Fatalf("generate TOTP recovery codes: %v", err)
+	}
+	if len(recovery.Output.GetCodes()) != 10 || len(recovery.Output.GetHashes()) != 10 {
+		t.Fatalf("recovery output lengths = %d/%d", len(recovery.Output.GetCodes()), len(recovery.Output.GetHashes()))
+	}
+}
+
 func typedStepForTest[
 	C interface {
 		*contracts.AuthMethodsPolicyConfig
@@ -139,6 +252,16 @@ func typedStepForTest[
 	},
 ](_ *testing.T, _ *sdk.TypedStepInstance[*contracts.AuthMethodsPolicyConfig, *contracts.AuthMethodsPolicyInput, *contracts.AuthMethodsPolicyOutput]) sdk.TypedStepHandler[*contracts.AuthMethodsPolicyConfig, *contracts.AuthMethodsPolicyInput, *contracts.AuthMethodsPolicyOutput] {
 	return typedAuthMethodsPolicy
+}
+
+func requireProtoFields(t *testing.T, msg proto.Message, fields ...string) {
+	t.Helper()
+	descriptor := msg.ProtoReflect().Descriptor()
+	for _, field := range fields {
+		if descriptor.Fields().ByName(protoreflect.Name(field)) == nil {
+			t.Fatalf("%s missing field %q", descriptor.FullName(), field)
+		}
+	}
 }
 
 func contractKey(contract *pb.ContractDescriptor) string {

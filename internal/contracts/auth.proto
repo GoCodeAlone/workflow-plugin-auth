@@ -19,55 +19,55 @@ message PasskeyStepConfig {
 
 message PasskeyBeginRegisterInput {
   string user_id = 1;
-  string user_name = 2;
-  string user_display_name = 3;
+  string email = 2;
+  string display_name = 3;
 }
 
 message PasskeyBeginRegisterOutput {
-  bool success = 1;
-  string credential_creation_options = 2;
+  string options = 1;
   string session_data = 3;
   string error = 100;
 }
 
 message PasskeyFinishRegisterInput {
   string user_id = 1;
-  string user_name = 2;
-  string user_display_name = 3;
-  string credential_response = 4;
+  string email = 2;
+  string display_name = 3;
+  string attestation = 4;
   string session_data = 5;
 }
 
 message PasskeyFinishRegisterOutput {
-  bool verified = 1;
+  bool valid = 1;
   string credential_id = 2;
   string public_key = 3;
-  uint32 sign_count = 4;
+  string aaguid = 4;
+  uint32 sign_count = 5;
+  string credential = 6;
   string error = 100;
 }
 
 message PasskeyBeginLoginInput {
   string user_id = 1;
+  string credentials = 2;
 }
 
 message PasskeyBeginLoginOutput {
-  bool success = 1;
-  string credential_assertion_options = 2;
+  string options = 1;
   string session_data = 3;
   string error = 100;
 }
 
 message PasskeyFinishLoginInput {
   string user_id = 1;
-  string credential_assertion = 2;
+  string email = 2;
   string session_data = 3;
-  string credential_id = 4;
-  string public_key = 5;
-  uint32 sign_count = 6;
+  string credentials = 4;
+  string assertion = 5;
 }
 
 message PasskeyFinishLoginOutput {
-  bool verified = 1;
+  bool valid = 1;
   string credential_id = 2;
   uint32 sign_count = 3;
   string error = 100;
@@ -76,15 +76,15 @@ message PasskeyFinishLoginOutput {
 message EmptyConfig {}
 
 message TOTPGenerateSecretInput {
-  string issuer = 1;
-  string account_name = 2;
+  string email = 1;
+  string issuer = 2;
 }
 
 message TOTPGenerateSecretOutput {
   string secret = 1;
-  string url = 2;
+  string provisioning_uri = 2;
   string issuer = 3;
-  string account_name = 4;
+  string account = 4;
   string error = 100;
 }
 
@@ -103,7 +103,8 @@ message TOTPRecoveryCodesInput {
 }
 
 message TOTPRecoveryCodesOutput {
-  repeated string recovery_codes = 1;
+  repeated string codes = 1;
+  repeated string hashes = 2;
   string error = 100;
 }
 

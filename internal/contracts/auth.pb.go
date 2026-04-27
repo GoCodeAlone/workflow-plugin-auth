@@ -135,12 +135,12 @@ func (x *PasskeyStepConfig) GetModule() string {
 }
 
 type PasskeyBeginRegisterInput struct {
-	state           protoimpl.MessageState `protogen:"open.v1"`
-	UserId          string                 `protobuf:"bytes,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
-	UserName        string                 `protobuf:"bytes,2,opt,name=user_name,json=userName,proto3" json:"user_name,omitempty"`
-	UserDisplayName string                 `protobuf:"bytes,3,opt,name=user_display_name,json=userDisplayName,proto3" json:"user_display_name,omitempty"`
-	unknownFields   protoimpl.UnknownFields
-	sizeCache       protoimpl.SizeCache
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	UserId        string                 `protobuf:"bytes,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	Email         string                 `protobuf:"bytes,2,opt,name=email,proto3" json:"email,omitempty"`
+	DisplayName   string                 `protobuf:"bytes,3,opt,name=display_name,json=displayName,proto3" json:"display_name,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *PasskeyBeginRegisterInput) Reset() {
@@ -180,28 +180,27 @@ func (x *PasskeyBeginRegisterInput) GetUserId() string {
 	return ""
 }
 
-func (x *PasskeyBeginRegisterInput) GetUserName() string {
+func (x *PasskeyBeginRegisterInput) GetEmail() string {
 	if x != nil {
-		return x.UserName
+		return x.Email
 	}
 	return ""
 }
 
-func (x *PasskeyBeginRegisterInput) GetUserDisplayName() string {
+func (x *PasskeyBeginRegisterInput) GetDisplayName() string {
 	if x != nil {
-		return x.UserDisplayName
+		return x.DisplayName
 	}
 	return ""
 }
 
 type PasskeyBeginRegisterOutput struct {
-	state                     protoimpl.MessageState `protogen:"open.v1"`
-	Success                   bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
-	CredentialCreationOptions string                 `protobuf:"bytes,2,opt,name=credential_creation_options,json=credentialCreationOptions,proto3" json:"credential_creation_options,omitempty"`
-	SessionData               string                 `protobuf:"bytes,3,opt,name=session_data,json=sessionData,proto3" json:"session_data,omitempty"`
-	Error                     string                 `protobuf:"bytes,100,opt,name=error,proto3" json:"error,omitempty"`
-	unknownFields             protoimpl.UnknownFields
-	sizeCache                 protoimpl.SizeCache
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Options       string                 `protobuf:"bytes,1,opt,name=options,proto3" json:"options,omitempty"`
+	SessionData   string                 `protobuf:"bytes,3,opt,name=session_data,json=sessionData,proto3" json:"session_data,omitempty"`
+	Error         string                 `protobuf:"bytes,100,opt,name=error,proto3" json:"error,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *PasskeyBeginRegisterOutput) Reset() {
@@ -234,16 +233,9 @@ func (*PasskeyBeginRegisterOutput) Descriptor() ([]byte, []int) {
 	return file_internal_contracts_auth_proto_rawDescGZIP(), []int{3}
 }
 
-func (x *PasskeyBeginRegisterOutput) GetSuccess() bool {
+func (x *PasskeyBeginRegisterOutput) GetOptions() string {
 	if x != nil {
-		return x.Success
-	}
-	return false
-}
-
-func (x *PasskeyBeginRegisterOutput) GetCredentialCreationOptions() string {
-	if x != nil {
-		return x.CredentialCreationOptions
+		return x.Options
 	}
 	return ""
 }
@@ -263,14 +255,14 @@ func (x *PasskeyBeginRegisterOutput) GetError() string {
 }
 
 type PasskeyFinishRegisterInput struct {
-	state              protoimpl.MessageState `protogen:"open.v1"`
-	UserId             string                 `protobuf:"bytes,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
-	UserName           string                 `protobuf:"bytes,2,opt,name=user_name,json=userName,proto3" json:"user_name,omitempty"`
-	UserDisplayName    string                 `protobuf:"bytes,3,opt,name=user_display_name,json=userDisplayName,proto3" json:"user_display_name,omitempty"`
-	CredentialResponse string                 `protobuf:"bytes,4,opt,name=credential_response,json=credentialResponse,proto3" json:"credential_response,omitempty"`
-	SessionData        string                 `protobuf:"bytes,5,opt,name=session_data,json=sessionData,proto3" json:"session_data,omitempty"`
-	unknownFields      protoimpl.UnknownFields
-	sizeCache          protoimpl.SizeCache
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	UserId        string                 `protobuf:"bytes,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	Email         string                 `protobuf:"bytes,2,opt,name=email,proto3" json:"email,omitempty"`
+	DisplayName   string                 `protobuf:"bytes,3,opt,name=display_name,json=displayName,proto3" json:"display_name,omitempty"`
+	Attestation   string                 `protobuf:"bytes,4,opt,name=attestation,proto3" json:"attestation,omitempty"`
+	SessionData   string                 `protobuf:"bytes,5,opt,name=session_data,json=sessionData,proto3" json:"session_data,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *PasskeyFinishRegisterInput) Reset() {
@@ -310,23 +302,23 @@ func (x *PasskeyFinishRegisterInput) GetUserId() string {
 	return ""
 }
 
-func (x *PasskeyFinishRegisterInput) GetUserName() string {
+func (x *PasskeyFinishRegisterInput) GetEmail() string {
 	if x != nil {
-		return x.UserName
+		return x.Email
 	}
 	return ""
 }
 
-func (x *PasskeyFinishRegisterInput) GetUserDisplayName() string {
+func (x *PasskeyFinishRegisterInput) GetDisplayName() string {
 	if x != nil {
-		return x.UserDisplayName
+		return x.DisplayName
 	}
 	return ""
 }
 
-func (x *PasskeyFinishRegisterInput) GetCredentialResponse() string {
+func (x *PasskeyFinishRegisterInput) GetAttestation() string {
 	if x != nil {
-		return x.CredentialResponse
+		return x.Attestation
 	}
 	return ""
 }
@@ -340,10 +332,12 @@ func (x *PasskeyFinishRegisterInput) GetSessionData() string {
 
 type PasskeyFinishRegisterOutput struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Verified      bool                   `protobuf:"varint,1,opt,name=verified,proto3" json:"verified,omitempty"`
+	Valid         bool                   `protobuf:"varint,1,opt,name=valid,proto3" json:"valid,omitempty"`
 	CredentialId  string                 `protobuf:"bytes,2,opt,name=credential_id,json=credentialId,proto3" json:"credential_id,omitempty"`
 	PublicKey     string                 `protobuf:"bytes,3,opt,name=public_key,json=publicKey,proto3" json:"public_key,omitempty"`
-	SignCount     uint32                 `protobuf:"varint,4,opt,name=sign_count,json=signCount,proto3" json:"sign_count,omitempty"`
+	Aaguid        string                 `protobuf:"bytes,4,opt,name=aaguid,proto3" json:"aaguid,omitempty"`
+	SignCount     uint32                 `protobuf:"varint,5,opt,name=sign_count,json=signCount,proto3" json:"sign_count,omitempty"`
+	Credential    string                 `protobuf:"bytes,6,opt,name=credential,proto3" json:"credential,omitempty"`
 	Error         string                 `protobuf:"bytes,100,opt,name=error,proto3" json:"error,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -379,9 +373,9 @@ func (*PasskeyFinishRegisterOutput) Descriptor() ([]byte, []int) {
 	return file_internal_contracts_auth_proto_rawDescGZIP(), []int{5}
 }
 
-func (x *PasskeyFinishRegisterOutput) GetVerified() bool {
+func (x *PasskeyFinishRegisterOutput) GetValid() bool {
 	if x != nil {
-		return x.Verified
+		return x.Valid
 	}
 	return false
 }
@@ -400,11 +394,25 @@ func (x *PasskeyFinishRegisterOutput) GetPublicKey() string {
 	return ""
 }
 
+func (x *PasskeyFinishRegisterOutput) GetAaguid() string {
+	if x != nil {
+		return x.Aaguid
+	}
+	return ""
+}
+
 func (x *PasskeyFinishRegisterOutput) GetSignCount() uint32 {
 	if x != nil {
 		return x.SignCount
 	}
 	return 0
+}
+
+func (x *PasskeyFinishRegisterOutput) GetCredential() string {
+	if x != nil {
+		return x.Credential
+	}
+	return ""
 }
 
 func (x *PasskeyFinishRegisterOutput) GetError() string {
@@ -417,6 +425,7 @@ func (x *PasskeyFinishRegisterOutput) GetError() string {
 type PasskeyBeginLoginInput struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	UserId        string                 `protobuf:"bytes,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	Credentials   string                 `protobuf:"bytes,2,opt,name=credentials,proto3" json:"credentials,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -458,14 +467,20 @@ func (x *PasskeyBeginLoginInput) GetUserId() string {
 	return ""
 }
 
+func (x *PasskeyBeginLoginInput) GetCredentials() string {
+	if x != nil {
+		return x.Credentials
+	}
+	return ""
+}
+
 type PasskeyBeginLoginOutput struct {
-	state                      protoimpl.MessageState `protogen:"open.v1"`
-	Success                    bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
-	CredentialAssertionOptions string                 `protobuf:"bytes,2,opt,name=credential_assertion_options,json=credentialAssertionOptions,proto3" json:"credential_assertion_options,omitempty"`
-	SessionData                string                 `protobuf:"bytes,3,opt,name=session_data,json=sessionData,proto3" json:"session_data,omitempty"`
-	Error                      string                 `protobuf:"bytes,100,opt,name=error,proto3" json:"error,omitempty"`
-	unknownFields              protoimpl.UnknownFields
-	sizeCache                  protoimpl.SizeCache
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Options       string                 `protobuf:"bytes,1,opt,name=options,proto3" json:"options,omitempty"`
+	SessionData   string                 `protobuf:"bytes,3,opt,name=session_data,json=sessionData,proto3" json:"session_data,omitempty"`
+	Error         string                 `protobuf:"bytes,100,opt,name=error,proto3" json:"error,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *PasskeyBeginLoginOutput) Reset() {
@@ -498,16 +513,9 @@ func (*PasskeyBeginLoginOutput) Descriptor() ([]byte, []int) {
 	return file_internal_contracts_auth_proto_rawDescGZIP(), []int{7}
 }
 
-func (x *PasskeyBeginLoginOutput) GetSuccess() bool {
+func (x *PasskeyBeginLoginOutput) GetOptions() string {
 	if x != nil {
-		return x.Success
-	}
-	return false
-}
-
-func (x *PasskeyBeginLoginOutput) GetCredentialAssertionOptions() string {
-	if x != nil {
-		return x.CredentialAssertionOptions
+		return x.Options
 	}
 	return ""
 }
@@ -527,15 +535,14 @@ func (x *PasskeyBeginLoginOutput) GetError() string {
 }
 
 type PasskeyFinishLoginInput struct {
-	state               protoimpl.MessageState `protogen:"open.v1"`
-	UserId              string                 `protobuf:"bytes,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
-	CredentialAssertion string                 `protobuf:"bytes,2,opt,name=credential_assertion,json=credentialAssertion,proto3" json:"credential_assertion,omitempty"`
-	SessionData         string                 `protobuf:"bytes,3,opt,name=session_data,json=sessionData,proto3" json:"session_data,omitempty"`
-	CredentialId        string                 `protobuf:"bytes,4,opt,name=credential_id,json=credentialId,proto3" json:"credential_id,omitempty"`
-	PublicKey           string                 `protobuf:"bytes,5,opt,name=public_key,json=publicKey,proto3" json:"public_key,omitempty"`
-	SignCount           uint32                 `protobuf:"varint,6,opt,name=sign_count,json=signCount,proto3" json:"sign_count,omitempty"`
-	unknownFields       protoimpl.UnknownFields
-	sizeCache           protoimpl.SizeCache
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	UserId        string                 `protobuf:"bytes,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	Email         string                 `protobuf:"bytes,2,opt,name=email,proto3" json:"email,omitempty"`
+	SessionData   string                 `protobuf:"bytes,3,opt,name=session_data,json=sessionData,proto3" json:"session_data,omitempty"`
+	Credentials   string                 `protobuf:"bytes,4,opt,name=credentials,proto3" json:"credentials,omitempty"`
+	Assertion     string                 `protobuf:"bytes,5,opt,name=assertion,proto3" json:"assertion,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *PasskeyFinishLoginInput) Reset() {
@@ -575,9 +582,9 @@ func (x *PasskeyFinishLoginInput) GetUserId() string {
 	return ""
 }
 
-func (x *PasskeyFinishLoginInput) GetCredentialAssertion() string {
+func (x *PasskeyFinishLoginInput) GetEmail() string {
 	if x != nil {
-		return x.CredentialAssertion
+		return x.Email
 	}
 	return ""
 }
@@ -589,30 +596,23 @@ func (x *PasskeyFinishLoginInput) GetSessionData() string {
 	return ""
 }
 
-func (x *PasskeyFinishLoginInput) GetCredentialId() string {
+func (x *PasskeyFinishLoginInput) GetCredentials() string {
 	if x != nil {
-		return x.CredentialId
+		return x.Credentials
 	}
 	return ""
 }
 
-func (x *PasskeyFinishLoginInput) GetPublicKey() string {
+func (x *PasskeyFinishLoginInput) GetAssertion() string {
 	if x != nil {
-		return x.PublicKey
+		return x.Assertion
 	}
 	return ""
-}
-
-func (x *PasskeyFinishLoginInput) GetSignCount() uint32 {
-	if x != nil {
-		return x.SignCount
-	}
-	return 0
 }
 
 type PasskeyFinishLoginOutput struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Verified      bool                   `protobuf:"varint,1,opt,name=verified,proto3" json:"verified,omitempty"`
+	Valid         bool                   `protobuf:"varint,1,opt,name=valid,proto3" json:"valid,omitempty"`
 	CredentialId  string                 `protobuf:"bytes,2,opt,name=credential_id,json=credentialId,proto3" json:"credential_id,omitempty"`
 	SignCount     uint32                 `protobuf:"varint,3,opt,name=sign_count,json=signCount,proto3" json:"sign_count,omitempty"`
 	Error         string                 `protobuf:"bytes,100,opt,name=error,proto3" json:"error,omitempty"`
@@ -650,9 +650,9 @@ func (*PasskeyFinishLoginOutput) Descriptor() ([]byte, []int) {
 	return file_internal_contracts_auth_proto_rawDescGZIP(), []int{9}
 }
 
-func (x *PasskeyFinishLoginOutput) GetVerified() bool {
+func (x *PasskeyFinishLoginOutput) GetValid() bool {
 	if x != nil {
-		return x.Verified
+		return x.Valid
 	}
 	return false
 }
@@ -716,8 +716,8 @@ func (*EmptyConfig) Descriptor() ([]byte, []int) {
 
 type TOTPGenerateSecretInput struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Issuer        string                 `protobuf:"bytes,1,opt,name=issuer,proto3" json:"issuer,omitempty"`
-	AccountName   string                 `protobuf:"bytes,2,opt,name=account_name,json=accountName,proto3" json:"account_name,omitempty"`
+	Email         string                 `protobuf:"bytes,1,opt,name=email,proto3" json:"email,omitempty"`
+	Issuer        string                 `protobuf:"bytes,2,opt,name=issuer,proto3" json:"issuer,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -752,6 +752,13 @@ func (*TOTPGenerateSecretInput) Descriptor() ([]byte, []int) {
 	return file_internal_contracts_auth_proto_rawDescGZIP(), []int{11}
 }
 
+func (x *TOTPGenerateSecretInput) GetEmail() string {
+	if x != nil {
+		return x.Email
+	}
+	return ""
+}
+
 func (x *TOTPGenerateSecretInput) GetIssuer() string {
 	if x != nil {
 		return x.Issuer
@@ -759,22 +766,15 @@ func (x *TOTPGenerateSecretInput) GetIssuer() string {
 	return ""
 }
 
-func (x *TOTPGenerateSecretInput) GetAccountName() string {
-	if x != nil {
-		return x.AccountName
-	}
-	return ""
-}
-
 type TOTPGenerateSecretOutput struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Secret        string                 `protobuf:"bytes,1,opt,name=secret,proto3" json:"secret,omitempty"`
-	Url           string                 `protobuf:"bytes,2,opt,name=url,proto3" json:"url,omitempty"`
-	Issuer        string                 `protobuf:"bytes,3,opt,name=issuer,proto3" json:"issuer,omitempty"`
-	AccountName   string                 `protobuf:"bytes,4,opt,name=account_name,json=accountName,proto3" json:"account_name,omitempty"`
-	Error         string                 `protobuf:"bytes,100,opt,name=error,proto3" json:"error,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state           protoimpl.MessageState `protogen:"open.v1"`
+	Secret          string                 `protobuf:"bytes,1,opt,name=secret,proto3" json:"secret,omitempty"`
+	ProvisioningUri string                 `protobuf:"bytes,2,opt,name=provisioning_uri,json=provisioningUri,proto3" json:"provisioning_uri,omitempty"`
+	Issuer          string                 `protobuf:"bytes,3,opt,name=issuer,proto3" json:"issuer,omitempty"`
+	Account         string                 `protobuf:"bytes,4,opt,name=account,proto3" json:"account,omitempty"`
+	Error           string                 `protobuf:"bytes,100,opt,name=error,proto3" json:"error,omitempty"`
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
 }
 
 func (x *TOTPGenerateSecretOutput) Reset() {
@@ -814,9 +814,9 @@ func (x *TOTPGenerateSecretOutput) GetSecret() string {
 	return ""
 }
 
-func (x *TOTPGenerateSecretOutput) GetUrl() string {
+func (x *TOTPGenerateSecretOutput) GetProvisioningUri() string {
 	if x != nil {
-		return x.Url
+		return x.ProvisioningUri
 	}
 	return ""
 }
@@ -828,9 +828,9 @@ func (x *TOTPGenerateSecretOutput) GetIssuer() string {
 	return ""
 }
 
-func (x *TOTPGenerateSecretOutput) GetAccountName() string {
+func (x *TOTPGenerateSecretOutput) GetAccount() string {
 	if x != nil {
-		return x.AccountName
+		return x.Account
 	}
 	return ""
 }
@@ -992,7 +992,8 @@ func (x *TOTPRecoveryCodesInput) GetCount() int32 {
 
 type TOTPRecoveryCodesOutput struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	RecoveryCodes []string               `protobuf:"bytes,1,rep,name=recovery_codes,json=recoveryCodes,proto3" json:"recovery_codes,omitempty"`
+	Codes         []string               `protobuf:"bytes,1,rep,name=codes,proto3" json:"codes,omitempty"`
+	Hashes        []string               `protobuf:"bytes,2,rep,name=hashes,proto3" json:"hashes,omitempty"`
 	Error         string                 `protobuf:"bytes,100,opt,name=error,proto3" json:"error,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -1028,9 +1029,16 @@ func (*TOTPRecoveryCodesOutput) Descriptor() ([]byte, []int) {
 	return file_internal_contracts_auth_proto_rawDescGZIP(), []int{16}
 }
 
-func (x *TOTPRecoveryCodesOutput) GetRecoveryCodes() []string {
+func (x *TOTPRecoveryCodesOutput) GetCodes() []string {
 	if x != nil {
-		return x.RecoveryCodes
+		return x.Codes
+	}
+	return nil
+}
+
+func (x *TOTPRecoveryCodesOutput) GetHashes() []string {
+	if x != nil {
+		return x.Hashes
 	}
 	return nil
 }
@@ -4057,61 +4065,61 @@ const file_internal_contracts_auth_proto_rawDesc = "" +
 	"\x06origin\x18\x03 \x01(\tR\x06origin\x12\x1a\n" +
 	"\boptional\x18\x04 \x01(\bR\boptional\"+\n" +
 	"\x11PasskeyStepConfig\x12\x16\n" +
-	"\x06module\x18\x01 \x01(\tR\x06module\"}\n" +
+	"\x06module\x18\x01 \x01(\tR\x06module\"m\n" +
 	"\x19PasskeyBeginRegisterInput\x12\x17\n" +
-	"\auser_id\x18\x01 \x01(\tR\x06userId\x12\x1b\n" +
-	"\tuser_name\x18\x02 \x01(\tR\buserName\x12*\n" +
-	"\x11user_display_name\x18\x03 \x01(\tR\x0fuserDisplayName\"\xaf\x01\n" +
+	"\auser_id\x18\x01 \x01(\tR\x06userId\x12\x14\n" +
+	"\x05email\x18\x02 \x01(\tR\x05email\x12!\n" +
+	"\fdisplay_name\x18\x03 \x01(\tR\vdisplayName\"o\n" +
 	"\x1aPasskeyBeginRegisterOutput\x12\x18\n" +
-	"\asuccess\x18\x01 \x01(\bR\asuccess\x12>\n" +
-	"\x1bcredential_creation_options\x18\x02 \x01(\tR\x19credentialCreationOptions\x12!\n" +
+	"\aoptions\x18\x01 \x01(\tR\aoptions\x12!\n" +
 	"\fsession_data\x18\x03 \x01(\tR\vsessionData\x12\x14\n" +
-	"\x05error\x18d \x01(\tR\x05error\"\xd2\x01\n" +
+	"\x05error\x18d \x01(\tR\x05error\"\xb3\x01\n" +
 	"\x1aPasskeyFinishRegisterInput\x12\x17\n" +
-	"\auser_id\x18\x01 \x01(\tR\x06userId\x12\x1b\n" +
-	"\tuser_name\x18\x02 \x01(\tR\buserName\x12*\n" +
-	"\x11user_display_name\x18\x03 \x01(\tR\x0fuserDisplayName\x12/\n" +
-	"\x13credential_response\x18\x04 \x01(\tR\x12credentialResponse\x12!\n" +
-	"\fsession_data\x18\x05 \x01(\tR\vsessionData\"\xb2\x01\n" +
-	"\x1bPasskeyFinishRegisterOutput\x12\x1a\n" +
-	"\bverified\x18\x01 \x01(\bR\bverified\x12#\n" +
+	"\auser_id\x18\x01 \x01(\tR\x06userId\x12\x14\n" +
+	"\x05email\x18\x02 \x01(\tR\x05email\x12!\n" +
+	"\fdisplay_name\x18\x03 \x01(\tR\vdisplayName\x12 \n" +
+	"\vattestation\x18\x04 \x01(\tR\vattestation\x12!\n" +
+	"\fsession_data\x18\x05 \x01(\tR\vsessionData\"\xe4\x01\n" +
+	"\x1bPasskeyFinishRegisterOutput\x12\x14\n" +
+	"\x05valid\x18\x01 \x01(\bR\x05valid\x12#\n" +
 	"\rcredential_id\x18\x02 \x01(\tR\fcredentialId\x12\x1d\n" +
 	"\n" +
-	"public_key\x18\x03 \x01(\tR\tpublicKey\x12\x1d\n" +
+	"public_key\x18\x03 \x01(\tR\tpublicKey\x12\x16\n" +
+	"\x06aaguid\x18\x04 \x01(\tR\x06aaguid\x12\x1d\n" +
 	"\n" +
-	"sign_count\x18\x04 \x01(\rR\tsignCount\x12\x14\n" +
-	"\x05error\x18d \x01(\tR\x05error\"1\n" +
+	"sign_count\x18\x05 \x01(\rR\tsignCount\x12\x1e\n" +
+	"\n" +
+	"credential\x18\x06 \x01(\tR\n" +
+	"credential\x12\x14\n" +
+	"\x05error\x18d \x01(\tR\x05error\"S\n" +
 	"\x16PasskeyBeginLoginInput\x12\x17\n" +
-	"\auser_id\x18\x01 \x01(\tR\x06userId\"\xae\x01\n" +
+	"\auser_id\x18\x01 \x01(\tR\x06userId\x12 \n" +
+	"\vcredentials\x18\x02 \x01(\tR\vcredentials\"l\n" +
 	"\x17PasskeyBeginLoginOutput\x12\x18\n" +
-	"\asuccess\x18\x01 \x01(\bR\asuccess\x12@\n" +
-	"\x1ccredential_assertion_options\x18\x02 \x01(\tR\x1acredentialAssertionOptions\x12!\n" +
+	"\aoptions\x18\x01 \x01(\tR\aoptions\x12!\n" +
 	"\fsession_data\x18\x03 \x01(\tR\vsessionData\x12\x14\n" +
-	"\x05error\x18d \x01(\tR\x05error\"\xeb\x01\n" +
+	"\x05error\x18d \x01(\tR\x05error\"\xab\x01\n" +
 	"\x17PasskeyFinishLoginInput\x12\x17\n" +
-	"\auser_id\x18\x01 \x01(\tR\x06userId\x121\n" +
-	"\x14credential_assertion\x18\x02 \x01(\tR\x13credentialAssertion\x12!\n" +
-	"\fsession_data\x18\x03 \x01(\tR\vsessionData\x12#\n" +
-	"\rcredential_id\x18\x04 \x01(\tR\fcredentialId\x12\x1d\n" +
-	"\n" +
-	"public_key\x18\x05 \x01(\tR\tpublicKey\x12\x1d\n" +
-	"\n" +
-	"sign_count\x18\x06 \x01(\rR\tsignCount\"\x90\x01\n" +
-	"\x18PasskeyFinishLoginOutput\x12\x1a\n" +
-	"\bverified\x18\x01 \x01(\bR\bverified\x12#\n" +
+	"\auser_id\x18\x01 \x01(\tR\x06userId\x12\x14\n" +
+	"\x05email\x18\x02 \x01(\tR\x05email\x12!\n" +
+	"\fsession_data\x18\x03 \x01(\tR\vsessionData\x12 \n" +
+	"\vcredentials\x18\x04 \x01(\tR\vcredentials\x12\x1c\n" +
+	"\tassertion\x18\x05 \x01(\tR\tassertion\"\x8a\x01\n" +
+	"\x18PasskeyFinishLoginOutput\x12\x14\n" +
+	"\x05valid\x18\x01 \x01(\bR\x05valid\x12#\n" +
 	"\rcredential_id\x18\x02 \x01(\tR\fcredentialId\x12\x1d\n" +
 	"\n" +
 	"sign_count\x18\x03 \x01(\rR\tsignCount\x12\x14\n" +
 	"\x05error\x18d \x01(\tR\x05error\"\r\n" +
-	"\vEmptyConfig\"T\n" +
-	"\x17TOTPGenerateSecretInput\x12\x16\n" +
-	"\x06issuer\x18\x01 \x01(\tR\x06issuer\x12!\n" +
-	"\faccount_name\x18\x02 \x01(\tR\vaccountName\"\x95\x01\n" +
+	"\vEmptyConfig\"G\n" +
+	"\x17TOTPGenerateSecretInput\x12\x14\n" +
+	"\x05email\x18\x01 \x01(\tR\x05email\x12\x16\n" +
+	"\x06issuer\x18\x02 \x01(\tR\x06issuer\"\xa5\x01\n" +
 	"\x18TOTPGenerateSecretOutput\x12\x16\n" +
-	"\x06secret\x18\x01 \x01(\tR\x06secret\x12\x10\n" +
-	"\x03url\x18\x02 \x01(\tR\x03url\x12\x16\n" +
-	"\x06issuer\x18\x03 \x01(\tR\x06issuer\x12!\n" +
-	"\faccount_name\x18\x04 \x01(\tR\vaccountName\x12\x14\n" +
+	"\x06secret\x18\x01 \x01(\tR\x06secret\x12)\n" +
+	"\x10provisioning_uri\x18\x02 \x01(\tR\x0fprovisioningUri\x12\x16\n" +
+	"\x06issuer\x18\x03 \x01(\tR\x06issuer\x12\x18\n" +
+	"\aaccount\x18\x04 \x01(\tR\aaccount\x12\x14\n" +
 	"\x05error\x18d \x01(\tR\x05error\"=\n" +
 	"\x0fTOTPVerifyInput\x12\x16\n" +
 	"\x06secret\x18\x01 \x01(\tR\x06secret\x12\x12\n" +
@@ -4120,9 +4128,10 @@ const file_internal_contracts_auth_proto_rawDesc = "" +
 	"\x05valid\x18\x01 \x01(\bR\x05valid\x12\x14\n" +
 	"\x05error\x18d \x01(\tR\x05error\".\n" +
 	"\x16TOTPRecoveryCodesInput\x12\x14\n" +
-	"\x05count\x18\x01 \x01(\x05R\x05count\"V\n" +
-	"\x17TOTPRecoveryCodesOutput\x12%\n" +
-	"\x0erecovery_codes\x18\x01 \x03(\tR\rrecoveryCodes\x12\x14\n" +
+	"\x05count\x18\x01 \x01(\x05R\x05count\"]\n" +
+	"\x17TOTPRecoveryCodesOutput\x12\x14\n" +
+	"\x05codes\x18\x01 \x03(\tR\x05codes\x12\x16\n" +
+	"\x06hashes\x18\x02 \x03(\tR\x06hashes\x12\x14\n" +
 	"\x05error\x18d \x01(\tR\x05error\"U\n" +
 	"\x16MagicLinkGenerateInput\x12\x14\n" +
 	"\x05email\x18\x01 \x01(\tR\x05email\x12%\n" +

@@ -95,7 +95,7 @@ func mapToProto[O proto.Message](values map[string]any, target O) (O, error) {
 	if err != nil {
 		return typed, fmt.Errorf("marshal step output map: %w", err)
 	}
-	if err := (protojson.UnmarshalOptions{DiscardUnknown: true}).Unmarshal(data, typed); err != nil {
+	if err := (protojson.UnmarshalOptions{}).Unmarshal(data, typed); err != nil {
 		return typed, fmt.Errorf("decode typed protobuf output: %w", err)
 	}
 	return typed, nil
