@@ -1,6 +1,10 @@
 package internal_test
 
 import (
+	"encoding/json"
+	"os"
+	"sort"
+	"strings"
 	"testing"
 
 	authplugin "github.com/GoCodeAlone/workflow-plugin-auth/internal"
@@ -167,11 +171,63 @@ func TestIntegration_PluginManifestAndStepTypes(t *testing.T) {
 	if len(sp.StepTypes()) == 0 {
 		t.Error("expected at least one step type")
 	}
+	mp, ok := p.(sdk.ModuleProvider)
+	if !ok {
+		t.Fatal("plugin does not implement sdk.ModuleProvider")
+	}
 
 	// Verify each step type can be instantiated.
 	for _, st := range sp.StepTypes() {
 		if _, err := sp.CreateStep(st, "test", map[string]any{}); err != nil {
 			t.Errorf("CreateStep(%q) failed: %v", st, err)
+		}
+	}
+
+	data, err := os.ReadFile("../plugin.json")
+	if err != nil {
+		t.Fatalf("read plugin.json: %v", err)
+	}
+	var manifest struct {
+		Version   string `json:"version"`
+		Downloads []struct {
+			URL string `json:"url"`
+		} `json:"downloads"`
+		ModuleTypes []string `json:"moduleTypes"`
+		StepTypes   []string `json:"stepTypes"`
+	}
+	if err := json.Unmarshal(data, &manifest); err != nil {
+		t.Fatalf("parse plugin.json: %v", err)
+	}
+	if want := os.Getenv("PLUGIN_MANIFEST_EXPECT_VERSION"); want != "" && manifest.Version != want {
+		t.Fatalf("plugin.json version = %q, want release version %q", manifest.Version, want)
+	}
+	for _, download := range manifest.Downloads {
+		if !strings.Contains(download.URL, "/releases/download/v"+manifest.Version+"/") ||
+			!strings.Contains(download.URL, "workflow-plugin-auth_"+manifest.Version+"_") {
+			t.Fatalf("download URL %q does not match plugin.json version %q", download.URL, manifest.Version)
+		}
+	}
+	assertStringSetEqual(t, "plugin.json moduleTypes", manifest.ModuleTypes, mp.ModuleTypes())
+	assertStringSetEqual(t, "plugin.json stepTypes", manifest.StepTypes, sp.StepTypes())
+}
+
+func assertStringSetEqual(t *testing.T, label string, got, want []string) {
+	t.Helper()
+	got = append([]string(nil), got...)
+	want = append([]string(nil), want...)
+	sort.Strings(got)
+	sort.Strings(want)
+	if len(got) != len(want) {
+		t.Fatalf("%s count = %d, want %d: got %#v want %#v", label, len(got), len(want), got, want)
+	}
+	for i := range want {
+		if got[i] != want[i] {
+			t.Fatalf("%s mismatch: got %#v want %#v", label, got, want)
+		}
+	}
+	for i := 1; i < len(got); i++ {
+		if got[i] == got[i-1] {
+			t.Fatalf("%s contains duplicate %q", label, got[i])
 		}
 	}
 }
