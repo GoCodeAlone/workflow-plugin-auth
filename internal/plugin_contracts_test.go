@@ -129,6 +129,61 @@ func TestTypedPolicyInputOverridesTypedConfigAtBoundary(t *testing.T) {
 	}
 }
 
+func TestTypedMethodsPolicyUsesMetadataRuntimeConfig(t *testing.T) {
+	result, err := typedAuthMethodsPolicy(context.Background(), sdk.TypedStepRequest[*contracts.AuthMethodsPolicyConfig, *contracts.AuthMethodsPolicyInput]{
+		Config: &contracts.AuthMethodsPolicyConfig{},
+		Input:  &contracts.AuthMethodsPolicyInput{},
+		Metadata: map[string]any{
+			"runtime_config": map[string]any{
+				"webauthn_rp_id":  "example.test",
+				"webauthn_origin": "https://example.test",
+				"smtp_host":       "smtp.example.test",
+				"smtp_from":       "login@example.test",
+			},
+		},
+	})
+	if err != nil {
+		t.Fatalf("typed methods policy: %v", err)
+	}
+	if !result.Output.GetPasskeyEnabled() {
+		t.Fatal("typed methods policy ignored runtime passkey config")
+	}
+	if !result.Output.GetEmailCodeEnabled() {
+		t.Fatal("typed methods policy ignored runtime email config")
+	}
+}
+
+func TestTypedPolicyGateUsesMetadataRuntimeConfig(t *testing.T) {
+	result, err := typedPolicyGate(context.Background(), sdk.TypedStepRequest[*contracts.AuthPolicyGateConfig, *contracts.AuthPolicyGateInput]{
+		Config: &contracts.AuthPolicyGateConfig{
+			RequiredRuntimeKeys: []string{"tenant_id"},
+		},
+		Input: &contracts.AuthPolicyGateInput{
+			EmailCodeEnabled: true,
+			SmsCodeEnabled:   true,
+			OauthProviders:   []string{"google"},
+		},
+		Metadata: map[string]any{
+			"runtime_config": map[string]any{
+				"tenant_id":      "tenant-123",
+				"signing_secret": "secret",
+			},
+		},
+	})
+	if err != nil {
+		t.Fatalf("typed policy gate: %v", err)
+	}
+	if !result.Output.GetEmailCodeEnabled() {
+		t.Fatal("typed policy gate ignored runtime signing_secret")
+	}
+	if !result.Output.GetSmsCodeEnabled() {
+		t.Fatal("typed policy gate ignored required runtime tenant_id")
+	}
+	if got := result.Output.GetOauthProviders(); len(got) != 1 || got[0] != "google" {
+		t.Fatalf("oauth providers = %v, want [google]", got)
+	}
+}
+
 func TestMapToProtoRejectsUnknownOutputFields(t *testing.T) {
 	if _, err := mapToProto(map[string]any{"valid": true, "ignored": "drift"}, &contracts.TOTPVerifyOutput{}); err == nil {
 		t.Fatal("mapToProto accepted an unknown output field")

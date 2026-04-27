@@ -36,8 +36,9 @@ func typedPolicyGate(ctx context.Context, req sdk.TypedStepRequest[*contracts.Au
 		stepOutputs[name] = output
 	}
 	stepOutputs[stepName] = input
+	runtimeConfig := runtimeConfigFromMetadata(req.Metadata)
 	step := newAuthPolicyGateStep("typed", config)
-	result, err := step.Execute(ctx, req.TriggerData, stepOutputs, mergeMaps(req.Current, input), req.Metadata, nil)
+	result, err := step.Execute(ctx, req.TriggerData, stepOutputs, mergeMaps(req.Current, input), req.Metadata, runtimeConfig)
 	if err != nil {
 		return nil, err
 	}
@@ -62,7 +63,7 @@ func typedLegacyStep[C proto.Message, I proto.Message, O proto.Message](
 			return nil, err
 		}
 		step := create("typed", config)
-		result, err := step.Execute(ctx, req.TriggerData, req.StepOutputs, mergeMaps(req.Current, input), req.Metadata, nil)
+		result, err := step.Execute(ctx, req.TriggerData, req.StepOutputs, mergeMaps(req.Current, input), req.Metadata, runtimeConfigFromMetadata(req.Metadata))
 		if err != nil {
 			return nil, err
 		}
@@ -99,6 +100,26 @@ func mapToProto[O proto.Message](values map[string]any, target O) (O, error) {
 		return typed, fmt.Errorf("decode typed protobuf output: %w", err)
 	}
 	return typed, nil
+}
+
+func runtimeConfigFromMetadata(metadata map[string]any) map[string]any {
+	for _, key := range []string{"runtime_config", "runtimeConfig"} {
+		values, ok := metadata[key]
+		if !ok {
+			continue
+		}
+		switch typed := values.(type) {
+		case map[string]any:
+			return typed
+		case map[string]string:
+			converted := make(map[string]any, len(typed))
+			for key, value := range typed {
+				converted[key] = value
+			}
+			return converted
+		}
+	}
+	return nil
 }
 
 func mergeMaps(sources ...map[string]any) map[string]any {
