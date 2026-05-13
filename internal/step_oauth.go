@@ -66,7 +66,10 @@ func (s *oauthStartStep) Execute(_ context.Context, _ map[string]any, _ map[stri
 		return &sdk.StepResult{Output: map[string]any{"started": false, "provider": provider, "error": disabledReason}}, nil
 	}
 
-	returnTo, err := normalizeOAuthReturnTo(oauthString(current, "return_to"))
+	// return_to may be supplied via OAuthProviderConfig (BMW yaml shape:
+	// `step.auth_oauth_start.config.return_to`) or via OAuthProviderInput
+	// (`current.return_to`). Config wins when non-empty (v0.2.4).
+	returnTo, err := normalizeOAuthReturnTo(oauthConfigOrCurrent(s.config, current, "return_to"))
 	if err != nil {
 		return &sdk.StepResult{Output: map[string]any{"started": false, "provider": provider, "error": err.Error()}}, nil
 	}
@@ -195,7 +198,11 @@ func (s *oauthUserinfoStep) Execute(ctx context.Context, _ map[string]any, _ map
 		return &sdk.StepResult{Output: map[string]any{"fetched": false, "provider": provider, "error": disabledReason}}, nil
 	}
 
-	accessToken := oauthString(current, "access_token")
+	// access_token may be supplied via OAuthProviderConfig (BMW yaml shape:
+	// `step.auth_oauth_userinfo.config.access_token`, templated from a
+	// preceding exchange step) or via OAuthProviderInput (`current.access_token`).
+	// Config wins when non-empty (v0.2.4).
+	accessToken := oauthConfigOrCurrent(s.config, current, "access_token")
 	if accessToken == "" {
 		return &sdk.StepResult{Output: map[string]any{"fetched": false, "provider": provider, "error": "missing access_token"}}, nil
 	}
@@ -378,6 +385,19 @@ func oauthDoJSON(client *http.Client, req *http.Request, label string, target an
 		return fmt.Errorf("%s response decode failed: %w", label, err)
 	}
 	return nil
+}
+
+// oauthConfigOrCurrent returns config[key] when non-empty, otherwise falls back
+// to current[key]. BMW supplies fields like return_to / access_token via the
+// step's config: block (templated at runtime). Under strict-proto these are
+// validated against OAuthProviderConfig at build-time, so the handler must
+// honor config when it carries a value but still accept runtime input
+// otherwise. Added in v0.2.4.
+func oauthConfigOrCurrent(config, current map[string]any, key string) string {
+	if value := oauthString(config, key); value != "" {
+		return value
+	}
+	return oauthString(current, key)
 }
 
 func oauthString(values map[string]any, key string) string {

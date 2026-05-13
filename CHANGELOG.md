@@ -1,5 +1,43 @@
 # Changelog
 
+## v0.2.4 (2026-05-13)
+
+### Strict-proto config-field gaps closed (BMW local smoke vs workflow v0.51.5, round 3)
+
+Round 3 closes two OAuth gaps the v0.2.3 sweep missed. Both surfaced when BMW
+v0.51.5 strict-proto validation rejected fields BMW supplies via the step's
+`config:` block (templates render at runtime, but strict-proto validates Config
+at build-time when templates are still unresolved literals):
+
+- `OAuthProviderConfig`: added `string return_to = 11`. BMW's `step.auth_oauth_start`
+  passes `return_to: '{{ .return_to }}'` in config. The handler now prefers
+  `config.return_to` when non-empty, otherwise falls back to `current.return_to`
+  (OAuthProviderInput).
+- `OAuthProviderConfig`: added `string access_token = 12`. BMW's
+  `step.auth_oauth_userinfo` passes
+  `access_token: '{{ index .steps "exchange_code" "access_token" }}'` in config.
+  The handler now prefers `config.access_token` when non-empty, otherwise falls
+  back to `current.access_token` (OAuthProviderInput).
+
+Both fields remain valid on `OAuthProviderInput` for callers that pass them at
+runtime (the v0.2.3 contract). Config-when-non-empty is the new tie-breaker.
+
+### Tests
+
+- `TestOAuthProviderConfig_AcceptsReturnToAndAccessToken` — strict-proto accepts
+  the new config fields across all four OAuth step types.
+- `TestOAuthStart_UsesReturnToFromConfig`, `TestOAuthStart_ConfigReturnToWinsOverCurrent`,
+  `TestOAuthStart_FallsBackToCurrentReturnTo` — handler precedence for `return_to`.
+- `TestOAuthUserinfo_UsesAccessTokenFromConfig`,
+  `TestOAuthUserinfo_ConfigAccessTokenWinsOverCurrent`,
+  `TestOAuthUserinfo_FallsBackToCurrentAccessToken` — handler precedence for
+  `access_token` (via httptest userinfo server asserting the Bearer header).
+
+### CI fixture
+
+- `.github/fixtures/workflow-compat.yaml` now exercises `config.return_to` on
+  `step.auth_oauth_start` and `config.access_token` on `step.auth_oauth_userinfo`.
+
 ## v0.2.3 (2026-05-13)
 
 ### Strict-proto config-field gaps closed (BMW local smoke vs workflow v0.51.5, round 2)
