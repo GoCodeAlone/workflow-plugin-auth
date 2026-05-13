@@ -2167,32 +2167,40 @@ func (x *NormalizePhoneOutput) GetError() string {
 }
 
 type AuthMethodsPolicyConfig struct {
-	state                   protoimpl.MessageState `protogen:"open.v1"`
-	Environment             string                 `protobuf:"bytes,1,opt,name=environment,proto3" json:"environment,omitempty"`
-	PasswordAuthEnabled     *bool                  `protobuf:"varint,2,opt,name=password_auth_enabled,json=passwordAuthEnabled,proto3,oneof" json:"password_auth_enabled,omitempty"`
-	PasswordEnabled         *bool                  `protobuf:"varint,3,opt,name=password_enabled,json=passwordEnabled,proto3,oneof" json:"password_enabled,omitempty"`
-	TotpAuthEnabled         *bool                  `protobuf:"varint,4,opt,name=totp_auth_enabled,json=totpAuthEnabled,proto3,oneof" json:"totp_auth_enabled,omitempty"`
-	TotpEnabled             *bool                  `protobuf:"varint,5,opt,name=totp_enabled,json=totpEnabled,proto3,oneof" json:"totp_enabled,omitempty"`
-	WebauthnRpId            string                 `protobuf:"bytes,6,opt,name=webauthn_rp_id,json=webauthnRpId,proto3" json:"webauthn_rp_id,omitempty"`
-	WebauthnOrigin          string                 `protobuf:"bytes,7,opt,name=webauthn_origin,json=webauthnOrigin,proto3" json:"webauthn_origin,omitempty"`
-	SmtpHost                string                 `protobuf:"bytes,8,opt,name=smtp_host,json=smtpHost,proto3" json:"smtp_host,omitempty"`
-	SmtpFrom                string                 `protobuf:"bytes,9,opt,name=smtp_from,json=smtpFrom,proto3" json:"smtp_from,omitempty"`
-	AuthRoutesEnabled       *bool                  `protobuf:"varint,10,opt,name=auth_routes_enabled,json=authRoutesEnabled,proto3,oneof" json:"auth_routes_enabled,omitempty"`
-	RoutesEnabled           *bool                  `protobuf:"varint,11,opt,name=routes_enabled,json=routesEnabled,proto3,oneof" json:"routes_enabled,omitempty"`
-	OauthRoutesEnabled      *bool                  `protobuf:"varint,12,opt,name=oauth_routes_enabled,json=oauthRoutesEnabled,proto3,oneof" json:"oauth_routes_enabled,omitempty"`
-	GoogleOauthClientId     string                 `protobuf:"bytes,13,opt,name=google_oauth_client_id,json=googleOauthClientId,proto3" json:"google_oauth_client_id,omitempty"`
-	GoogleOauthClientSecret string                 `protobuf:"bytes,14,opt,name=google_oauth_client_secret,json=googleOauthClientSecret,proto3" json:"google_oauth_client_secret,omitempty"`
-	GoogleOauthRedirectUrl  string                 `protobuf:"bytes,15,opt,name=google_oauth_redirect_url,json=googleOauthRedirectUrl,proto3" json:"google_oauth_redirect_url,omitempty"`
-	OauthProvider           string                 `protobuf:"bytes,16,opt,name=oauth_provider,json=oauthProvider,proto3" json:"oauth_provider,omitempty"`
-	SmsEnabled              *bool                  `protobuf:"varint,17,opt,name=sms_enabled,json=smsEnabled,proto3,oneof" json:"sms_enabled,omitempty"`
-	TwilioVerifyServiceSid  string                 `protobuf:"bytes,18,opt,name=twilio_verify_service_sid,json=twilioVerifyServiceSid,proto3" json:"twilio_verify_service_sid,omitempty"`
-	TwilioAccountSid        string                 `protobuf:"bytes,19,opt,name=twilio_account_sid,json=twilioAccountSid,proto3" json:"twilio_account_sid,omitempty"`
-	TwilioAuthToken         string                 `protobuf:"bytes,20,opt,name=twilio_auth_token,json=twilioAuthToken,proto3" json:"twilio_auth_token,omitempty"`
-	TwilioApiKeySid         string                 `protobuf:"bytes,21,opt,name=twilio_api_key_sid,json=twilioApiKeySid,proto3" json:"twilio_api_key_sid,omitempty"`
-	TwilioApiKeySecret      string                 `protobuf:"bytes,22,opt,name=twilio_api_key_secret,json=twilioApiKeySecret,proto3" json:"twilio_api_key_secret,omitempty"`
-	PasswordHashCount       int32                  `protobuf:"varint,23,opt,name=password_hash_count,json=passwordHashCount,proto3" json:"password_hash_count,omitempty"`
-	unknownFields           protoimpl.UnknownFields
-	sizeCache               protoimpl.SizeCache
+	state                      protoimpl.MessageState `protogen:"open.v1"`
+	Environment                string                 `protobuf:"bytes,1,opt,name=environment,proto3" json:"environment,omitempty"`
+	PasswordAuthEnabled        *bool                  `protobuf:"varint,2,opt,name=password_auth_enabled,json=passwordAuthEnabled,proto3,oneof" json:"password_auth_enabled,omitempty"`
+	PasswordEnabled            *bool                  `protobuf:"varint,3,opt,name=password_enabled,json=passwordEnabled,proto3,oneof" json:"password_enabled,omitempty"`
+	TotpAuthEnabled            *bool                  `protobuf:"varint,4,opt,name=totp_auth_enabled,json=totpAuthEnabled,proto3,oneof" json:"totp_auth_enabled,omitempty"`
+	TotpEnabled                *bool                  `protobuf:"varint,5,opt,name=totp_enabled,json=totpEnabled,proto3,oneof" json:"totp_enabled,omitempty"`
+	WebauthnRpId               string                 `protobuf:"bytes,6,opt,name=webauthn_rp_id,json=webauthnRpId,proto3" json:"webauthn_rp_id,omitempty"`
+	WebauthnOrigin             string                 `protobuf:"bytes,7,opt,name=webauthn_origin,json=webauthnOrigin,proto3" json:"webauthn_origin,omitempty"`
+	SmtpHost                   string                 `protobuf:"bytes,8,opt,name=smtp_host,json=smtpHost,proto3" json:"smtp_host,omitempty"`
+	SmtpFrom                   string                 `protobuf:"bytes,9,opt,name=smtp_from,json=smtpFrom,proto3" json:"smtp_from,omitempty"`
+	AuthRoutesEnabled          *bool                  `protobuf:"varint,10,opt,name=auth_routes_enabled,json=authRoutesEnabled,proto3,oneof" json:"auth_routes_enabled,omitempty"`
+	RoutesEnabled              *bool                  `protobuf:"varint,11,opt,name=routes_enabled,json=routesEnabled,proto3,oneof" json:"routes_enabled,omitempty"`
+	OauthRoutesEnabled         *bool                  `protobuf:"varint,12,opt,name=oauth_routes_enabled,json=oauthRoutesEnabled,proto3,oneof" json:"oauth_routes_enabled,omitempty"`
+	GoogleOauthClientId        string                 `protobuf:"bytes,13,opt,name=google_oauth_client_id,json=googleOauthClientId,proto3" json:"google_oauth_client_id,omitempty"`
+	GoogleOauthClientSecret    string                 `protobuf:"bytes,14,opt,name=google_oauth_client_secret,json=googleOauthClientSecret,proto3" json:"google_oauth_client_secret,omitempty"`
+	GoogleOauthRedirectUrl     string                 `protobuf:"bytes,15,opt,name=google_oauth_redirect_url,json=googleOauthRedirectUrl,proto3" json:"google_oauth_redirect_url,omitempty"`
+	OauthProvider              string                 `protobuf:"bytes,16,opt,name=oauth_provider,json=oauthProvider,proto3" json:"oauth_provider,omitempty"`
+	SmsEnabled                 *bool                  `protobuf:"varint,17,opt,name=sms_enabled,json=smsEnabled,proto3,oneof" json:"sms_enabled,omitempty"`
+	TwilioVerifyServiceSid     string                 `protobuf:"bytes,18,opt,name=twilio_verify_service_sid,json=twilioVerifyServiceSid,proto3" json:"twilio_verify_service_sid,omitempty"`
+	TwilioAccountSid           string                 `protobuf:"bytes,19,opt,name=twilio_account_sid,json=twilioAccountSid,proto3" json:"twilio_account_sid,omitempty"`
+	TwilioAuthToken            string                 `protobuf:"bytes,20,opt,name=twilio_auth_token,json=twilioAuthToken,proto3" json:"twilio_auth_token,omitempty"`
+	TwilioApiKeySid            string                 `protobuf:"bytes,21,opt,name=twilio_api_key_sid,json=twilioApiKeySid,proto3" json:"twilio_api_key_sid,omitempty"`
+	TwilioApiKeySecret         string                 `protobuf:"bytes,22,opt,name=twilio_api_key_secret,json=twilioApiKeySecret,proto3" json:"twilio_api_key_secret,omitempty"`
+	PasswordHashCount          int32                  `protobuf:"varint,23,opt,name=password_hash_count,json=passwordHashCount,proto3" json:"password_hash_count,omitempty"`
+	JwtSecret                  string                 `protobuf:"bytes,24,opt,name=jwt_secret,json=jwtSecret,proto3" json:"jwt_secret,omitempty"`
+	SmsAuthEnabled             *bool                  `protobuf:"varint,25,opt,name=sms_auth_enabled,json=smsAuthEnabled,proto3,oneof" json:"sms_auth_enabled,omitempty"`
+	FacebookOauthClientId      string                 `protobuf:"bytes,26,opt,name=facebook_oauth_client_id,json=facebookOauthClientId,proto3" json:"facebook_oauth_client_id,omitempty"`
+	FacebookOauthClientSecret  string                 `protobuf:"bytes,27,opt,name=facebook_oauth_client_secret,json=facebookOauthClientSecret,proto3" json:"facebook_oauth_client_secret,omitempty"`
+	InstagramOauthClientId     string                 `protobuf:"bytes,28,opt,name=instagram_oauth_client_id,json=instagramOauthClientId,proto3" json:"instagram_oauth_client_id,omitempty"`
+	InstagramOauthClientSecret string                 `protobuf:"bytes,29,opt,name=instagram_oauth_client_secret,json=instagramOauthClientSecret,proto3" json:"instagram_oauth_client_secret,omitempty"`
+	XOauthClientId             string                 `protobuf:"bytes,30,opt,name=x_oauth_client_id,json=xOauthClientId,proto3" json:"x_oauth_client_id,omitempty"`
+	XOauthClientSecret         string                 `protobuf:"bytes,31,opt,name=x_oauth_client_secret,json=xOauthClientSecret,proto3" json:"x_oauth_client_secret,omitempty"`
+	unknownFields              protoimpl.UnknownFields
+	sizeCache                  protoimpl.SizeCache
 }
 
 func (x *AuthMethodsPolicyConfig) Reset() {
@@ -2386,33 +2394,97 @@ func (x *AuthMethodsPolicyConfig) GetPasswordHashCount() int32 {
 	return 0
 }
 
+func (x *AuthMethodsPolicyConfig) GetJwtSecret() string {
+	if x != nil {
+		return x.JwtSecret
+	}
+	return ""
+}
+
+func (x *AuthMethodsPolicyConfig) GetSmsAuthEnabled() bool {
+	if x != nil && x.SmsAuthEnabled != nil {
+		return *x.SmsAuthEnabled
+	}
+	return false
+}
+
+func (x *AuthMethodsPolicyConfig) GetFacebookOauthClientId() string {
+	if x != nil {
+		return x.FacebookOauthClientId
+	}
+	return ""
+}
+
+func (x *AuthMethodsPolicyConfig) GetFacebookOauthClientSecret() string {
+	if x != nil {
+		return x.FacebookOauthClientSecret
+	}
+	return ""
+}
+
+func (x *AuthMethodsPolicyConfig) GetInstagramOauthClientId() string {
+	if x != nil {
+		return x.InstagramOauthClientId
+	}
+	return ""
+}
+
+func (x *AuthMethodsPolicyConfig) GetInstagramOauthClientSecret() string {
+	if x != nil {
+		return x.InstagramOauthClientSecret
+	}
+	return ""
+}
+
+func (x *AuthMethodsPolicyConfig) GetXOauthClientId() string {
+	if x != nil {
+		return x.XOauthClientId
+	}
+	return ""
+}
+
+func (x *AuthMethodsPolicyConfig) GetXOauthClientSecret() string {
+	if x != nil {
+		return x.XOauthClientSecret
+	}
+	return ""
+}
+
 type AuthMethodsPolicyInput struct {
-	state                   protoimpl.MessageState `protogen:"open.v1"`
-	Environment             string                 `protobuf:"bytes,1,opt,name=environment,proto3" json:"environment,omitempty"`
-	PasswordAuthEnabled     *bool                  `protobuf:"varint,2,opt,name=password_auth_enabled,json=passwordAuthEnabled,proto3,oneof" json:"password_auth_enabled,omitempty"`
-	PasswordEnabled         *bool                  `protobuf:"varint,3,opt,name=password_enabled,json=passwordEnabled,proto3,oneof" json:"password_enabled,omitempty"`
-	TotpAuthEnabled         *bool                  `protobuf:"varint,4,opt,name=totp_auth_enabled,json=totpAuthEnabled,proto3,oneof" json:"totp_auth_enabled,omitempty"`
-	TotpEnabled             *bool                  `protobuf:"varint,5,opt,name=totp_enabled,json=totpEnabled,proto3,oneof" json:"totp_enabled,omitempty"`
-	WebauthnRpId            string                 `protobuf:"bytes,6,opt,name=webauthn_rp_id,json=webauthnRpId,proto3" json:"webauthn_rp_id,omitempty"`
-	WebauthnOrigin          string                 `protobuf:"bytes,7,opt,name=webauthn_origin,json=webauthnOrigin,proto3" json:"webauthn_origin,omitempty"`
-	SmtpHost                string                 `protobuf:"bytes,8,opt,name=smtp_host,json=smtpHost,proto3" json:"smtp_host,omitempty"`
-	SmtpFrom                string                 `protobuf:"bytes,9,opt,name=smtp_from,json=smtpFrom,proto3" json:"smtp_from,omitempty"`
-	AuthRoutesEnabled       *bool                  `protobuf:"varint,10,opt,name=auth_routes_enabled,json=authRoutesEnabled,proto3,oneof" json:"auth_routes_enabled,omitempty"`
-	RoutesEnabled           *bool                  `protobuf:"varint,11,opt,name=routes_enabled,json=routesEnabled,proto3,oneof" json:"routes_enabled,omitempty"`
-	OauthRoutesEnabled      *bool                  `protobuf:"varint,12,opt,name=oauth_routes_enabled,json=oauthRoutesEnabled,proto3,oneof" json:"oauth_routes_enabled,omitempty"`
-	GoogleOauthClientId     string                 `protobuf:"bytes,13,opt,name=google_oauth_client_id,json=googleOauthClientId,proto3" json:"google_oauth_client_id,omitempty"`
-	GoogleOauthClientSecret string                 `protobuf:"bytes,14,opt,name=google_oauth_client_secret,json=googleOauthClientSecret,proto3" json:"google_oauth_client_secret,omitempty"`
-	GoogleOauthRedirectUrl  string                 `protobuf:"bytes,15,opt,name=google_oauth_redirect_url,json=googleOauthRedirectUrl,proto3" json:"google_oauth_redirect_url,omitempty"`
-	OauthProvider           string                 `protobuf:"bytes,16,opt,name=oauth_provider,json=oauthProvider,proto3" json:"oauth_provider,omitempty"`
-	SmsEnabled              *bool                  `protobuf:"varint,17,opt,name=sms_enabled,json=smsEnabled,proto3,oneof" json:"sms_enabled,omitempty"`
-	TwilioVerifyServiceSid  string                 `protobuf:"bytes,18,opt,name=twilio_verify_service_sid,json=twilioVerifyServiceSid,proto3" json:"twilio_verify_service_sid,omitempty"`
-	TwilioAccountSid        string                 `protobuf:"bytes,19,opt,name=twilio_account_sid,json=twilioAccountSid,proto3" json:"twilio_account_sid,omitempty"`
-	TwilioAuthToken         string                 `protobuf:"bytes,20,opt,name=twilio_auth_token,json=twilioAuthToken,proto3" json:"twilio_auth_token,omitempty"`
-	TwilioApiKeySid         string                 `protobuf:"bytes,21,opt,name=twilio_api_key_sid,json=twilioApiKeySid,proto3" json:"twilio_api_key_sid,omitempty"`
-	TwilioApiKeySecret      string                 `protobuf:"bytes,22,opt,name=twilio_api_key_secret,json=twilioApiKeySecret,proto3" json:"twilio_api_key_secret,omitempty"`
-	PasswordHashCount       int32                  `protobuf:"varint,23,opt,name=password_hash_count,json=passwordHashCount,proto3" json:"password_hash_count,omitempty"`
-	unknownFields           protoimpl.UnknownFields
-	sizeCache               protoimpl.SizeCache
+	state                      protoimpl.MessageState `protogen:"open.v1"`
+	Environment                string                 `protobuf:"bytes,1,opt,name=environment,proto3" json:"environment,omitempty"`
+	PasswordAuthEnabled        *bool                  `protobuf:"varint,2,opt,name=password_auth_enabled,json=passwordAuthEnabled,proto3,oneof" json:"password_auth_enabled,omitempty"`
+	PasswordEnabled            *bool                  `protobuf:"varint,3,opt,name=password_enabled,json=passwordEnabled,proto3,oneof" json:"password_enabled,omitempty"`
+	TotpAuthEnabled            *bool                  `protobuf:"varint,4,opt,name=totp_auth_enabled,json=totpAuthEnabled,proto3,oneof" json:"totp_auth_enabled,omitempty"`
+	TotpEnabled                *bool                  `protobuf:"varint,5,opt,name=totp_enabled,json=totpEnabled,proto3,oneof" json:"totp_enabled,omitempty"`
+	WebauthnRpId               string                 `protobuf:"bytes,6,opt,name=webauthn_rp_id,json=webauthnRpId,proto3" json:"webauthn_rp_id,omitempty"`
+	WebauthnOrigin             string                 `protobuf:"bytes,7,opt,name=webauthn_origin,json=webauthnOrigin,proto3" json:"webauthn_origin,omitempty"`
+	SmtpHost                   string                 `protobuf:"bytes,8,opt,name=smtp_host,json=smtpHost,proto3" json:"smtp_host,omitempty"`
+	SmtpFrom                   string                 `protobuf:"bytes,9,opt,name=smtp_from,json=smtpFrom,proto3" json:"smtp_from,omitempty"`
+	AuthRoutesEnabled          *bool                  `protobuf:"varint,10,opt,name=auth_routes_enabled,json=authRoutesEnabled,proto3,oneof" json:"auth_routes_enabled,omitempty"`
+	RoutesEnabled              *bool                  `protobuf:"varint,11,opt,name=routes_enabled,json=routesEnabled,proto3,oneof" json:"routes_enabled,omitempty"`
+	OauthRoutesEnabled         *bool                  `protobuf:"varint,12,opt,name=oauth_routes_enabled,json=oauthRoutesEnabled,proto3,oneof" json:"oauth_routes_enabled,omitempty"`
+	GoogleOauthClientId        string                 `protobuf:"bytes,13,opt,name=google_oauth_client_id,json=googleOauthClientId,proto3" json:"google_oauth_client_id,omitempty"`
+	GoogleOauthClientSecret    string                 `protobuf:"bytes,14,opt,name=google_oauth_client_secret,json=googleOauthClientSecret,proto3" json:"google_oauth_client_secret,omitempty"`
+	GoogleOauthRedirectUrl     string                 `protobuf:"bytes,15,opt,name=google_oauth_redirect_url,json=googleOauthRedirectUrl,proto3" json:"google_oauth_redirect_url,omitempty"`
+	OauthProvider              string                 `protobuf:"bytes,16,opt,name=oauth_provider,json=oauthProvider,proto3" json:"oauth_provider,omitempty"`
+	SmsEnabled                 *bool                  `protobuf:"varint,17,opt,name=sms_enabled,json=smsEnabled,proto3,oneof" json:"sms_enabled,omitempty"`
+	TwilioVerifyServiceSid     string                 `protobuf:"bytes,18,opt,name=twilio_verify_service_sid,json=twilioVerifyServiceSid,proto3" json:"twilio_verify_service_sid,omitempty"`
+	TwilioAccountSid           string                 `protobuf:"bytes,19,opt,name=twilio_account_sid,json=twilioAccountSid,proto3" json:"twilio_account_sid,omitempty"`
+	TwilioAuthToken            string                 `protobuf:"bytes,20,opt,name=twilio_auth_token,json=twilioAuthToken,proto3" json:"twilio_auth_token,omitempty"`
+	TwilioApiKeySid            string                 `protobuf:"bytes,21,opt,name=twilio_api_key_sid,json=twilioApiKeySid,proto3" json:"twilio_api_key_sid,omitempty"`
+	TwilioApiKeySecret         string                 `protobuf:"bytes,22,opt,name=twilio_api_key_secret,json=twilioApiKeySecret,proto3" json:"twilio_api_key_secret,omitempty"`
+	PasswordHashCount          int32                  `protobuf:"varint,23,opt,name=password_hash_count,json=passwordHashCount,proto3" json:"password_hash_count,omitempty"`
+	JwtSecret                  string                 `protobuf:"bytes,24,opt,name=jwt_secret,json=jwtSecret,proto3" json:"jwt_secret,omitempty"`
+	SmsAuthEnabled             *bool                  `protobuf:"varint,25,opt,name=sms_auth_enabled,json=smsAuthEnabled,proto3,oneof" json:"sms_auth_enabled,omitempty"`
+	FacebookOauthClientId      string                 `protobuf:"bytes,26,opt,name=facebook_oauth_client_id,json=facebookOauthClientId,proto3" json:"facebook_oauth_client_id,omitempty"`
+	FacebookOauthClientSecret  string                 `protobuf:"bytes,27,opt,name=facebook_oauth_client_secret,json=facebookOauthClientSecret,proto3" json:"facebook_oauth_client_secret,omitempty"`
+	InstagramOauthClientId     string                 `protobuf:"bytes,28,opt,name=instagram_oauth_client_id,json=instagramOauthClientId,proto3" json:"instagram_oauth_client_id,omitempty"`
+	InstagramOauthClientSecret string                 `protobuf:"bytes,29,opt,name=instagram_oauth_client_secret,json=instagramOauthClientSecret,proto3" json:"instagram_oauth_client_secret,omitempty"`
+	XOauthClientId             string                 `protobuf:"bytes,30,opt,name=x_oauth_client_id,json=xOauthClientId,proto3" json:"x_oauth_client_id,omitempty"`
+	XOauthClientSecret         string                 `protobuf:"bytes,31,opt,name=x_oauth_client_secret,json=xOauthClientSecret,proto3" json:"x_oauth_client_secret,omitempty"`
+	unknownFields              protoimpl.UnknownFields
+	sizeCache                  protoimpl.SizeCache
 }
 
 func (x *AuthMethodsPolicyInput) Reset() {
@@ -2606,6 +2678,62 @@ func (x *AuthMethodsPolicyInput) GetPasswordHashCount() int32 {
 	return 0
 }
 
+func (x *AuthMethodsPolicyInput) GetJwtSecret() string {
+	if x != nil {
+		return x.JwtSecret
+	}
+	return ""
+}
+
+func (x *AuthMethodsPolicyInput) GetSmsAuthEnabled() bool {
+	if x != nil && x.SmsAuthEnabled != nil {
+		return *x.SmsAuthEnabled
+	}
+	return false
+}
+
+func (x *AuthMethodsPolicyInput) GetFacebookOauthClientId() string {
+	if x != nil {
+		return x.FacebookOauthClientId
+	}
+	return ""
+}
+
+func (x *AuthMethodsPolicyInput) GetFacebookOauthClientSecret() string {
+	if x != nil {
+		return x.FacebookOauthClientSecret
+	}
+	return ""
+}
+
+func (x *AuthMethodsPolicyInput) GetInstagramOauthClientId() string {
+	if x != nil {
+		return x.InstagramOauthClientId
+	}
+	return ""
+}
+
+func (x *AuthMethodsPolicyInput) GetInstagramOauthClientSecret() string {
+	if x != nil {
+		return x.InstagramOauthClientSecret
+	}
+	return ""
+}
+
+func (x *AuthMethodsPolicyInput) GetXOauthClientId() string {
+	if x != nil {
+		return x.XOauthClientId
+	}
+	return ""
+}
+
+func (x *AuthMethodsPolicyInput) GetXOauthClientSecret() string {
+	if x != nil {
+		return x.XOauthClientSecret
+	}
+	return ""
+}
+
 type AuthMethodsPolicyOutput struct {
 	state               protoimpl.MessageState `protogen:"open.v1"`
 	PasskeyEnabled      bool                   `protobuf:"varint,1,opt,name=passkey_enabled,json=passkeyEnabled,proto3" json:"passkey_enabled,omitempty"`
@@ -2721,6 +2849,7 @@ type AuthPolicyGateConfig struct {
 	JwtSecret               string                 `protobuf:"bytes,3,opt,name=jwt_secret,json=jwtSecret,proto3" json:"jwt_secret,omitempty"`
 	RequiredRuntimeKeys     []string               `protobuf:"bytes,4,rep,name=required_runtime_keys,json=requiredRuntimeKeys,proto3" json:"required_runtime_keys,omitempty"`
 	OauthSupportedProviders []string               `protobuf:"bytes,5,rep,name=oauth_supported_providers,json=oauthSupportedProviders,proto3" json:"oauth_supported_providers,omitempty"`
+	TenantId                string                 `protobuf:"bytes,6,opt,name=tenant_id,json=tenantId,proto3" json:"tenant_id,omitempty"`
 	unknownFields           protoimpl.UnknownFields
 	sizeCache               protoimpl.SizeCache
 }
@@ -2790,6 +2919,57 @@ func (x *AuthPolicyGateConfig) GetOauthSupportedProviders() []string {
 	return nil
 }
 
+func (x *AuthPolicyGateConfig) GetTenantId() string {
+	if x != nil {
+		return x.TenantId
+	}
+	return ""
+}
+
+type AuthChallengeVerifyConfig struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	SigningSecret string                 `protobuf:"bytes,1,opt,name=signing_secret,json=signingSecret,proto3" json:"signing_secret,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *AuthChallengeVerifyConfig) Reset() {
+	*x = AuthChallengeVerifyConfig{}
+	mi := &file_internal_contracts_auth_proto_msgTypes[38]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AuthChallengeVerifyConfig) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AuthChallengeVerifyConfig) ProtoMessage() {}
+
+func (x *AuthChallengeVerifyConfig) ProtoReflect() protoreflect.Message {
+	mi := &file_internal_contracts_auth_proto_msgTypes[38]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AuthChallengeVerifyConfig.ProtoReflect.Descriptor instead.
+func (*AuthChallengeVerifyConfig) Descriptor() ([]byte, []int) {
+	return file_internal_contracts_auth_proto_rawDescGZIP(), []int{38}
+}
+
+func (x *AuthChallengeVerifyConfig) GetSigningSecret() string {
+	if x != nil {
+		return x.SigningSecret
+	}
+	return ""
+}
+
 type AuthPolicyGateInput struct {
 	state               protoimpl.MessageState `protogen:"open.v1"`
 	PasskeyEnabled      bool                   `protobuf:"varint,1,opt,name=passkey_enabled,json=passkeyEnabled,proto3" json:"passkey_enabled,omitempty"`
@@ -2808,7 +2988,7 @@ type AuthPolicyGateInput struct {
 
 func (x *AuthPolicyGateInput) Reset() {
 	*x = AuthPolicyGateInput{}
-	mi := &file_internal_contracts_auth_proto_msgTypes[38]
+	mi := &file_internal_contracts_auth_proto_msgTypes[39]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2820,7 +3000,7 @@ func (x *AuthPolicyGateInput) String() string {
 func (*AuthPolicyGateInput) ProtoMessage() {}
 
 func (x *AuthPolicyGateInput) ProtoReflect() protoreflect.Message {
-	mi := &file_internal_contracts_auth_proto_msgTypes[38]
+	mi := &file_internal_contracts_auth_proto_msgTypes[39]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2833,7 +3013,7 @@ func (x *AuthPolicyGateInput) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AuthPolicyGateInput.ProtoReflect.Descriptor instead.
 func (*AuthPolicyGateInput) Descriptor() ([]byte, []int) {
-	return file_internal_contracts_auth_proto_rawDescGZIP(), []int{38}
+	return file_internal_contracts_auth_proto_rawDescGZIP(), []int{39}
 }
 
 func (x *AuthPolicyGateInput) GetPasskeyEnabled() bool {
@@ -2924,7 +3104,7 @@ type AuthMethodsResponseOutput struct {
 
 func (x *AuthMethodsResponseOutput) Reset() {
 	*x = AuthMethodsResponseOutput{}
-	mi := &file_internal_contracts_auth_proto_msgTypes[39]
+	mi := &file_internal_contracts_auth_proto_msgTypes[40]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2936,7 +3116,7 @@ func (x *AuthMethodsResponseOutput) String() string {
 func (*AuthMethodsResponseOutput) ProtoMessage() {}
 
 func (x *AuthMethodsResponseOutput) ProtoReflect() protoreflect.Message {
-	mi := &file_internal_contracts_auth_proto_msgTypes[39]
+	mi := &file_internal_contracts_auth_proto_msgTypes[40]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2949,7 +3129,7 @@ func (x *AuthMethodsResponseOutput) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AuthMethodsResponseOutput.ProtoReflect.Descriptor instead.
 func (*AuthMethodsResponseOutput) Descriptor() ([]byte, []int) {
-	return file_internal_contracts_auth_proto_rawDescGZIP(), []int{39}
+	return file_internal_contracts_auth_proto_rawDescGZIP(), []int{40}
 }
 
 func (x *AuthMethodsResponseOutput) GetPasskeyEnabled() bool {
@@ -3033,7 +3213,7 @@ type AuthPolicyAuditOutput struct {
 
 func (x *AuthPolicyAuditOutput) Reset() {
 	*x = AuthPolicyAuditOutput{}
-	mi := &file_internal_contracts_auth_proto_msgTypes[40]
+	mi := &file_internal_contracts_auth_proto_msgTypes[41]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3045,7 +3225,7 @@ func (x *AuthPolicyAuditOutput) String() string {
 func (*AuthPolicyAuditOutput) ProtoMessage() {}
 
 func (x *AuthPolicyAuditOutput) ProtoReflect() protoreflect.Message {
-	mi := &file_internal_contracts_auth_proto_msgTypes[40]
+	mi := &file_internal_contracts_auth_proto_msgTypes[41]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3058,7 +3238,7 @@ func (x *AuthPolicyAuditOutput) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AuthPolicyAuditOutput.ProtoReflect.Descriptor instead.
 func (*AuthPolicyAuditOutput) Descriptor() ([]byte, []int) {
-	return file_internal_contracts_auth_proto_rawDescGZIP(), []int{40}
+	return file_internal_contracts_auth_proto_rawDescGZIP(), []int{41}
 }
 
 func (x *AuthPolicyAuditOutput) GetPassed() bool {
@@ -3100,7 +3280,7 @@ type OAuthProviderConfig struct {
 
 func (x *OAuthProviderConfig) Reset() {
 	*x = OAuthProviderConfig{}
-	mi := &file_internal_contracts_auth_proto_msgTypes[41]
+	mi := &file_internal_contracts_auth_proto_msgTypes[42]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3112,7 +3292,7 @@ func (x *OAuthProviderConfig) String() string {
 func (*OAuthProviderConfig) ProtoMessage() {}
 
 func (x *OAuthProviderConfig) ProtoReflect() protoreflect.Message {
-	mi := &file_internal_contracts_auth_proto_msgTypes[41]
+	mi := &file_internal_contracts_auth_proto_msgTypes[42]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3125,7 +3305,7 @@ func (x *OAuthProviderConfig) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use OAuthProviderConfig.ProtoReflect.Descriptor instead.
 func (*OAuthProviderConfig) Descriptor() ([]byte, []int) {
-	return file_internal_contracts_auth_proto_rawDescGZIP(), []int{41}
+	return file_internal_contracts_auth_proto_rawDescGZIP(), []int{42}
 }
 
 func (x *OAuthProviderConfig) GetProvider() string {
@@ -3212,7 +3392,7 @@ type OAuthProviderInput struct {
 
 func (x *OAuthProviderInput) Reset() {
 	*x = OAuthProviderInput{}
-	mi := &file_internal_contracts_auth_proto_msgTypes[42]
+	mi := &file_internal_contracts_auth_proto_msgTypes[43]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3224,7 +3404,7 @@ func (x *OAuthProviderInput) String() string {
 func (*OAuthProviderInput) ProtoMessage() {}
 
 func (x *OAuthProviderInput) ProtoReflect() protoreflect.Message {
-	mi := &file_internal_contracts_auth_proto_msgTypes[42]
+	mi := &file_internal_contracts_auth_proto_msgTypes[43]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3237,7 +3417,7 @@ func (x *OAuthProviderInput) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use OAuthProviderInput.ProtoReflect.Descriptor instead.
 func (*OAuthProviderInput) Descriptor() ([]byte, []int) {
-	return file_internal_contracts_auth_proto_rawDescGZIP(), []int{42}
+	return file_internal_contracts_auth_proto_rawDescGZIP(), []int{43}
 }
 
 func (x *OAuthProviderInput) GetProvider() string {
@@ -3300,7 +3480,7 @@ type OAuthProviderConfigOutput struct {
 
 func (x *OAuthProviderConfigOutput) Reset() {
 	*x = OAuthProviderConfigOutput{}
-	mi := &file_internal_contracts_auth_proto_msgTypes[43]
+	mi := &file_internal_contracts_auth_proto_msgTypes[44]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3312,7 +3492,7 @@ func (x *OAuthProviderConfigOutput) String() string {
 func (*OAuthProviderConfigOutput) ProtoMessage() {}
 
 func (x *OAuthProviderConfigOutput) ProtoReflect() protoreflect.Message {
-	mi := &file_internal_contracts_auth_proto_msgTypes[43]
+	mi := &file_internal_contracts_auth_proto_msgTypes[44]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3325,7 +3505,7 @@ func (x *OAuthProviderConfigOutput) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use OAuthProviderConfigOutput.ProtoReflect.Descriptor instead.
 func (*OAuthProviderConfigOutput) Descriptor() ([]byte, []int) {
-	return file_internal_contracts_auth_proto_rawDescGZIP(), []int{43}
+	return file_internal_contracts_auth_proto_rawDescGZIP(), []int{44}
 }
 
 func (x *OAuthProviderConfigOutput) GetProvider() string {
@@ -3417,7 +3597,7 @@ type OAuthStartOutput struct {
 
 func (x *OAuthStartOutput) Reset() {
 	*x = OAuthStartOutput{}
-	mi := &file_internal_contracts_auth_proto_msgTypes[44]
+	mi := &file_internal_contracts_auth_proto_msgTypes[45]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3429,7 +3609,7 @@ func (x *OAuthStartOutput) String() string {
 func (*OAuthStartOutput) ProtoMessage() {}
 
 func (x *OAuthStartOutput) ProtoReflect() protoreflect.Message {
-	mi := &file_internal_contracts_auth_proto_msgTypes[44]
+	mi := &file_internal_contracts_auth_proto_msgTypes[45]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3442,7 +3622,7 @@ func (x *OAuthStartOutput) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use OAuthStartOutput.ProtoReflect.Descriptor instead.
 func (*OAuthStartOutput) Descriptor() ([]byte, []int) {
-	return file_internal_contracts_auth_proto_rawDescGZIP(), []int{44}
+	return file_internal_contracts_auth_proto_rawDescGZIP(), []int{45}
 }
 
 func (x *OAuthStartOutput) GetStarted() bool {
@@ -3540,7 +3720,7 @@ type OAuthExchangeOutput struct {
 
 func (x *OAuthExchangeOutput) Reset() {
 	*x = OAuthExchangeOutput{}
-	mi := &file_internal_contracts_auth_proto_msgTypes[45]
+	mi := &file_internal_contracts_auth_proto_msgTypes[46]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3552,7 +3732,7 @@ func (x *OAuthExchangeOutput) String() string {
 func (*OAuthExchangeOutput) ProtoMessage() {}
 
 func (x *OAuthExchangeOutput) ProtoReflect() protoreflect.Message {
-	mi := &file_internal_contracts_auth_proto_msgTypes[45]
+	mi := &file_internal_contracts_auth_proto_msgTypes[46]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3565,7 +3745,7 @@ func (x *OAuthExchangeOutput) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use OAuthExchangeOutput.ProtoReflect.Descriptor instead.
 func (*OAuthExchangeOutput) Descriptor() ([]byte, []int) {
-	return file_internal_contracts_auth_proto_rawDescGZIP(), []int{45}
+	return file_internal_contracts_auth_proto_rawDescGZIP(), []int{46}
 }
 
 func (x *OAuthExchangeOutput) GetExchanged() bool {
@@ -3656,7 +3836,7 @@ type OAuthUserinfoOutput struct {
 
 func (x *OAuthUserinfoOutput) Reset() {
 	*x = OAuthUserinfoOutput{}
-	mi := &file_internal_contracts_auth_proto_msgTypes[46]
+	mi := &file_internal_contracts_auth_proto_msgTypes[47]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3668,7 +3848,7 @@ func (x *OAuthUserinfoOutput) String() string {
 func (*OAuthUserinfoOutput) ProtoMessage() {}
 
 func (x *OAuthUserinfoOutput) ProtoReflect() protoreflect.Message {
-	mi := &file_internal_contracts_auth_proto_msgTypes[46]
+	mi := &file_internal_contracts_auth_proto_msgTypes[47]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3681,7 +3861,7 @@ func (x *OAuthUserinfoOutput) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use OAuthUserinfoOutput.ProtoReflect.Descriptor instead.
 func (*OAuthUserinfoOutput) Descriptor() ([]byte, []int) {
-	return file_internal_contracts_auth_proto_rawDescGZIP(), []int{46}
+	return file_internal_contracts_auth_proto_rawDescGZIP(), []int{47}
 }
 
 func (x *OAuthUserinfoOutput) GetFetched() bool {
@@ -3763,7 +3943,7 @@ type CredentialListInput struct {
 
 func (x *CredentialListInput) Reset() {
 	*x = CredentialListInput{}
-	mi := &file_internal_contracts_auth_proto_msgTypes[47]
+	mi := &file_internal_contracts_auth_proto_msgTypes[48]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3775,7 +3955,7 @@ func (x *CredentialListInput) String() string {
 func (*CredentialListInput) ProtoMessage() {}
 
 func (x *CredentialListInput) ProtoReflect() protoreflect.Message {
-	mi := &file_internal_contracts_auth_proto_msgTypes[47]
+	mi := &file_internal_contracts_auth_proto_msgTypes[48]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3788,7 +3968,7 @@ func (x *CredentialListInput) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CredentialListInput.ProtoReflect.Descriptor instead.
 func (*CredentialListInput) Descriptor() ([]byte, []int) {
-	return file_internal_contracts_auth_proto_rawDescGZIP(), []int{47}
+	return file_internal_contracts_auth_proto_rawDescGZIP(), []int{48}
 }
 
 func (x *CredentialListInput) GetCredentialsJson() string {
@@ -3811,7 +3991,7 @@ type CredentialSummary struct {
 
 func (x *CredentialSummary) Reset() {
 	*x = CredentialSummary{}
-	mi := &file_internal_contracts_auth_proto_msgTypes[48]
+	mi := &file_internal_contracts_auth_proto_msgTypes[49]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3823,7 +4003,7 @@ func (x *CredentialSummary) String() string {
 func (*CredentialSummary) ProtoMessage() {}
 
 func (x *CredentialSummary) ProtoReflect() protoreflect.Message {
-	mi := &file_internal_contracts_auth_proto_msgTypes[48]
+	mi := &file_internal_contracts_auth_proto_msgTypes[49]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3836,7 +4016,7 @@ func (x *CredentialSummary) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CredentialSummary.ProtoReflect.Descriptor instead.
 func (*CredentialSummary) Descriptor() ([]byte, []int) {
-	return file_internal_contracts_auth_proto_rawDescGZIP(), []int{48}
+	return file_internal_contracts_auth_proto_rawDescGZIP(), []int{49}
 }
 
 func (x *CredentialSummary) GetId() string {
@@ -3885,7 +4065,7 @@ type CredentialListOutput struct {
 
 func (x *CredentialListOutput) Reset() {
 	*x = CredentialListOutput{}
-	mi := &file_internal_contracts_auth_proto_msgTypes[49]
+	mi := &file_internal_contracts_auth_proto_msgTypes[50]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3897,7 +4077,7 @@ func (x *CredentialListOutput) String() string {
 func (*CredentialListOutput) ProtoMessage() {}
 
 func (x *CredentialListOutput) ProtoReflect() protoreflect.Message {
-	mi := &file_internal_contracts_auth_proto_msgTypes[49]
+	mi := &file_internal_contracts_auth_proto_msgTypes[50]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3910,7 +4090,7 @@ func (x *CredentialListOutput) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CredentialListOutput.ProtoReflect.Descriptor instead.
 func (*CredentialListOutput) Descriptor() ([]byte, []int) {
-	return file_internal_contracts_auth_proto_rawDescGZIP(), []int{49}
+	return file_internal_contracts_auth_proto_rawDescGZIP(), []int{50}
 }
 
 func (x *CredentialListOutput) GetCredentials() []*CredentialSummary {
@@ -3945,7 +4125,7 @@ type CredentialRevokeInput struct {
 
 func (x *CredentialRevokeInput) Reset() {
 	*x = CredentialRevokeInput{}
-	mi := &file_internal_contracts_auth_proto_msgTypes[50]
+	mi := &file_internal_contracts_auth_proto_msgTypes[51]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3957,7 +4137,7 @@ func (x *CredentialRevokeInput) String() string {
 func (*CredentialRevokeInput) ProtoMessage() {}
 
 func (x *CredentialRevokeInput) ProtoReflect() protoreflect.Message {
-	mi := &file_internal_contracts_auth_proto_msgTypes[50]
+	mi := &file_internal_contracts_auth_proto_msgTypes[51]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3970,7 +4150,7 @@ func (x *CredentialRevokeInput) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CredentialRevokeInput.ProtoReflect.Descriptor instead.
 func (*CredentialRevokeInput) Descriptor() ([]byte, []int) {
-	return file_internal_contracts_auth_proto_rawDescGZIP(), []int{50}
+	return file_internal_contracts_auth_proto_rawDescGZIP(), []int{51}
 }
 
 func (x *CredentialRevokeInput) GetCredentialId() string {
@@ -4005,7 +4185,7 @@ type CredentialRevokeOutput struct {
 
 func (x *CredentialRevokeOutput) Reset() {
 	*x = CredentialRevokeOutput{}
-	mi := &file_internal_contracts_auth_proto_msgTypes[51]
+	mi := &file_internal_contracts_auth_proto_msgTypes[52]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4017,7 +4197,7 @@ func (x *CredentialRevokeOutput) String() string {
 func (*CredentialRevokeOutput) ProtoMessage() {}
 
 func (x *CredentialRevokeOutput) ProtoReflect() protoreflect.Message {
-	mi := &file_internal_contracts_auth_proto_msgTypes[51]
+	mi := &file_internal_contracts_auth_proto_msgTypes[52]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4030,7 +4210,7 @@ func (x *CredentialRevokeOutput) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CredentialRevokeOutput.ProtoReflect.Descriptor instead.
 func (*CredentialRevokeOutput) Descriptor() ([]byte, []int) {
-	return file_internal_contracts_auth_proto_rawDescGZIP(), []int{51}
+	return file_internal_contracts_auth_proto_rawDescGZIP(), []int{52}
 }
 
 func (x *CredentialRevokeOutput) GetAuthorized() bool {
@@ -4222,7 +4402,7 @@ const file_internal_contracts_auth_proto_rawDesc = "" +
 	"\x05phone\x18\x04 \x01(\tR\x05phone\x12\x1f\n" +
 	"\vphone_valid\x18\x05 \x01(\bR\n" +
 	"phoneValid\x12\x14\n" +
-	"\x05error\x18d \x01(\tR\x05error\"\xe7\t\n" +
+	"\x05error\x18d \x01(\tR\x05error\"\xa0\r\n" +
 	"\x17AuthMethodsPolicyConfig\x12 \n" +
 	"\venvironment\x18\x01 \x01(\tR\venvironment\x127\n" +
 	"\x15password_auth_enabled\x18\x02 \x01(\bH\x00R\x13passwordAuthEnabled\x88\x01\x01\x12.\n" +
@@ -4248,7 +4428,16 @@ const file_internal_contracts_auth_proto_rawDesc = "" +
 	"\x11twilio_auth_token\x18\x14 \x01(\tR\x0ftwilioAuthToken\x12+\n" +
 	"\x12twilio_api_key_sid\x18\x15 \x01(\tR\x0ftwilioApiKeySid\x121\n" +
 	"\x15twilio_api_key_secret\x18\x16 \x01(\tR\x12twilioApiKeySecret\x12.\n" +
-	"\x13password_hash_count\x18\x17 \x01(\x05R\x11passwordHashCountB\x18\n" +
+	"\x13password_hash_count\x18\x17 \x01(\x05R\x11passwordHashCount\x12\x1d\n" +
+	"\n" +
+	"jwt_secret\x18\x18 \x01(\tR\tjwtSecret\x12-\n" +
+	"\x10sms_auth_enabled\x18\x19 \x01(\bH\bR\x0esmsAuthEnabled\x88\x01\x01\x127\n" +
+	"\x18facebook_oauth_client_id\x18\x1a \x01(\tR\x15facebookOauthClientId\x12?\n" +
+	"\x1cfacebook_oauth_client_secret\x18\x1b \x01(\tR\x19facebookOauthClientSecret\x129\n" +
+	"\x19instagram_oauth_client_id\x18\x1c \x01(\tR\x16instagramOauthClientId\x12A\n" +
+	"\x1dinstagram_oauth_client_secret\x18\x1d \x01(\tR\x1ainstagramOauthClientSecret\x12)\n" +
+	"\x11x_oauth_client_id\x18\x1e \x01(\tR\x0exOauthClientId\x121\n" +
+	"\x15x_oauth_client_secret\x18\x1f \x01(\tR\x12xOauthClientSecretB\x18\n" +
 	"\x16_password_auth_enabledB\x13\n" +
 	"\x11_password_enabledB\x14\n" +
 	"\x12_totp_auth_enabledB\x0f\n" +
@@ -4256,7 +4445,8 @@ const file_internal_contracts_auth_proto_rawDesc = "" +
 	"\x14_auth_routes_enabledB\x11\n" +
 	"\x0f_routes_enabledB\x17\n" +
 	"\x15_oauth_routes_enabledB\x0e\n" +
-	"\f_sms_enabled\"\xe6\t\n" +
+	"\f_sms_enabledB\x13\n" +
+	"\x11_sms_auth_enabled\"\x9f\r\n" +
 	"\x16AuthMethodsPolicyInput\x12 \n" +
 	"\venvironment\x18\x01 \x01(\tR\venvironment\x127\n" +
 	"\x15password_auth_enabled\x18\x02 \x01(\bH\x00R\x13passwordAuthEnabled\x88\x01\x01\x12.\n" +
@@ -4282,7 +4472,16 @@ const file_internal_contracts_auth_proto_rawDesc = "" +
 	"\x11twilio_auth_token\x18\x14 \x01(\tR\x0ftwilioAuthToken\x12+\n" +
 	"\x12twilio_api_key_sid\x18\x15 \x01(\tR\x0ftwilioApiKeySid\x121\n" +
 	"\x15twilio_api_key_secret\x18\x16 \x01(\tR\x12twilioApiKeySecret\x12.\n" +
-	"\x13password_hash_count\x18\x17 \x01(\x05R\x11passwordHashCountB\x18\n" +
+	"\x13password_hash_count\x18\x17 \x01(\x05R\x11passwordHashCount\x12\x1d\n" +
+	"\n" +
+	"jwt_secret\x18\x18 \x01(\tR\tjwtSecret\x12-\n" +
+	"\x10sms_auth_enabled\x18\x19 \x01(\bH\bR\x0esmsAuthEnabled\x88\x01\x01\x127\n" +
+	"\x18facebook_oauth_client_id\x18\x1a \x01(\tR\x15facebookOauthClientId\x12?\n" +
+	"\x1cfacebook_oauth_client_secret\x18\x1b \x01(\tR\x19facebookOauthClientSecret\x129\n" +
+	"\x19instagram_oauth_client_id\x18\x1c \x01(\tR\x16instagramOauthClientId\x12A\n" +
+	"\x1dinstagram_oauth_client_secret\x18\x1d \x01(\tR\x1ainstagramOauthClientSecret\x12)\n" +
+	"\x11x_oauth_client_id\x18\x1e \x01(\tR\x0exOauthClientId\x121\n" +
+	"\x15x_oauth_client_secret\x18\x1f \x01(\tR\x12xOauthClientSecretB\x18\n" +
 	"\x16_password_auth_enabledB\x13\n" +
 	"\x11_password_enabledB\x14\n" +
 	"\x12_totp_auth_enabledB\x0f\n" +
@@ -4290,7 +4489,8 @@ const file_internal_contracts_auth_proto_rawDesc = "" +
 	"\x14_auth_routes_enabledB\x11\n" +
 	"\x0f_routes_enabledB\x17\n" +
 	"\x15_oauth_routes_enabledB\x0e\n" +
-	"\f_sms_enabled\"\x8d\x03\n" +
+	"\f_sms_enabledB\x13\n" +
+	"\x11_sms_auth_enabled\"\x8d\x03\n" +
 	"\x17AuthMethodsPolicyOutput\x12'\n" +
 	"\x0fpasskey_enabled\x18\x01 \x01(\bR\x0epasskeyEnabled\x12,\n" +
 	"\x12email_code_enabled\x18\x02 \x01(\bR\x10emailCodeEnabled\x12(\n" +
@@ -4300,7 +4500,7 @@ const file_internal_contracts_auth_proto_rawDesc = "" +
 	"\ftotp_enabled\x18\x06 \x01(\bR\vtotpEnabled\x12'\n" +
 	"\x0foauth_providers\x18\a \x03(\tR\x0eoauthProviders\x120\n" +
 	"\x14primary_method_count\x18\b \x01(\x05R\x12primaryMethodCount\x12\x14\n" +
-	"\x05error\x18d \x01(\tR\x05error\"\xed\x01\n" +
+	"\x05error\x18d \x01(\tR\x05error\"\x8a\x02\n" +
 	"\x14AuthPolicyGateConfig\x12\x1f\n" +
 	"\vpolicy_step\x18\x01 \x01(\tR\n" +
 	"policyStep\x12%\n" +
@@ -4308,7 +4508,10 @@ const file_internal_contracts_auth_proto_rawDesc = "" +
 	"\n" +
 	"jwt_secret\x18\x03 \x01(\tR\tjwtSecret\x122\n" +
 	"\x15required_runtime_keys\x18\x04 \x03(\tR\x13requiredRuntimeKeys\x12:\n" +
-	"\x19oauth_supported_providers\x18\x05 \x03(\tR\x17oauthSupportedProviders\"\xb9\x03\n" +
+	"\x19oauth_supported_providers\x18\x05 \x03(\tR\x17oauthSupportedProviders\x12\x1b\n" +
+	"\ttenant_id\x18\x06 \x01(\tR\btenantId\"B\n" +
+	"\x19AuthChallengeVerifyConfig\x12%\n" +
+	"\x0esigning_secret\x18\x01 \x01(\tR\rsigningSecret\"\xb9\x03\n" +
 	"\x13AuthPolicyGateInput\x12'\n" +
 	"\x0fpasskey_enabled\x18\x01 \x01(\bR\x0epasskeyEnabled\x12,\n" +
 	"\x12email_code_enabled\x18\x02 \x01(\bR\x10emailCodeEnabled\x12(\n" +
@@ -4449,7 +4652,7 @@ func file_internal_contracts_auth_proto_rawDescGZIP() []byte {
 	return file_internal_contracts_auth_proto_rawDescData
 }
 
-var file_internal_contracts_auth_proto_msgTypes = make([]protoimpl.MessageInfo, 52)
+var file_internal_contracts_auth_proto_msgTypes = make([]protoimpl.MessageInfo, 53)
 var file_internal_contracts_auth_proto_goTypes = []any{
 	(*CredentialModuleConfig)(nil),      // 0: workflow.plugins.auth.v1.CredentialModuleConfig
 	(*PasskeyStepConfig)(nil),           // 1: workflow.plugins.auth.v1.PasskeyStepConfig
@@ -4489,26 +4692,27 @@ var file_internal_contracts_auth_proto_goTypes = []any{
 	(*AuthMethodsPolicyInput)(nil),      // 35: workflow.plugins.auth.v1.AuthMethodsPolicyInput
 	(*AuthMethodsPolicyOutput)(nil),     // 36: workflow.plugins.auth.v1.AuthMethodsPolicyOutput
 	(*AuthPolicyGateConfig)(nil),        // 37: workflow.plugins.auth.v1.AuthPolicyGateConfig
-	(*AuthPolicyGateInput)(nil),         // 38: workflow.plugins.auth.v1.AuthPolicyGateInput
-	(*AuthMethodsResponseOutput)(nil),   // 39: workflow.plugins.auth.v1.AuthMethodsResponseOutput
-	(*AuthPolicyAuditOutput)(nil),       // 40: workflow.plugins.auth.v1.AuthPolicyAuditOutput
-	(*OAuthProviderConfig)(nil),         // 41: workflow.plugins.auth.v1.OAuthProviderConfig
-	(*OAuthProviderInput)(nil),          // 42: workflow.plugins.auth.v1.OAuthProviderInput
-	(*OAuthProviderConfigOutput)(nil),   // 43: workflow.plugins.auth.v1.OAuthProviderConfigOutput
-	(*OAuthStartOutput)(nil),            // 44: workflow.plugins.auth.v1.OAuthStartOutput
-	(*OAuthExchangeOutput)(nil),         // 45: workflow.plugins.auth.v1.OAuthExchangeOutput
-	(*OAuthUserinfoOutput)(nil),         // 46: workflow.plugins.auth.v1.OAuthUserinfoOutput
-	(*CredentialListInput)(nil),         // 47: workflow.plugins.auth.v1.CredentialListInput
-	(*CredentialSummary)(nil),           // 48: workflow.plugins.auth.v1.CredentialSummary
-	(*CredentialListOutput)(nil),        // 49: workflow.plugins.auth.v1.CredentialListOutput
-	(*CredentialRevokeInput)(nil),       // 50: workflow.plugins.auth.v1.CredentialRevokeInput
-	(*CredentialRevokeOutput)(nil),      // 51: workflow.plugins.auth.v1.CredentialRevokeOutput
-	(*structpb.Struct)(nil),             // 52: google.protobuf.Struct
+	(*AuthChallengeVerifyConfig)(nil),   // 38: workflow.plugins.auth.v1.AuthChallengeVerifyConfig
+	(*AuthPolicyGateInput)(nil),         // 39: workflow.plugins.auth.v1.AuthPolicyGateInput
+	(*AuthMethodsResponseOutput)(nil),   // 40: workflow.plugins.auth.v1.AuthMethodsResponseOutput
+	(*AuthPolicyAuditOutput)(nil),       // 41: workflow.plugins.auth.v1.AuthPolicyAuditOutput
+	(*OAuthProviderConfig)(nil),         // 42: workflow.plugins.auth.v1.OAuthProviderConfig
+	(*OAuthProviderInput)(nil),          // 43: workflow.plugins.auth.v1.OAuthProviderInput
+	(*OAuthProviderConfigOutput)(nil),   // 44: workflow.plugins.auth.v1.OAuthProviderConfigOutput
+	(*OAuthStartOutput)(nil),            // 45: workflow.plugins.auth.v1.OAuthStartOutput
+	(*OAuthExchangeOutput)(nil),         // 46: workflow.plugins.auth.v1.OAuthExchangeOutput
+	(*OAuthUserinfoOutput)(nil),         // 47: workflow.plugins.auth.v1.OAuthUserinfoOutput
+	(*CredentialListInput)(nil),         // 48: workflow.plugins.auth.v1.CredentialListInput
+	(*CredentialSummary)(nil),           // 49: workflow.plugins.auth.v1.CredentialSummary
+	(*CredentialListOutput)(nil),        // 50: workflow.plugins.auth.v1.CredentialListOutput
+	(*CredentialRevokeInput)(nil),       // 51: workflow.plugins.auth.v1.CredentialRevokeInput
+	(*CredentialRevokeOutput)(nil),      // 52: workflow.plugins.auth.v1.CredentialRevokeOutput
+	(*structpb.Struct)(nil),             // 53: google.protobuf.Struct
 }
 var file_internal_contracts_auth_proto_depIdxs = []int32{
-	52, // 0: workflow.plugins.auth.v1.OAuthExchangeOutput.raw_tokens:type_name -> google.protobuf.Struct
-	52, // 1: workflow.plugins.auth.v1.OAuthUserinfoOutput.raw_claims:type_name -> google.protobuf.Struct
-	48, // 2: workflow.plugins.auth.v1.CredentialListOutput.credentials:type_name -> workflow.plugins.auth.v1.CredentialSummary
+	53, // 0: workflow.plugins.auth.v1.OAuthExchangeOutput.raw_tokens:type_name -> google.protobuf.Struct
+	53, // 1: workflow.plugins.auth.v1.OAuthUserinfoOutput.raw_claims:type_name -> google.protobuf.Struct
+	49, // 2: workflow.plugins.auth.v1.CredentialListOutput.credentials:type_name -> workflow.plugins.auth.v1.CredentialSummary
 	3,  // [3:3] is the sub-list for method output_type
 	3,  // [3:3] is the sub-list for method input_type
 	3,  // [3:3] is the sub-list for extension type_name
@@ -4523,15 +4727,15 @@ func file_internal_contracts_auth_proto_init() {
 	}
 	file_internal_contracts_auth_proto_msgTypes[34].OneofWrappers = []any{}
 	file_internal_contracts_auth_proto_msgTypes[35].OneofWrappers = []any{}
-	file_internal_contracts_auth_proto_msgTypes[41].OneofWrappers = []any{}
 	file_internal_contracts_auth_proto_msgTypes[42].OneofWrappers = []any{}
+	file_internal_contracts_auth_proto_msgTypes[43].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_internal_contracts_auth_proto_rawDesc), len(file_internal_contracts_auth_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   52,
+			NumMessages:   53,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

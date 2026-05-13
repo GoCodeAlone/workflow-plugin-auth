@@ -246,6 +246,14 @@ message AuthMethodsPolicyConfig {
   string twilio_api_key_sid = 21;
   string twilio_api_key_secret = 22;
   int32 password_hash_count = 23;
+  string jwt_secret = 24;
+  optional bool sms_auth_enabled = 25;
+  string facebook_oauth_client_id = 26;
+  string facebook_oauth_client_secret = 27;
+  string instagram_oauth_client_id = 28;
+  string instagram_oauth_client_secret = 29;
+  string x_oauth_client_id = 30;
+  string x_oauth_client_secret = 31;
 }
 
 message AuthMethodsPolicyInput {
@@ -272,6 +280,14 @@ message AuthMethodsPolicyInput {
   string twilio_api_key_sid = 21;
   string twilio_api_key_secret = 22;
   int32 password_hash_count = 23;
+  string jwt_secret = 24;
+  optional bool sms_auth_enabled = 25;
+  string facebook_oauth_client_id = 26;
+  string facebook_oauth_client_secret = 27;
+  string instagram_oauth_client_id = 28;
+  string instagram_oauth_client_secret = 29;
+  string x_oauth_client_id = 30;
+  string x_oauth_client_secret = 31;
 }
 
 message AuthMethodsPolicyOutput {
@@ -292,6 +308,11 @@ message AuthPolicyGateConfig {
   string jwt_secret = 3;
   repeated string required_runtime_keys = 4;
   repeated string oauth_supported_providers = 5;
+  string tenant_id = 6;
+}
+
+message AuthChallengeVerifyConfig {
+  string signing_secret = 1;
 }
 
 message AuthPolicyGateInput {
