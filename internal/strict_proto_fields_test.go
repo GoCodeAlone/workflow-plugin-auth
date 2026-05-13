@@ -2,6 +2,9 @@ package internal
 
 import (
 	"context"
+	"encoding/json"
+	"net/http"
+	"net/http/httptest"
 	"testing"
 	"time"
 
@@ -219,5 +222,180 @@ func TestChallengeVerify_FallsBackToConfigSigningSecret(t *testing.T) {
 	}
 	if got, _ := verifyResult.Output["valid"].(bool); !got {
 		t.Fatalf("expected valid=true when signing_secret only supplied via config, got %#v", verifyResult.Output)
+	}
+}
+
+// TestOAuthProviderConfig_AcceptsReturnToAndAccessToken ensures the typed
+// OAuthProviderConfig accepts the return_to and access_token fields BMW
+// supplies via step.auth_oauth_start.config and step.auth_oauth_userinfo.config
+// (round-3 strict-proto gap, v0.2.4).
+func TestOAuthProviderConfig_AcceptsReturnToAndAccessToken(t *testing.T) {
+	cfg := &contracts.OAuthProviderConfig{
+		Provider:                "google",
+		GoogleOauthClientId:     "google-client",
+		GoogleOauthClientSecret: "google-secret",
+		GoogleOauthRedirectUrl:  "https://example.test/cb",
+		ReturnTo:                "/auth/callback",
+		AccessToken:             "access-token-from-exchange",
+	}
+	packed, err := anypb.New(cfg)
+	if err != nil {
+		t.Fatalf("pack config: %v", err)
+	}
+	provider := NewAuthPlugin().(interface {
+		CreateTypedStep(typeName, name string, config *anypb.Any) (sdk.StepInstance, error)
+	})
+	for _, stepType := range []string{
+		"step.auth_oauth_start",
+		"step.auth_oauth_exchange",
+		"step.auth_oauth_userinfo",
+		"step.auth_oauth_provider_config",
+	} {
+		if _, err := provider.CreateTypedStep(stepType, "oauth", packed); err != nil {
+			t.Fatalf("CreateTypedStep(%s) rejected return_to/access_token: %v", stepType, err)
+		}
+	}
+}
+
+// TestOAuthStart_UsesReturnToFromConfig verifies start_oauth honors return_to
+// when supplied via config (BMW yaml shape), not just via input.
+func TestOAuthStart_UsesReturnToFromConfig(t *testing.T) {
+	step := newOAuthStartStep("test", googleOAuthTestConfig(map[string]any{
+		"return_to": "/wishlists",
+	}))
+	result, err := step.Execute(context.Background(), nil, nil, map[string]any{
+		"provider": "google",
+	}, nil, nil)
+	if err != nil {
+		t.Fatalf("execute: %v", err)
+	}
+	if errStr, _ := result.Output["error"].(string); errStr != "" {
+		t.Fatalf("expected no error, got %q (output=%#v)", errStr, result.Output)
+	}
+	if got, _ := result.Output["return_to"].(string); got != "/wishlists" {
+		t.Fatalf("expected return_to=/wishlists from config, got %v", result.Output["return_to"])
+	}
+}
+
+// TestOAuthStart_ConfigReturnToWinsOverCurrent verifies config.return_to wins
+// when both config and input supply it (Config-when-non-empty rule).
+func TestOAuthStart_ConfigReturnToWinsOverCurrent(t *testing.T) {
+	step := newOAuthStartStep("test", googleOAuthTestConfig(map[string]any{
+		"return_to": "/from-config",
+	}))
+	result, err := step.Execute(context.Background(), nil, nil, map[string]any{
+		"provider":  "google",
+		"return_to": "/from-input",
+	}, nil, nil)
+	if err != nil {
+		t.Fatalf("execute: %v", err)
+	}
+	if got, _ := result.Output["return_to"].(string); got != "/from-config" {
+		t.Fatalf("expected config.return_to to win, got %v", result.Output["return_to"])
+	}
+}
+
+// TestOAuthStart_FallsBackToCurrentReturnTo verifies start_oauth honors
+// return_to from current/input when config does not supply one.
+func TestOAuthStart_FallsBackToCurrentReturnTo(t *testing.T) {
+	step := newOAuthStartStep("test", googleOAuthTestConfig(nil))
+	result, err := step.Execute(context.Background(), nil, nil, map[string]any{
+		"provider":  "google",
+		"return_to": "/from-input",
+	}, nil, nil)
+	if err != nil {
+		t.Fatalf("execute: %v", err)
+	}
+	if got, _ := result.Output["return_to"].(string); got != "/from-input" {
+		t.Fatalf("expected return_to from input fallback, got %v", result.Output["return_to"])
+	}
+}
+
+// TestOAuthUserinfo_UsesAccessTokenFromConfig verifies fetch_userinfo honors
+// access_token when supplied via config (BMW yaml shape templates the token
+// from a preceding exchange_code step into config.access_token).
+func TestOAuthUserinfo_UsesAccessTokenFromConfig(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Header.Get("Authorization") != "Bearer config-access-token" {
+			t.Fatalf("expected bearer from config.access_token, got %q", r.Header.Get("Authorization"))
+		}
+		_ = json.NewEncoder(w).Encode(map[string]any{
+			"sub":   "user-id",
+			"email": "user@example.com",
+		})
+	}))
+	defer server.Close()
+
+	step := newOAuthUserinfoStep("test", googleOAuthTestConfig(map[string]any{
+		"google_oauth_userinfo_url":           server.URL,
+		"allow_insecure_test_oauth_endpoints": true,
+		"access_token":                        "config-access-token",
+	}))
+	result, err := step.Execute(context.Background(), nil, nil, map[string]any{
+		"provider": "google",
+	}, nil, nil)
+	if err != nil {
+		t.Fatalf("execute: %v", err)
+	}
+	if errStr, _ := result.Output["error"].(string); errStr != "" {
+		t.Fatalf("expected no error, got %q (output=%#v)", errStr, result.Output)
+	}
+	if result.Output["fetched"] != true {
+		t.Fatalf("expected fetched=true, got %v", result.Output["fetched"])
+	}
+}
+
+// TestOAuthUserinfo_ConfigAccessTokenWinsOverCurrent verifies config.access_token
+// wins when both config and input supply it.
+func TestOAuthUserinfo_ConfigAccessTokenWinsOverCurrent(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Header.Get("Authorization") != "Bearer config-wins" {
+			t.Fatalf("expected config.access_token to win, got %q", r.Header.Get("Authorization"))
+		}
+		_ = json.NewEncoder(w).Encode(map[string]any{"sub": "x"})
+	}))
+	defer server.Close()
+
+	step := newOAuthUserinfoStep("test", googleOAuthTestConfig(map[string]any{
+		"google_oauth_userinfo_url":           server.URL,
+		"allow_insecure_test_oauth_endpoints": true,
+		"access_token":                        "config-wins",
+	}))
+	result, err := step.Execute(context.Background(), nil, nil, map[string]any{
+		"provider":     "google",
+		"access_token": "input-loses",
+	}, nil, nil)
+	if err != nil {
+		t.Fatalf("execute: %v", err)
+	}
+	if result.Output["fetched"] != true {
+		t.Fatalf("expected fetched=true, got %#v", result.Output)
+	}
+}
+
+// TestOAuthUserinfo_FallsBackToCurrentAccessToken verifies fetch_userinfo falls
+// back to current/input access_token when config does not supply one.
+func TestOAuthUserinfo_FallsBackToCurrentAccessToken(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Header.Get("Authorization") != "Bearer input-access-token" {
+			t.Fatalf("expected bearer from input fallback, got %q", r.Header.Get("Authorization"))
+		}
+		_ = json.NewEncoder(w).Encode(map[string]any{"sub": "user"})
+	}))
+	defer server.Close()
+
+	step := newOAuthUserinfoStep("test", googleOAuthTestConfig(map[string]any{
+		"google_oauth_userinfo_url":           server.URL,
+		"allow_insecure_test_oauth_endpoints": true,
+	}))
+	result, err := step.Execute(context.Background(), nil, nil, map[string]any{
+		"provider":     "google",
+		"access_token": "input-access-token",
+	}, nil, nil)
+	if err != nil {
+		t.Fatalf("execute: %v", err)
+	}
+	if result.Output["fetched"] != true {
+		t.Fatalf("expected fetched=true via input fallback, got %#v", result.Output)
 	}
 }

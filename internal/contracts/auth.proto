@@ -363,6 +363,15 @@ message OAuthProviderConfig {
   repeated string google_oauth_scopes = 8;
   optional bool allow_insecure_test_oauth_endpoints = 9;
   optional bool pkce_required = 10;
+  // return_to and access_token added in v0.2.4: BMW passes both via the
+  // step's config: block (BMW templates `{{ .return_to }}` and
+  // `{{ index .steps "exchange_code" "access_token" }}` respectively).
+  // Under strict-proto these are validated at build-time when templates
+  // are unresolved literals, so they must live on OAuthProviderConfig.
+  // Handlers prefer config values when non-empty, then fall back to
+  // OAuthProviderInput (runtime input).
+  string return_to = 11;
+  string access_token = 12;
 }
 
 message OAuthProviderInput {

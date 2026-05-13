@@ -156,6 +156,9 @@ workflows:
           google_oauth_client_id: "google-client"
           google_oauth_client_secret: "google-secret"
           google_oauth_redirect_url: "https://example.test/cb"
+          # return_to added in v0.2.4 (BMW supplies it via config when the
+          # incoming request includes a return_to query param):
+          return_to: "/auth/callback"
 
       - name: oauth_exchange
         type: step.auth_oauth_exchange
@@ -175,6 +178,9 @@ workflows:
           google_oauth_client_id: "google-client"
           google_oauth_client_secret: "google-secret"
           google_oauth_redirect_url: "https://example.test/cb"
+          # access_token added in v0.2.4 (BMW supplies it via config from a
+          # preceding exchange_code step's output):
+          access_token: "compat-access-token"
 
       - name: credential_list
         type: step.auth_credential_list

@@ -3326,8 +3326,17 @@ type OAuthProviderConfig struct {
 	GoogleOauthScopes               []string               `protobuf:"bytes,8,rep,name=google_oauth_scopes,json=googleOauthScopes,proto3" json:"google_oauth_scopes,omitempty"`
 	AllowInsecureTestOauthEndpoints *bool                  `protobuf:"varint,9,opt,name=allow_insecure_test_oauth_endpoints,json=allowInsecureTestOauthEndpoints,proto3,oneof" json:"allow_insecure_test_oauth_endpoints,omitempty"`
 	PkceRequired                    *bool                  `protobuf:"varint,10,opt,name=pkce_required,json=pkceRequired,proto3,oneof" json:"pkce_required,omitempty"`
-	unknownFields                   protoimpl.UnknownFields
-	sizeCache                       protoimpl.SizeCache
+	// return_to and access_token added in v0.2.4: BMW passes both via the
+	// step's config: block (BMW templates `{{ .return_to }}` and
+	// `{{ index .steps "exchange_code" "access_token" }}` respectively).
+	// Under strict-proto these are validated at build-time when templates
+	// are unresolved literals, so they must live on OAuthProviderConfig.
+	// Handlers prefer config values when non-empty, then fall back to
+	// OAuthProviderInput (runtime input).
+	ReturnTo      string `protobuf:"bytes,11,opt,name=return_to,json=returnTo,proto3" json:"return_to,omitempty"`
+	AccessToken   string `protobuf:"bytes,12,opt,name=access_token,json=accessToken,proto3" json:"access_token,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *OAuthProviderConfig) Reset() {
@@ -3428,6 +3437,20 @@ func (x *OAuthProviderConfig) GetPkceRequired() bool {
 		return *x.PkceRequired
 	}
 	return false
+}
+
+func (x *OAuthProviderConfig) GetReturnTo() string {
+	if x != nil {
+		return x.ReturnTo
+	}
+	return ""
+}
+
+func (x *OAuthProviderConfig) GetAccessToken() string {
+	if x != nil {
+		return x.AccessToken
+	}
+	return ""
 }
 
 type OAuthProviderInput struct {
@@ -4597,7 +4620,7 @@ const file_internal_contracts_auth_proto_rawDesc = "" +
 	"\n" +
 	"violations\x18\x02 \x03(\tR\n" +
 	"violations\x12\x14\n" +
-	"\x05error\x18d \x01(\tR\x05error\"\xfa\x04\n" +
+	"\x05error\x18d \x01(\tR\x05error\"\xba\x05\n" +
 	"\x13OAuthProviderConfig\x12\x1a\n" +
 	"\bprovider\x18\x01 \x01(\tR\bprovider\x123\n" +
 	"\x16google_oauth_client_id\x18\x02 \x01(\tR\x13googleOauthClientId\x12;\n" +
@@ -4609,7 +4632,9 @@ const file_internal_contracts_auth_proto_rawDesc = "" +
 	"\x13google_oauth_scopes\x18\b \x03(\tR\x11googleOauthScopes\x12Q\n" +
 	"#allow_insecure_test_oauth_endpoints\x18\t \x01(\bH\x00R\x1fallowInsecureTestOauthEndpoints\x88\x01\x01\x12(\n" +
 	"\rpkce_required\x18\n" +
-	" \x01(\bH\x01R\fpkceRequired\x88\x01\x01B&\n" +
+	" \x01(\bH\x01R\fpkceRequired\x88\x01\x01\x12\x1b\n" +
+	"\treturn_to\x18\v \x01(\tR\breturnTo\x12!\n" +
+	"\faccess_token\x18\f \x01(\tR\vaccessTokenB&\n" +
 	"$_allow_insecure_test_oauth_endpointsB\x10\n" +
 	"\x0e_pkce_required\"\xe5\x01\n" +
 	"\x12OAuthProviderInput\x12\x1a\n" +
