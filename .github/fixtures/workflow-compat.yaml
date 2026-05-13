@@ -58,12 +58,12 @@ workflows:
           policy_step: methods_policy
           signing_secret: "test-secret"
           jwt_secret: "test-jwt-secret"
+          # tenant_id added in v0.2.2:
+          tenant_id: "tenant-smoke"
           required_runtime_keys:
             - tenant_id
           oauth_supported_providers:
             - google
-          # Added in v0.2.2:
-          tenant_id: "tenant-smoke"
 
       - name: methods_response
         type: step.auth_methods_response
@@ -127,6 +127,10 @@ workflows:
 
       - name: challenge_generate
         type: step.auth_challenge_generate
+        config:
+          # Fields added in v0.2.3 (replaced EmptyConfig with AuthChallengeGenerateConfig):
+          signing_secret: "test-secret"
+          ttl_minutes: 10
 
       - name: challenge_verify
         type: step.auth_challenge_verify

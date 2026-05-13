@@ -107,7 +107,7 @@
       "kind": "step",
       "type": "step.auth_challenge_generate",
       "mode": "strict",
-      "config": "workflow.plugins.auth.v1.EmptyConfig",
+      "config": "workflow.plugins.auth.v1.AuthChallengeGenerateConfig",
       "input": "workflow.plugins.auth.v1.ChallengeGenerateInput",
       "output": "workflow.plugins.auth.v1.ChallengeGenerateOutput"
     },

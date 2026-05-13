@@ -53,7 +53,7 @@ func TestContractRegistryDeclaresStrictContracts(t *testing.T) {
 	}
 
 	requireContract(t, runtimeContracts, "module:auth.credential", "workflow.plugins.auth.v1.CredentialModuleConfig", "", "")
-	requireContract(t, runtimeContracts, "step:step.auth_challenge_generate", "workflow.plugins.auth.v1.EmptyConfig", "workflow.plugins.auth.v1.ChallengeGenerateInput", "workflow.plugins.auth.v1.ChallengeGenerateOutput")
+	requireContract(t, runtimeContracts, "step:step.auth_challenge_generate", "workflow.plugins.auth.v1.AuthChallengeGenerateConfig", "workflow.plugins.auth.v1.ChallengeGenerateInput", "workflow.plugins.auth.v1.ChallengeGenerateOutput")
 	requireContract(t, runtimeContracts, "step:step.auth_methods_policy", "workflow.plugins.auth.v1.AuthMethodsPolicyConfig", "workflow.plugins.auth.v1.AuthMethodsPolicyInput", "workflow.plugins.auth.v1.AuthMethodsPolicyOutput")
 }
 
