@@ -15,10 +15,13 @@ import (
 	sdk "github.com/GoCodeAlone/workflow/plugin/external/sdk"
 )
 
-type challengeGenerateStep struct{ name string }
+type challengeGenerateStep struct {
+	name   string
+	config map[string]any
+}
 
-func newChallengeGenerateStep(name string, _ map[string]any) *challengeGenerateStep {
-	return &challengeGenerateStep{name: name}
+func newChallengeGenerateStep(name string, config map[string]any) *challengeGenerateStep {
+	return &challengeGenerateStep{name: name, config: config}
 }
 
 func (s *challengeGenerateStep) Execute(_ context.Context, _ map[string]any, _ map[string]map[string]any, current, _, _ map[string]any) (*sdk.StepResult, error) {
@@ -27,6 +30,11 @@ func (s *challengeGenerateStep) Execute(_ context.Context, _ map[string]any, _ m
 	tenantID, _ := current["tenant_id"].(string)
 	purpose, _ := current["purpose"].(string)
 	signingSecret, _ := current["signing_secret"].(string)
+	if signingSecret == "" {
+		if v, ok := s.config["signing_secret"].(string); ok {
+			signingSecret = v
+		}
+	}
 	if strings.TrimSpace(channel) == "" || strings.TrimSpace(destination) == "" || strings.TrimSpace(tenantID) == "" || strings.TrimSpace(purpose) == "" || signingSecret == "" {
 		return &sdk.StepResult{Output: map[string]any{"error": "missing channel, destination, tenant_id, purpose, or signing_secret"}}, nil
 	}
@@ -37,7 +45,10 @@ func (s *challengeGenerateStep) Execute(_ context.Context, _ map[string]any, _ m
 		return nil, fmt.Errorf("generate challenge code: %w", err)
 	}
 
-	ttlMinutes := intFromAny(current["ttl_minutes"], 10)
+	ttlMinutes := intFromAny(current["ttl_minutes"], 0)
+	if ttlMinutes <= 0 {
+		ttlMinutes = intFromAny(s.config["ttl_minutes"], 0)
+	}
 	if ttlMinutes <= 0 {
 		ttlMinutes = 10
 	}

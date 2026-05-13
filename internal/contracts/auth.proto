@@ -315,6 +315,11 @@ message AuthChallengeVerifyConfig {
   string signing_secret = 1;
 }
 
+message AuthChallengeGenerateConfig {
+  string signing_secret = 1;
+  int32 ttl_minutes = 2;
+}
+
 message AuthPolicyGateInput {
   bool passkey_enabled = 1;
   bool email_code_enabled = 2;
