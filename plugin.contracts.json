@@ -115,7 +115,7 @@
       "kind": "step",
       "type": "step.auth_challenge_verify",
       "mode": "strict",
-      "config": "workflow.plugins.auth.v1.EmptyConfig",
+      "config": "workflow.plugins.auth.v1.AuthChallengeVerifyConfig",
       "input": "workflow.plugins.auth.v1.ChallengeVerifyInput",
       "output": "workflow.plugins.auth.v1.ChallengeVerifyOutput"
     },

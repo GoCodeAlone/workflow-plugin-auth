@@ -1,0 +1,179 @@
+# Smoke fixture for workflow-compat CI: exercises every step type this
+# plugin exposes, using the BMW-supplied config field shapes that v0.2.2
+# closed. Validated by `wfctl validate` against the LATEST wfctl release
+# in .github/workflows/workflow-compat.yml.
+
+modules:
+  - name: auth-credential
+    type: auth.credential
+    config:
+      rp_display_name: "Compat Smoke"
+      rp_id: "example.test"
+      origin: "https://example.test"
+      optional: true
+
+workflows:
+  smoke:
+    trigger:
+      type: http
+      config:
+        path: /smoke
+        method: POST
+    steps:
+      - name: methods_policy
+        type: step.auth_methods_policy
+        config:
+          environment: "development"
+          password_auth_enabled: true
+          totp_auth_enabled: false
+          webauthn_rp_id: "example.test"
+          webauthn_origin: "https://example.test"
+          smtp_host: "smtp.example.test"
+          smtp_from: "noreply@example.test"
+          auth_routes_enabled: true
+          routes_enabled: true
+          oauth_routes_enabled: true
+          google_oauth_client_id: "google-client"
+          google_oauth_client_secret: "google-secret"
+          google_oauth_redirect_url: "https://example.test/cb"
+          # Fields added in v0.2.2 — strict-proto rejection gaps closed:
+          jwt_secret: "test-jwt-secret"
+          sms_auth_enabled: false
+          facebook_oauth_client_id: "fb-client"
+          facebook_oauth_client_secret: "fb-secret"
+          instagram_oauth_client_id: "ig-client"
+          instagram_oauth_client_secret: "ig-secret"
+          x_oauth_client_id: "x-client"
+          x_oauth_client_secret: "x-secret"
+          twilio_verify_service_sid: "VA000"
+          twilio_account_sid: "AC000"
+          twilio_auth_token: "twilio-token"
+          twilio_api_key_sid: "SK000"
+          twilio_api_key_secret: "twilio-key-secret"
+          password_hash_count: 0
+
+      - name: policy_gate
+        type: step.auth_policy_gate
+        config:
+          policy_step: methods_policy
+          signing_secret: "test-secret"
+          jwt_secret: "test-jwt-secret"
+          required_runtime_keys:
+            - tenant_id
+          oauth_supported_providers:
+            - google
+          # Added in v0.2.2:
+          tenant_id: "tenant-smoke"
+
+      - name: methods_response
+        type: step.auth_methods_response
+
+      - name: policy_audit
+        type: step.auth_policy_audit
+        config:
+          environment: "development"
+          password_auth_enabled: true
+          jwt_secret: "test-jwt-secret"
+
+      - name: passkey_begin_register
+        type: step.auth_passkey_begin_register
+        config:
+          module: auth-credential
+
+      - name: passkey_finish_register
+        type: step.auth_passkey_finish_register
+        config:
+          module: auth-credential
+
+      - name: passkey_begin_login
+        type: step.auth_passkey_begin_login
+        config:
+          module: auth-credential
+
+      - name: passkey_finish_login
+        type: step.auth_passkey_finish_login
+        config:
+          module: auth-credential
+
+      - name: totp_generate_secret
+        type: step.auth_totp_generate_secret
+
+      - name: totp_verify
+        type: step.auth_totp_verify
+
+      - name: totp_recovery_codes
+        type: step.auth_totp_recovery_codes
+
+      - name: magic_link_generate
+        type: step.auth_magic_link_generate
+
+      - name: magic_link_verify
+        type: step.auth_magic_link_verify
+
+      - name: magic_link_send
+        type: step.auth_magic_link_send
+        config:
+          smtp_host: "smtp.example.test"
+          smtp_port: 587
+          smtp_user: "smtp-user"
+          smtp_pass: "smtp-pass"
+          from_address: "noreply@example.test"
+
+      - name: password_hash
+        type: step.auth_password_hash
+
+      - name: password_verify
+        type: step.auth_password_verify
+
+      - name: challenge_generate
+        type: step.auth_challenge_generate
+
+      - name: challenge_verify
+        type: step.auth_challenge_verify
+        config:
+          # Field added in v0.2.2 (replaced EmptyConfig):
+          signing_secret: "test-secret"
+
+      - name: normalize_phone
+        type: step.auth_normalize_phone
+
+      - name: oauth_provider_config
+        type: step.auth_oauth_provider_config
+        config:
+          provider: google
+          google_oauth_client_id: "google-client"
+          google_oauth_client_secret: "google-secret"
+          google_oauth_redirect_url: "https://example.test/cb"
+
+      - name: oauth_start
+        type: step.auth_oauth_start
+        config:
+          provider: google
+          google_oauth_client_id: "google-client"
+          google_oauth_client_secret: "google-secret"
+          google_oauth_redirect_url: "https://example.test/cb"
+
+      - name: oauth_exchange
+        type: step.auth_oauth_exchange
+        config:
+          provider: google
+          google_oauth_client_id: "google-client"
+          google_oauth_client_secret: "google-secret"
+          google_oauth_redirect_url: "https://example.test/cb"
+          # Note: BMW currently passes `code` here — that is a BMW yaml bug.
+          # `code` belongs in OAuthProviderInput (i.e. via a preceding
+          # step.set or trigger.query). Not present in this fixture.
+
+      - name: oauth_userinfo
+        type: step.auth_oauth_userinfo
+        config:
+          provider: google
+          google_oauth_client_id: "google-client"
+          google_oauth_client_secret: "google-secret"
+          google_oauth_redirect_url: "https://example.test/cb"
+
+      - name: credential_list
+        type: step.auth_credential_list
+
+      - name: credential_revoke
+        type: step.auth_credential_revoke

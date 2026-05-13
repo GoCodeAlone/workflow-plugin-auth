@@ -52,10 +52,13 @@ func (s *challengeGenerateStep) Execute(_ context.Context, _ map[string]any, _ m
 	}}, nil
 }
 
-type challengeVerifyStep struct{ name string }
+type challengeVerifyStep struct {
+	name   string
+	config map[string]any
+}
 
-func newChallengeVerifyStep(name string, _ map[string]any) *challengeVerifyStep {
-	return &challengeVerifyStep{name: name}
+func newChallengeVerifyStep(name string, config map[string]any) *challengeVerifyStep {
+	return &challengeVerifyStep{name: name, config: config}
 }
 
 func (s *challengeVerifyStep) Execute(_ context.Context, _ map[string]any, _ map[string]map[string]any, current, _, _ map[string]any) (*sdk.StepResult, error) {
@@ -66,6 +69,11 @@ func (s *challengeVerifyStep) Execute(_ context.Context, _ map[string]any, _ map
 	tenantID, _ := current["tenant_id"].(string)
 	purpose, _ := current["purpose"].(string)
 	signingSecret, _ := current["signing_secret"].(string)
+	if signingSecret == "" {
+		if v, ok := s.config["signing_secret"].(string); ok {
+			signingSecret = v
+		}
+	}
 	if strings.TrimSpace(channel) == "" || code == "" || codeHash == "" || strings.TrimSpace(destination) == "" || strings.TrimSpace(tenantID) == "" || strings.TrimSpace(purpose) == "" || signingSecret == "" {
 		return &sdk.StepResult{Output: map[string]any{"valid": false, "error": "missing channel, code, code_hash, destination, tenant_id, purpose, or signing_secret"}}, nil
 	}

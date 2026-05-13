@@ -210,7 +210,7 @@ func (p *authPlugin) CreateTypedStep(typeName, name string, config *anypb.Any) (
 			return newChallengeGenerateStep(name, config)
 		}, &contracts.ChallengeGenerateOutput{})).CreateTypedStep(typeName, name, config)
 	case "step.auth_challenge_verify":
-		return sdk.NewTypedStepFactory(typeName, &contracts.EmptyConfig{}, &contracts.ChallengeVerifyInput{}, typedLegacyStep[*contracts.EmptyConfig, *contracts.ChallengeVerifyInput, *contracts.ChallengeVerifyOutput](func(name string, config map[string]any) sdk.StepInstance {
+		return sdk.NewTypedStepFactory(typeName, &contracts.AuthChallengeVerifyConfig{}, &contracts.ChallengeVerifyInput{}, typedLegacyStep[*contracts.AuthChallengeVerifyConfig, *contracts.ChallengeVerifyInput, *contracts.ChallengeVerifyOutput](func(name string, config map[string]any) sdk.StepInstance {
 			return newChallengeVerifyStep(name, config)
 		}, &contracts.ChallengeVerifyOutput{})).CreateTypedStep(typeName, name, config)
 	case "step.auth_normalize_phone":
@@ -284,7 +284,7 @@ var authContractRegistry = &pb.ContractRegistry{
 		stepContract("step.auth_password_hash", "EmptyConfig", "PasswordHashInput", "PasswordHashOutput"),
 		stepContract("step.auth_password_verify", "EmptyConfig", "PasswordVerifyInput", "PasswordVerifyOutput"),
 		stepContract("step.auth_challenge_generate", "EmptyConfig", "ChallengeGenerateInput", "ChallengeGenerateOutput"),
-		stepContract("step.auth_challenge_verify", "EmptyConfig", "ChallengeVerifyInput", "ChallengeVerifyOutput"),
+		stepContract("step.auth_challenge_verify", "AuthChallengeVerifyConfig", "ChallengeVerifyInput", "ChallengeVerifyOutput"),
 		stepContract("step.auth_normalize_phone", "EmptyConfig", "NormalizePhoneInput", "NormalizePhoneOutput"),
 		stepContract("step.auth_methods_policy", "AuthMethodsPolicyConfig", "AuthMethodsPolicyInput", "AuthMethodsPolicyOutput"),
 		stepContract("step.auth_policy_gate", "AuthPolicyGateConfig", "AuthPolicyGateInput", "AuthMethodsPolicyOutput"),

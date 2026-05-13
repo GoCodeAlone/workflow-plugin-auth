@@ -1,0 +1,73 @@
+name: Workflow Compat (latest wfctl)
+
+# Continuously verify this plugin's strict-proto contracts stay compatible
+# with the LATEST published wfctl release — independently of the SDK
+# version pinned in go.mod. Surfaces drift the same day a workflow release
+# introduces a stricter validator.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  schedule:
+    # Daily at 09:00 UTC so any post-merge workflow release surfaces drift.
+    - cron: "0 9 * * *"
+
+permissions:
+  contents: read
+
+env:
+  GOPRIVATE: github.com/GoCodeAlone/*
+
+jobs:
+  validate-against-latest:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+
+      - name: Configure Git for private repos
+        env:
+          RELEASES_TOKEN: ${{ secrets.RELEASES_TOKEN }}
+        run: |
+          if [ -n "$RELEASES_TOKEN" ]; then
+            git config --global url."https://x-access-token:${RELEASES_TOKEN}@github.com/".insteadOf "https://github.com/"
+          fi
+
+      - name: Resolve latest wfctl release tag
+        id: wfctl
+        run: |
+          tag=$(curl -fsSL https://api.github.com/repos/GoCodeAlone/workflow/releases/latest | jq -r .tag_name)
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+          echo "Latest wfctl tag: $tag"
+
+      - uses: GoCodeAlone/setup-wfctl@bcd880980f5bbe8d192d0c20ff6279d25331f956
+        with:
+          version: ${{ steps.wfctl.outputs.tag }}
+
+      - name: Validate plugin manifest strict-contracts
+        run: wfctl plugin validate --file plugin.json --strict-contracts
+
+      - name: Build plugin binary
+        run: |
+          mkdir -p bin
+          go build -o bin/workflow-plugin-auth ./cmd/workflow-plugin-auth
+
+      - name: Stage plugin for wfctl plugin-dir discovery
+        run: |
+          mkdir -p /tmp/wfctl-plugins/workflow-plugin-auth
+          cp bin/workflow-plugin-auth plugin.json plugin.contracts.json /tmp/wfctl-plugins/workflow-plugin-auth/
+
+      - name: Validate fixture pipeline (latest wfctl + plugin discovery)
+        run: |
+          # Smoke fixture exercises every plugin step type. plugin-dir
+          # makes wfctl load this plugin's contracts, so any drift between
+          # the BMW-supplied config shapes and the plugin's strict-proto
+          # descriptors will surface as a config-validation failure.
+          wfctl validate \
+            --plugin-dir /tmp/wfctl-plugins \
+            -allow-no-entry-points \
+            .github/fixtures/workflow-compat.yaml
