@@ -20,16 +20,12 @@ func newCredentialModule(name string, config map[string]any) (*credentialModule,
 }
 
 func (m *credentialModule) Init() error {
-	rpDisplayName, _ := m.config["rpDisplayName"].(string)
-	rpID, _ := m.config["rpID"].(string)
+	rpDisplayName := configString(m.config, "rpDisplayName", "rp_display_name")
+	rpID := configString(m.config, "rpID", "rp_id")
 	origin, _ := m.config["origin"].(string)
 
 	if rpDisplayName == "" {
 		rpDisplayName = "Workflow App"
-	}
-	if (rpID == "" || origin == "") && configBool(m.config, "optional") {
-		unregisterModule(m.name)
-		return nil
 	}
 	if rpID == "" {
 		// Extract from origin
@@ -39,6 +35,10 @@ func (m *credentialModule) Init() error {
 				rpID = u.Hostname()
 			}
 		}
+	}
+	if (rpID == "" || origin == "") && configBool(m.config, "optional") {
+		unregisterModule(m.name)
+		return nil
 	}
 	if rpID == "" {
 		return fmt.Errorf("auth.credential module %q: rpID or origin required", m.name)
@@ -79,4 +79,13 @@ func configBool(config map[string]any, key string) bool {
 	default:
 		return false
 	}
+}
+
+func configString(config map[string]any, keys ...string) string {
+	for _, key := range keys {
+		if value, ok := config[key].(string); ok && value != "" {
+			return value
+		}
+	}
+	return ""
 }
