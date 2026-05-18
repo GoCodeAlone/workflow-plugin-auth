@@ -1,4 +1,7 @@
-# Admin Bootstrap + Passkey Upgrade — Design (2026-05-17, rev 4)
+# Admin Bootstrap + Passkey Upgrade — Design (2026-05-17, rev 5)
+
+> **Rev-5 amendment (from plan-phase adversarial cycle 3):** URL is returned in the `POST /admin/bootstrap-link` response body (rev-4 said "log entry only"). Rev-5 reverses this — body delivery closes the log-aggregator URL-leak surface AND is consistent with the redeem endpoint being GET (rev-5 also flips `/admin/bootstrap-redeem` from POST to GET to match the existing `/auth/magic-link?token=...` browser-clickable pattern). The timing-oracle concern that motivated "constant body" in rev 4 is mitigated by the endpoint being bearer-token-gated AND localhost-bound — the operator already knows the allowlist, so allowlist-hit vs allowlist-miss differing responses (200 minted vs 404 not_eligible) is no worse than the bearer-token leak surface. Phase II adds proper constant-time comparison + timing-equalisation if the endpoint exposure widens.
+
 
 > **Revision history:** rev 1 → rev 2 → rev 3 → rev 4 (this doc) following three adversarial-design-review FAIL cycles. Skill cap (2 revisions before user escalation) reached at rev 3; rev 4 applies cycle-3 mechanical fact-fixes per autonomous-mode mandate (user granted blanket autonomy for brainstorm/design/implementation). Cycle-3 findings resolved mechanically (no structural change beyond dropping PR-3 hash migration and switching bootstrap-redeem to POST):
 >
