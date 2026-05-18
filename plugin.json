@@ -7,7 +7,7 @@
   "type": "external",
   "tier": "core",
   "private": false,
-  "minEngineVersion": "0.51.2",
+  "minEngineVersion": "0.57.2",
   "keywords": [
     "auth",
     "webauthn",
