@@ -112,7 +112,7 @@
    - `step.db_query lookup_admin` → `WHERE lower(email) = $1 AND deleted_at IS NULL AND is_active = true LIMIT 1` (mode: single).
    - On allowlist + super_admin role match: `step.set set_generate_inputs`, `step.auth_magic_link_generate`, `step.db_query insert_token` (RETURNING id), `step.db_exec invalidate_prior` (excludes new row id).
    - Allowlist-hit: respond 200 with `{minted: true, magic_link_url, expires_at, message}`. Allowlist-miss: respond 404 `{error: not_eligible}`. (Timing-oracle accepted per Top Doubts row; operator-only audience.)
-4. **Endpoint:** `GET /admin/bootstrap-redeem?email=…&token=…` — browser-clickable (matches existing `/auth/magic-link` GET pattern at `app.yaml:7120`). Token in URL traded off for clickability; mitigated by single-use + 15-min TTL + operator-restricted scope. Pipeline:
+4. **Endpoint:** `GET /admin/bootstrap-redeem?email=…&token=…` — browser-clickable. The emailed URL at `app.yaml:7120` is a URL string in the email body, not an existing GET handler; this PR introduces the admin-side GET handler. Token in URL traded off for clickability; mitigated by single-use + 15-min TTL + operator-restricted scope. Pipeline:
    - `step.request_parse` (query_params: ["email", "token"]) → `.query.email` + `.query.token`.
    - `step.set normalize_email` → `email: .query.email | lower | trimSpace`.
    - `step.db_query find_bootstrap_token` → `WHERE lower(email) = $1 AND purpose = 'admin_bootstrap' AND used_at IS NULL AND expires_at > NOW()` (SQL-side TTL bypasses template→time.Parse round-trip).
