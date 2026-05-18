@@ -45,3 +45,39 @@ func TestCredentialModuleInitWithOriginRegisters(t *testing.T) {
 	}
 	unregisterModule("configured-origin")
 }
+
+func TestCredentialModuleInitTypedSnakeCaseConfigRegisters(t *testing.T) {
+	mod, err := newCredentialModule("configured-typed", map[string]any{
+		"optional":        true,
+		"rp_display_name": "Typed App",
+		"rp_id":           "example.com",
+		"origin":          "https://example.com",
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := mod.Init(); err != nil {
+		t.Fatalf("expected typed snake_case config to initialize, got %v", err)
+	}
+	if getModule("configured-typed") == nil {
+		t.Fatal("expected typed configured module to register")
+	}
+	unregisterModule("configured-typed")
+}
+
+func TestCredentialModuleInitOptionalOriginOnlyDerivesRPID(t *testing.T) {
+	mod, err := newCredentialModule("configured-optional-origin", map[string]any{
+		"optional": true,
+		"origin":   "https://example.com",
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := mod.Init(); err != nil {
+		t.Fatalf("expected optional origin-only config to initialize, got %v", err)
+	}
+	if getModule("configured-optional-origin") == nil {
+		t.Fatal("expected optional origin-only module to register")
+	}
+	unregisterModule("configured-optional-origin")
+}
