@@ -129,8 +129,8 @@
 **Depends on:** PR-2.
 **Risk class:** YAML step-type rename (single call site).
 
-1. **KEEP** `step.bmw.hash_password` (1 call site at `app.yaml:881`). Plugin step uses `bcrypt.DefaultCost` (10); bespoke uses cost=12. Migration would silently downgrade newly-signed-up users' password security. Phase II opens plugin v0.2.5 with configurable cost; BMW migrates then.
-2. Replace 1 call site `step.bmw.verify_password` → `step.auth_password_verify` (app.yaml:1073). Verify is cost-agnostic (reads cost from hash itself), so this swap is safe.
+1. **KEEP** `step.bmw.hash_password` (2 call sites: `app.yaml:881` register flow + `:11116` password reset flow). Plugin step uses `bcrypt.DefaultCost` (10); bespoke uses cost=12. Migration would silently downgrade newly-signed-up users' password security. Phase II opens plugin v0.2.5 with configurable cost; BMW migrates then.
+2. Replace **2 call sites** `step.bmw.verify_password` → `step.auth_password_verify` (`app.yaml:1073` + `:9447`). Verify is cost-agnostic (reads cost from hash itself), so this swap is safe.
 3. **KEEP** `step.bmw.generate_token` (10 call sites after PR-2). Retirement is Phase II SSO IDP scope.
 4. End-to-end smoke: signup → login → password verify → bootstrap-redeem → passkey enrol → passkey login. All 6 scenarios still pass.
 5. Bespoke `bmwplugin/step_auth.go` retains `hash_password` + `generate_token`; `verify_password` function can be deleted in a separate cleanup commit, or left in place (unused, harmless).
