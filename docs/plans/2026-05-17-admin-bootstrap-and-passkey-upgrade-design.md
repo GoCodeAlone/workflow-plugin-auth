@@ -1,6 +1,8 @@
-# Admin Bootstrap + Passkey Upgrade — Design (2026-05-17, rev 8)
+# Admin Bootstrap + Passkey Upgrade — Design (2026-05-17, rev 9)
 
-> **Rev-8 amendment (plan-phase adversarial cycle 10):** Scrubbed remaining stale "localhost-bound" references in design body (rev 6 amendment said "throughout" but missed the Top Doubts row, Goal §2, allowlist-miss row, and Assumption #2). Also corrected hash_password + verify_password call-site counts to 2 each. Bootstrap-link response is now URL-on-hit (200) vs not_eligible (404); the earlier "constant 200" timing-equalisation was abandoned in plan rev 5 — design row updated to match. Rate-limit rules are documented as engine no-op (`workflow/plugins/http/modules.go:139-174` only reads top-level requestsPerMinute); per-path rules deferred to Phase II engine work.
+> **Rev-9 amendment (plan-phase adversarial cycle 11):** Rewrote PR-2 step 3 (bootstrap-link), step 4 (bootstrap-redeem), and step 6 (runbook curl example) to match the plan's actual rev-11 implementation: publicly-reachable endpoint (not localhost-bound), GET redeem with email+token query params (not POST + body), TCP curl (not Unix socket), URL in response body (not log), NEW `/api/v1/auth/admin/enrol-passkey/*` pipelines (not modifying existing routes), session JWT reads role from DB (not hardcoded), 24h expiry in config block, SQL-side expires_at filter, case-insensitive email lookup, mark_used as `step.db_query mode: single` for `.found` semantics. The rev-8 amendment header claimed scrub-throughout; design body sections 3/4/6 were missed in that cycle.
+>
+> **Rev-8 amendment (plan-phase adversarial cycle 10):** Scrubbed Top Doubts row, Goal §2, allowlist-miss row, and Assumption #2. Corrected hash_password + verify_password call-site counts to 2 each. Bootstrap-link response: URL-on-hit (200) vs not_eligible (404). Rate-limit rules engine no-op documented.
 >
 > **Rev-7 amendment (cycle-9 cross-doc fix):** Corrected hash_password (`:881` + `:11116`) and verify_password (`:1073` + `:9447`) call-site counts to 2 each.
 >
@@ -102,28 +104,30 @@
 1. **Migration:** `ALTER TABLE magic_link_tokens ADD COLUMN purpose TEXT NOT NULL DEFAULT 'login'`. (Adds purpose discriminator on existing table.)
 2. **Migration:** `INSERT INTO users (id, email, role, tenant_id, is_active, ...) VALUES (gen_random_uuid(), 'codingsloth@pm.me', 'super_admin', '<bmw_tenant_id>', true, ...) ON CONFLICT (email) DO UPDATE SET role='super_admin' WHERE users.role NOT IN ('super_admin');` — one-shot seed of platform super-admin.
 2a. **Migration: patch existing magic-link pipeline writes** to set `purpose='login'` on INSERT (current INSERT at `app.yaml:7109` has no purpose value; default `'login'` covers it but explicit is safer). Patch existing SELECT at `app.yaml:7175` to add `AND purpose = 'login'` so admin-bootstrap tokens are not picked up by regular user login. Mirror for verify pipelines (e.g., `:7170`).
-3. **Endpoint:** `POST /admin/bootstrap-link` (configured to bind localhost-only via existing BMW ingress / listener config). Header `X-Admin-Bootstrap-Token: $BOOTSTRAP_OPERATOR_TOKEN` (env-var-sourced; runbook documents rotation per deploy). Pipeline:
-   - `step.set extract_token` → captures `{{ index .headers "X-Admin-Bootstrap-Token" }}` and config `{{ config "bootstrap_operator_token" }}`.
-   - `step.conditional check_token_match` → field comparing the two for equality; default route → `respond_401`. *Note: template `eq` is not constant-time; acceptable for an operator-only endpoint, but Phase II should add a constant-time comparison primitive.*
-   - `step.request_parse parse_body` → `{email}`.
-   - `step.db_query lookup_admin`: `SELECT id, role FROM users WHERE email = $1 AND role = 'super_admin'`.
-   - `step.conditional allowlist` on `lookup_admin.found`:
-     - both branches end at the SAME `{"sent": true, "message": "If your email is allowlisted, a link has been delivered"}` response (best-effort timing alignment; see §Top doubts row on accepted timing-oracle limitation).
-     - branch on `true`: call `step.auth_magic_link_generate` with `email` + `signing_secret={{ config "jwt_secret" }}` (expiry is hardcoded 15 min in the plugin step; **NOT configurable** — design accepts the 15-min default). Store `(token_hash, email, expires_at, purpose='admin_bootstrap')` in `magic_link_tokens`. URL embedded in operator-facing log entry (not response body, to keep response identical across branches).
-4. **Endpoint:** `POST /admin/bootstrap-redeem` (POST to align with existing magic-link-verify at `app.yaml:7142`, and to keep token out of URL/browser-history/access-logs). Body: `{token}`. Pipeline:
-   - `step.set hash_token` → computes `{{ sha256 .body.token | hex }}` (template helper assumed present; if not, use a `step.crypto.hash` primitive or add a small helper step). Strict-hash bind avoids the "two concurrent mint, ambiguous redeem" failure mode by indexing on token_hash, not email/recency.
-   - `step.db_query find_bootstrap_token`: `SELECT id, token_hash, expires_at, email FROM magic_link_tokens WHERE token_hash = $1 AND purpose='admin_bootstrap' AND used_at IS NULL LIMIT 1`.
-   - `step.conditional check_found` on `.found` → false → `respond_401`.
-   - `step.auth_magic_link_verify` against `find_bootstrap_token.row`.
-   - `step.db_exec mark_used`: `UPDATE magic_link_tokens SET used_at = NOW() WHERE id = $1 AND used_at IS NULL RETURNING id`. If no row returned (concurrent redeem), respond 401.
-   - `step.db_query fetch_user`: `SELECT id, email, role, tenant_id FROM users WHERE email = $1` (use email from redeemed token).
-   - `step.bmw.generate_token` to mint JWT session with `role=super_admin` (call site #10 — bespoke step retained).
-   - Respond `{session_token, redirect: "/admin/enrol-passkey"}` (200). Operator (or operator's browser) handles the redirect client-side.
-5. **UI surface:** `/admin/enrol-passkey` — existing passkey-register-begin / passkey-register-finish routes ALREADY exist (app.yaml:6485/6549). Gate access at the route level to `role='super_admin'` (strictly; not `IN ('admin','super_admin')`).
+3. **Endpoint:** `POST /admin/bootstrap-link` — **publicly reachable** (http.server `:8080` all-interfaces + Tailscale `:443`); bearer token (≥32-char `BOOTSTRAP_OPERATOR_TOKEN` enforced inline) + DB-side single-active-token + 15-min TTL are the protections (see Assumption #2). Pipeline shape (per plan rev 11):
+   - `step.request_parse` (parse_body:true, parse_headers:["X-Admin-Bootstrap-Token"]) → headers + body available downstream.
+   - `step.set normalize_email` → `email: .body.email | lower | trimSpace` (BMW-wide convention).
+   - `step.conditional check_token` → inline template combines `(ge (len (config "bootstrap_operator_token")) 32)` AND header == config; on mismatch → 401. Note: template `eq` is not constant-time; acceptable for operator-only endpoint, Phase II adds constant-time primitive.
+   - `step.conditional check_email_allowed` → email matches `bootstrap_allowed_email` config (case-insensitive).
+   - `step.db_query lookup_admin` → `WHERE lower(email) = $1 AND deleted_at IS NULL AND is_active = true LIMIT 1` (mode: single).
+   - On allowlist + super_admin role match: `step.set set_generate_inputs`, `step.auth_magic_link_generate`, `step.db_query insert_token` (RETURNING id), `step.db_exec invalidate_prior` (excludes new row id).
+   - Allowlist-hit: respond 200 with `{minted: true, magic_link_url, expires_at, message}`. Allowlist-miss: respond 404 `{error: not_eligible}`. (Timing-oracle accepted per Top Doubts row; operator-only audience.)
+4. **Endpoint:** `GET /admin/bootstrap-redeem?email=…&token=…` — browser-clickable (matches existing `/auth/magic-link` GET pattern at `app.yaml:7120`). Token in URL traded off for clickability; mitigated by single-use + 15-min TTL + operator-restricted scope. Pipeline:
+   - `step.request_parse` (query_params: ["email", "token"]) → `.query.email` + `.query.token`.
+   - `step.set normalize_email` → `email: .query.email | lower | trimSpace`.
+   - `step.db_query find_bootstrap_token` → `WHERE lower(email) = $1 AND purpose = 'admin_bootstrap' AND used_at IS NULL AND expires_at > NOW()` (SQL-side TTL bypasses template→time.Parse round-trip).
+   - `step.set set_verify_inputs` → token / stored_hash / expires_at.
+   - `step.auth_magic_link_verify` → `.valid`.
+   - `step.db_query mark_used` (mode: single, RETURNING id) — atomic single-use claim.
+   - `step.db_query fetch_user` → `WHERE lower(email) = lower($1) AND is_active = true AND deleted_at IS NULL AND role = 'super_admin'` (defends against post-mint demotion / deactivation).
+   - `step.set set_session_inputs` reads role from DB (not hardcoded).
+   - `step.bmw.generate_token` (config: expiry: "24h") → JWT (call site #10).
+   - Respond 200 `{session_token, redirect: "/api/v1/auth/admin/enrol-passkey/begin"}`. `redirect` is informational (no server-side 302); operator follows runbook.
+5. **NEW admin pipelines:** `POST /api/v1/auth/admin/enrol-passkey/{begin,finish}` (additive; do NOT modify existing passkey-register routes which serve regular users). Same step graph as the existing passkey-register-* pipelines, with BMW role-gate pattern (auth_validate → fetch_role → flatten_role → check_super_admin) inserted BEFORE the existing `passkey_policy` step. Existing routes are preserved unchanged.
 6. **Runbook (`docs/runbooks/admin-bootstrap.md` NEW):**
-   - Set `BOOTSTRAP_OPERATOR_TOKEN` env var on BMW deploy (rotate per deploy).
-   - Operator: `curl --unix-socket /var/run/bmw.sock -H "X-Admin-Bootstrap-Token: $BOOTSTRAP_OPERATOR_TOKEN" -d '{"email":"codingsloth@pm.me"}' http://localhost/admin/bootstrap-link` → returns magic URL in response body.
-   - User opens URL in browser → session granted → enrols passkey → bootstrap retired (passkey login replaces it).
+   - Deploy precondition: `[ ${#BOOTSTRAP_OPERATOR_TOKEN} -ge 32 ]` (runtime template enforces too).
+   - Operator: `curl -X POST -H "Content-Type: application/json" -H "X-Admin-Bootstrap-Token: $BOOTSTRAP_OPERATOR_TOKEN" -d '{"email":"codingsloth@pm.me"}' https://buymywishlist.com/admin/bootstrap-link | jq .magic_link_url` → URL is in response body.
+   - User opens URL (GET) → session granted → enrols passkey via `/api/v1/auth/admin/enrol-passkey/{begin,finish}` → bootstrap retired (passkey login replaces it).
 
 **Rollback:** revert PR; bootstrap pipelines disabled; `magic_link_tokens.purpose` column harmless; seed row in `users` left in place (harmless; can be deleted manually).
 
