@@ -1,4 +1,6 @@
-# Admin Bootstrap + Passkey Upgrade — Design (2026-05-17, rev 9)
+# Admin Bootstrap + Passkey Upgrade — Design (2026-05-17, rev 11)
+
+> **Rev-11 amendment (cycle-13):** Cross-doc PR-numbering reconciliation table now lives at the head of the plan doc (design keeps PR-0..PR-3 nomenclature; plan uses PR-1..PR-4). Fixed call-site #11 → #10 in §Verification gates §PR-2 (PR-3 swap is YAML rename only; no new generate_token site).
 
 > **Rev-9 amendment (plan-phase adversarial cycle 11):** Rewrote PR-2 step 3 (bootstrap-link), step 4 (bootstrap-redeem), and step 6 (runbook curl example) to match the plan's actual rev-11 implementation: publicly-reachable endpoint (not localhost-bound), GET redeem with email+token query params (not POST + body), TCP curl (not Unix socket), URL in response body (not log), NEW `/api/v1/auth/admin/enrol-passkey/*` pipelines (not modifying existing routes), session JWT reads role from DB (not hardcoded), 24h expiry in config block, SQL-side expires_at filter, case-insensitive email lookup, mark_used as `step.db_query mode: single` for `.found` semantics. The rev-8 amendment header claimed scrub-throughout; design body sections 3/4/6 were missed in that cycle.
 >
@@ -233,7 +235,7 @@ step.auth_refresh_token_issue / step.auth_refresh_token_verify
 - **PR-0:** `docker compose up` boots BMW with new engine pin; `/healthz` 200; PR description quotes pre-bump vs post-bump HTTP-status table for all 6 auth routes. **Success gate is conceptually merged with PR-1:** PR-0 alone may leave 500s if root cause is nil-deref not handshake; PR-1 must close the loop. The combined gate is: after PR-0 + PR-1 merged, all 8 scenarios in §PR-1 step 4 return their **expected** status code + body shape (not just `!= 500`).
 - **PR-1:** All 8 manual curl scenarios in §PR-1 step 4 pass; `wfctl validate app.yaml` green; Playwright smoke green (delegated to Agent).
 - **PR-2:** Migration applies cleanly forward + reverse; bootstrap endpoint mints URL; redeem creates valid JWT session; concurrent-redeem race serialised correctly; allowlist-miss returns timing-safe 200; `/admin/enrol-passkey` rejects non-super_admin sessions.
-- **PR-3:** All 6 auth scenarios pass with plugin-backed password steps; bootstrap-redeem still mints JWT (call site #11 of `step.bmw.generate_token` works); no other regression.
+- **PR-3:** All 6 auth scenarios pass with plugin-backed password steps; bootstrap-redeem (from PR-2) still mints JWT; PR-3 is a YAML step-type rename only — adds no new `step.bmw.generate_token` call sites (total remains 10 after PR-2).
 
 ## File touch surface (approximate)
 
