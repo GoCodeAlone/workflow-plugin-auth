@@ -58,6 +58,8 @@ github.com/GoCodeAlone/modular/modules/reverseproxy/v2 v2.8.0 h1:cvdLHbM/vzvygQT
 github.com/GoCodeAlone/modular/modules/reverseproxy/v2 v2.8.0/go.mod h1:/9ipMG4qM2CHQ14BfXKdVlYRJelef6M8MFI5TbZv67M=
 github.com/GoCodeAlone/workflow v0.51.6 h1:jN/cAsCoIcwvHdMAbdhNfTIDiYtN1W+sd87aWS4DP0I=
 github.com/GoCodeAlone/workflow v0.51.6/go.mod h1:5dh9esKq48kH4zKWjccXmyOirWL+T+YzfLclzhdRIV4=
+github.com/GoCodeAlone/workflow v0.57.2 h1:2IqL/FzXFl7TZCUc0phSvCCVvpTakssVR984H48ENVs=
+github.com/GoCodeAlone/workflow v0.57.2/go.mod h1:41J1BGZ+B0S6Ipjetu3UdGMo+Dkv0rc6lLmfooXFj7I=
 github.com/GoCodeAlone/yaegi v0.17.2 h1:WK6Y6e0t1a6U7r+S2dN3CGWW1PizYD3zO0zneToZPxM=
 github.com/GoCodeAlone/yaegi v0.17.2/go.mod h1:z5Pr6Wse6QJcQvpgxTxzMAevFarH0N37TG88Y9dprx0=
 github.com/GoogleCloudPlatform/opentelemetry-operations-go/detectors/gcp v1.32.0 h1:rIkQfkCOVKc1OiRCNcSDD8ml5RJlZbH/Xsq7lbpynwc=
@@ -717,6 +719,7 @@ go.opentelemetry.io/otel/exporters/otlp/otlptrace v1.43.0 h1:88Y4s2C8oTui1LGM6bT
 go.opentelemetry.io/otel/exporters/otlp/otlptrace v1.43.0/go.mod h1:Vl1/iaggsuRlrHf/hfPJPvVag77kKyvrLeD10kpMl+A=
 go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp v1.43.0 h1:3iZJKlCZufyRzPzlQhUIWVmfltrXuGyfjREgGP3UUjc=
 go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp v1.43.0/go.mod h1:/G+nUPfhq2e+qiXMGxMwumDrP5jtzU+mWN7/sjT2rak=
+go.opentelemetry.io/otel/exporters/stdout/stdoutmetric v1.40.0 h1:ZrPRak/kS4xI3AVXy8F7pipuDXmDsrO8Lg+yQjBLjw0=
 go.opentelemetry.io/otel/exporters/stdout/stdoutmetric v1.43.0 h1:TC+BewnDpeiAmcscXbGMfxkO+mwYUwE/VySwvw88PfA=
 go.opentelemetry.io/otel/exporters/stdout/stdoutmetric v1.43.0/go.mod h1:J/ZyF4vfPwsSr9xJSPyQ4LqtcTPULFR64KwTikGLe+A=
 go.opentelemetry.io/otel/metric v1.43.0 h1:d7638QeInOnuwOONPp4JAOGfbCEpYb+K6DVWvdxGzgM=
