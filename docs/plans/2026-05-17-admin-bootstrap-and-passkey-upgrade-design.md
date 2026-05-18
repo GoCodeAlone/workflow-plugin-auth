@@ -1,4 +1,6 @@
-# Admin Bootstrap + Passkey Upgrade — Design (2026-05-17, rev 12)
+# Admin Bootstrap + Passkey Upgrade — Design (2026-05-17, rev 13)
+
+> **Rev-13 (cycle-15):** swept design body to match the cycle-14 PR-3 deferral header amendment. PR-3 active section → DEFERRED stub pointing at Phase II. Verification gate, Rollback table row, Sequencing summary row, File touch surface line updated. References row noting "swapped in PR-3" amended.
 
 > **Rev-12 amendment (cycle-14):** **PR-3 (verify_password swap) DEFERRED to Phase II.** Plan rev 15 dropped the verify_password swap because bespoke `step.bmw.verify_password` does timing-equalization (dummy bcrypt compare) that plugin step `step.auth_password_verify` lacks — swap would silently regress login user-enumeration defence. Phase II opens a plugin PR adding timing-equalization, then BMW swaps. **Engine pin target corrected v0.51.6 → v0.51.2** throughout (plugin v0.2.4 pins workflow v0.51.2 per `git show v0.2.4:go.mod`; v0.51.6 was the post-tag HEAD pin).
 >
@@ -135,19 +137,14 @@
 
 **Rollback:** revert PR; bootstrap pipelines disabled; `magic_link_tokens.purpose` column harmless; seed row in `users` left in place (harmless; can be deleted manually).
 
-### PR-3 — BMW verify_password migration to plugin (hash_password retained, see Phase II)
+### PR-3 — DEFERRED to Phase II
 
-**Repo:** buymywishlist
-**Depends on:** PR-2.
-**Risk class:** YAML step-type rename (single call site).
+Originally: BMW verify_password migration to plugin. **Deferred at cycle-14:** bespoke `step.bmw.verify_password` (`bmwplugin/step_auth.go:70-77`) does timing-equalization via dummy bcrypt compare on missing-user / missing-hash path; plugin `step.auth_password_verify` (`internal/step_password.go:38-46`) lacks this and returns immediately on missing input. Swap would silently regress login user-enumeration defence. Phase II opens a plugin PR adding timing-equalization, then BMW swaps in a follow-up.
 
-1. **KEEP** `step.bmw.hash_password` (2 call sites: `app.yaml:881` register flow + `:11116` password reset flow). Plugin step uses `bcrypt.DefaultCost` (10); bespoke uses cost=12. Migration would silently downgrade newly-signed-up users' password security. Phase II opens plugin v0.2.5 with configurable cost; BMW migrates then.
-2. Replace **2 call sites** `step.bmw.verify_password` → `step.auth_password_verify` (`app.yaml:1073` + `:9447`). Verify is cost-agnostic (reads cost from hash itself), so this swap is safe.
-3. **KEEP** `step.bmw.generate_token` (10 call sites after PR-2). Retirement is Phase II SSO IDP scope.
-4. End-to-end smoke: signup → login → password verify → bootstrap-redeem → passkey enrol → passkey login. All 6 scenarios still pass.
-5. Bespoke `bmwplugin/step_auth.go` retains `hash_password` + `generate_token`; `verify_password` function can be deleted in a separate cleanup commit, or left in place (unused, harmless).
-
-**Rollback:** revert PR; YAML reverts to bespoke step types; plugin step types stay registered (harmless).
+Retained bespoke steps in-design (all three move together in Phase II):
+- `step.bmw.hash_password` — 2 call sites at `app.yaml:881` + `:11116`. Plugin uses `bcrypt.DefaultCost` (10) vs bespoke=12; cost mismatch.
+- `step.bmw.verify_password` — 2 call sites at `:1073` + `:9447`. Timing-equalization missing in plugin.
+- `step.bmw.generate_token` — 10 call sites (9 existing + 1 new in bootstrap-redeem). No plugin JWT issuer.
 
 ### Phase II (deferred — interface sketches below acknowledge user's broader ask)
 
@@ -230,20 +227,20 @@ step.auth_refresh_token_issue / step.auth_refresh_token_verify
 | PR-0 | BMW workflow engine pin (v0.20.1 → v0.51.2+); rebuild image | Revert PR; BMW image rolls back to v0.20.1 + broken-500 baseline. Plugin handshake fails again but at least matches the prior state. |
 | PR-1 | BMW YAML guard wrapping (no engine/migration changes) | Revert PR; nil-deref vulnerability returns. |
 | PR-2 | BMW migration (ALTER + seed) + new admin pipelines + 1 new HTTP endpoint pair | Revert PR; admin endpoints disabled; ALTER COLUMN left (harmless); seed row left (harmless; manual delete if desired). |
-| PR-3 | BMW YAML step-type rename for 2 call sites | Revert PR; bespoke steps return; plugin steps stay registered (harmless). |
+| PR-3 | DEFERRED — see Phase II | n/a |
 
 ## Verification gates
 
 - **PR-0:** `docker compose up` boots BMW with new engine pin; `/healthz` 200; PR description quotes pre-bump vs post-bump HTTP-status table for all 6 auth routes. **Success gate is conceptually merged with PR-1:** PR-0 alone may leave 500s if root cause is nil-deref not handshake; PR-1 must close the loop. The combined gate is: after PR-0 + PR-1 merged, all 8 scenarios in §PR-1 step 4 return their **expected** status code + body shape (not just `!= 500`).
 - **PR-1:** All 8 manual curl scenarios in §PR-1 step 4 pass; `wfctl validate app.yaml` green; Playwright smoke green (delegated to Agent).
 - **PR-2:** Migration applies cleanly forward + reverse; bootstrap endpoint mints URL; redeem creates valid JWT session; concurrent-redeem race serialised correctly; allowlist-miss returns timing-safe 200; `/admin/enrol-passkey` rejects non-super_admin sessions.
-- **PR-3:** All 6 auth scenarios pass with plugin-backed password steps; bootstrap-redeem (from PR-2) still mints JWT; PR-3 is a YAML step-type rename only — adds no new `step.bmw.generate_token` call sites (total remains 10 after PR-2).
+- **PR-3 (DEFERRED — Phase II):** see §Phase II for the timing-equalization-then-swap plan. No PR-3 in this design's active scope.
 
 ## File touch surface (approximate)
 
 | Repo | Files touched | Approx LOC |
 |---|---|---|
-| buymywishlist | go.mod (PR-0); app.yaml (PR-1 ~30 lines; PR-2 ~150 lines bootstrap pipelines; PR-3 ~6 lines step rename); migrations/NNNN_alter_magic_link_tokens_purpose.up.sql + .down.sql (NEW, ~6 LOC); migrations/NNNN_seed_super_admin.up.sql + .down.sql (NEW, ~10 LOC); docs/runbooks/admin-bootstrap.md (NEW) | ~200 |
+| buymywishlist | go.mod (PR-0); app.yaml (PR-1 ~30 lines; PR-2 ~150 lines bootstrap pipelines); migrations/NNNN_alter_magic_link_tokens_purpose.up.sql + .down.sql (NEW, ~6 LOC); migrations/NNNN_seed_super_admin.up.sql + .down.sql (NEW, ~10 LOC); docs/runbooks/admin-bootstrap.md (NEW). PR-3 deferred to Phase II. | ~200 |
 | workflow-plugin-auth | none | 0 |
 
 ## Sequencing & PR plan summary
@@ -253,7 +250,7 @@ step.auth_refresh_token_issue / step.auth_refresh_token_verify
 | PR-0 | buymywishlist | Engine pin bump | (none) |
 | PR-1 | buymywishlist | Nil-deref hotfix | PR-0 |
 | PR-2 | buymywishlist | Admin bootstrap pipelines + migration | PR-1 |
-| PR-3 | buymywishlist | Password step migration to plugin | PR-2 |
+| PR-3 | — | DEFERRED to Phase II (timing-eq) | n/a |
 
 Sequential. PR-0 is the riskiest (engine pin straddles strict-contracts cutover) and possibly the most impactful (fixes the 500s if they're handshake-level). PRs 1-3 are additive YAML/migration work each rollback-clean.
 
