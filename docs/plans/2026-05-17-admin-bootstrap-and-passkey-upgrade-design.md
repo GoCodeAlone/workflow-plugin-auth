@@ -1,184 +1,185 @@
-# Admin Bootstrap + Passkey Upgrade — Design (2026-05-17, rev 2)
+# Admin Bootstrap + Passkey Upgrade — Design (2026-05-17, rev 3)
 
-> **Revision history:** rev 1 → rev 2 (this doc) following adversarial-design-review FAIL with 4 Critical + 8 Important findings. Key changes: dropped new step types / migration / HKDF key / new module type in favour of reusing the existing `step.auth_magic_link_*` surface; broadened Phase 1 from "5 known nil-derefs" to an exhaustive auth-pipeline audit including signup; resolved deferred-architecture decisions in-design; deferred `step.bmw.generate_token` replacement to Phase II (no plugin equivalent exists).
+> **Revision history:** rev 1 → rev 2 → rev 3 (this doc) following two adversarial-design-review FAIL cycles. Key change in rev 3: dropped all plugin work (no new step types, no proto changes, no v0.3.0 tag). All work is BMW-side. Plugin "reusable extraction" deferred to Phase II when a second consumer materialises (YAGNI). Critical findings from cycle 2 resolved: (a) promoted BMW engine pin bump from v0.20.1 to a first-class PR-0 (likely proximate cause of current 500s — gRPC strict-contract handshake fails against old engine), (b) reuse existing `magic_link_tokens` table (not invent `auth_magic_links`), (c) acknowledged bespoke `step.bmw.generate_token` survives this design.
 
 ## Goal
 
-1. Restore BuyMyWishlist (BMW) **signup AND login** (both currently HTTP 500) via an exhaustive nil-deref audit of all auth pipelines.
-2. Add a **reusable admin bootstrap** capability to `workflow-plugin-auth`: declarative super-admin email allowlist + a single new step (`step.auth_super_admin_allowlist`) that composes with the existing `step.auth_magic_link_generate`/`step.auth_magic_link_verify` steps. Operator runs `wfctl plugin auth admin-bootstrap-link --email <e>` against the host, host hits a localhost-bound BMW admin endpoint, BMW pipeline checks allowlist and mints a magic link returning the URL on stdout. User pastes URL → session → enrols passkey via existing passkey routes → bootstrap retired.
-3. Migrate BMW's two password-related bespoke steps onto plugin-provided equivalents (`step.bmw.hash_password` → `step.auth_password_hash`; `step.bmw.verify_password` → `step.auth_password_verify`). Defer `step.bmw.generate_token` replacement to Phase II SSO IDP (no plugin equivalent yet; 9 call sites verified).
-4. Document a forward path for cross-product SSO (issuer, JWKS endpoint, refresh tokens) as Phase II; **not built in this design**.
+1. Restore BuyMyWishlist (BMW) **signup AND login** (both currently HTTP 500). Root cause is suspected to be plugin-engine handshake failure (BMW pins workflow v0.20.1; existing in-use auth-plugin pipelines target v0.51.6-era strict-proto contracts), with template nil-derefs as secondary fragility surface. Both addressed.
+2. Stand up an **admin bootstrap login flow** for BMW operator (`codingsloth@pm.me`): operator triggers magic-link mint via a localhost-bound BMW endpoint → URL → user redeems → JWT session → enrols passkey via existing passkey routes → subsequent logins use passkey; bootstrap is break-glass only.
+3. Migrate BMW's two trivial password steps onto plugin equivalents (`step.bmw.hash_password` → `step.auth_password_hash`, `step.bmw.verify_password` → `step.auth_password_verify`). Bespoke `step.bmw.generate_token` retained (10 existing + 1 new call site in bootstrap-redeem = 11 total; no plugin replacement exists today).
+4. Document a forward path for cross-product SSO (issuer, JWKS endpoint, refresh tokens, JWT issue/verify) and plugin extraction of the bootstrap pattern as **Phase II**, triggered when a second consumer materialises (workflow-compute migrating its dashboard login codes is the most likely trigger). **Not built in this design.**
 
-## Out of scope (deferred)
+## Out of scope (deferred to Phase II or further)
 
-- **Cross-product SSO IDP surface** — Phase II separate design doc. workflow-compute feature-state.md §"Cross-product passwordless identity" tracks this as T411-T413.
-- **`step.bmw.generate_token` retirement** — Phase II only. 9 call sites in `app.yaml` (`:668, :1103, :6848, :7023, :7241, :7571, :7625, :7887, :10940`). No plugin equivalent exists (no `auth_jwt_*` step in v0.2.4). Removing bespoke `bmwplugin/step_auth.go` waits for that.
-- **SSH-key signature binding on bootstrap link** — user's mental model mentioned SSH keys; workflow-compute's own pattern doesn't actually use SSH keys (its `wc_`-prefix codes are random tokens delivered out-of-band). Same pattern adopted. If SSH proof-of-possession is later wanted as defence-in-depth, it's a Phase II add (`ssh_signature` optional field validated against pubkey in config).
-- **Replacing workflow-compute's existing dashboard login-codes flow** — Phase III follow-up; workflow-compute keeps its bespoke path until separate migration.
+- **Plugin changes.** No new step types, no proto changes, no module-config additions, no v0.3.0 tag of `workflow-plugin-auth`. The existing v0.2.4 surface is sufficient (passkey + magic-link + password steps all already present). Plugin extraction of the bootstrap-pipeline pattern is deferred until a second consumer needs it.
+- **Cross-product SSO IDP surface** — `auth_jwt_issue` / `auth_jwt_verify` / `auth_jwks_serve` / refresh tokens. Separate Phase II design. workflow-compute feature-state.md §"Cross-product passwordless identity" tracks this as T411-T413.
+- **`step.bmw.generate_token` retirement.** Cannot retire until Phase II SSO IDP ships an `auth_jwt_issue` step. Retained as-is. 10 existing call sites + 1 new (bootstrap-redeem) = 11 total.
+- **SSH-key signature binding on bootstrap link.** User mentioned SSH-keys, but workflow-compute's actual pattern doesn't use them — codes are random tokens delivered out-of-band. Same pattern adopted. Future Phase II add if proof-of-possession proves valuable.
+- **Replacing workflow-compute's existing dashboard login-codes flow.** Phase III follow-up; workflow-compute keeps bespoke path.
 
-## Top doubts (resolved from rev-1 adversarial findings)
+## Top doubts (resolved from cycle-1 + cycle-2 adversarial findings)
 
-| Doubt (rev 1) | Resolution (rev 2) |
+| Doubt (origin) | Resolution (rev 3) |
 |---|---|
-| "Migration runner pattern" not in plugin | Plugin has **no migrations directory** (verified). Magic-link step is stateless-with-caller-checkpoint — caller (BMW) stores token_hash in its own DB. No plugin migration needed. |
-| CLI in gRPC plugin binary | Not a CLI in the plugin binary. Plugin exposes step + new gRPC admin RPC (`AdminBootstrapLink`) which `wfctl` calls. Plugin runs inside engine, has DB connection + config naturally. |
-| HKDF master key source | None — reusing `step.auth_magic_link_*` which already takes `signing_secret` (BMW's `jwt_secret`). Rotation invalidates outstanding links (acceptable). |
-| Phase 1 only fixes login, user said signup too | Phase 1 now requires an **exhaustive grep** of `.row.` accesses + dry-run of register + login + passkey pipelines. Not the 5-site sample. |
-| `step.bmw.generate_token` has no plugin equivalent | Acknowledged. Replacement deferred to Phase II. Phase 3 only retires hash/verify_password. Bespoke `step_auth.go` survives Phase 3 (delete in Phase II). |
-| Engine pin v0.51.6 stale vs v0.57.1 | Phase 0 = verify plugin v0.2.4 loads in BMW's current engine pin. If incompatible, bump engine pin + rebuild plugin first (separate PR). Memory shows the sentinel-removal cascade hit 4 plugins to v2.0.0 on 2026-05-17 — auth was NOT in that cascade so v0.2.4 contract surface should still be compatible, but it must be verified in Phase 0. |
-| Worktree `.worktrees/bmw-prod-auth-passkey/` not found | Assumption removed. Phase 3 implementer will check for in-flight passkey work via `git worktree list` and resolve conflict if found. |
-| `super_admins` lookup keyed by email vs user_id | Lookup is by email at code-mint time. Pipeline auto-creates the user row with `role='super_admin'` on first redeem if not yet present. Subsequent redeems update existing row. |
-| Admin role propagation unspecified | Bootstrap-login pipeline writes `role='super_admin'` into the `users` table on first redeem (UPSERT) and the existing session-creation step picks up that role into the JWT claim. No new role-propagation primitive. |
-| New module type vs extend `auth.credential` | **Extend `auth.credential`** with `super_admins: [{email, default_role}]` config field (adds one field to `CredentialModuleConfig` proto). No new module type. |
-| CSRF / rate-limit on `/admin/bootstrap-login` | Re-uses BMW's existing CSRF middleware on POST routes. Rate-limit at ingress (BMW already has standard `/api/v1/auth/*` rate-limit). Documented but no new code. Endpoint is localhost-bound for the mint side; redeem side is the standard magic-link-verify pattern (single-use, time-limited). |
+| BMW engine pin v0.20.1 vs plugin v0.2.4 pinning workflow v0.51.6 (cycle 2) | **PR-0 = BMW engine bump.** v0.20.1 predates strict-contracts force-cutover; plugin v0.2.4 gRPC handshake fails against this engine. Likely the real 500 source. Engine bump rebuilds BMW image, validates plugin handshake, runs golden-path smoke. Lands FIRST, before nil-deref hotfix. |
+| Existing magic-link table name | `magic_link_tokens` (verified at app.yaml:7109/:7175/:7221). Bootstrap pipeline ALTERs to add `purpose TEXT DEFAULT 'login'` column; reuses existing table. |
+| `step.bmw.generate_token` retirement story | Honest: bespoke step survives Phase 3, survives Phase II until SSO IDP lands. Phase 3 adds an 11th call site (bootstrap-redeem). No claim of "deferred retirement" — it's "retained as foundation". |
+| Role gating for `/admin/enrol-passkey` | Gate to `role = 'super_admin'` strictly (not `IN ('admin','super_admin')`). Tenant-admin must not be conflated with platform super-admin. BMW RBAC schema verified (`migrations/20260308000001_add_rbac_permissions.up.sql`): roles are `super_admin / admin / operator / viewer`. |
+| Static bearer token for `/admin/bootstrap-link` | Explicitly **stopgap**. Listed as `BOOTSTRAP_OPERATOR_TOKEN` env var, NOT hardcoded; runbook says rotate per-deploy. Phase II followup: replace with mTLS or OS-process gate. |
+| super_admins config source-of-truth | DB row, not config field. One-shot SQL seed in deploy runbook: `INSERT INTO users (email, role, ...) VALUES ('codingsloth@pm.me', 'super_admin', ...) ON CONFLICT (email) DO UPDATE SET role='super_admin' WHERE users.role NOT IN ('super_admin')`. Survives module-config rotation; no proto/plugin change needed. |
+| Allowlist-miss response (timing oracle) | Bootstrap-link endpoint always returns the same 200 response (`{"sent": true, "message": "If your email is allowlisted, a link has been delivered"}`) regardless of allowlist match. Internal branching on `users.role='super_admin'` controls the actual magic-link mint. |
+| Concurrent-redeem race | Magic-link verify already uses `UPDATE … WHERE used_at IS NULL RETURNING id` (app.yaml:7221), single-row atomic claim. Bootstrap-redeem reuses this; first redeem wins, second redeem hits the post-UPDATE empty-RETURNING path → 401. |
+| Plugin RPC pattern (cycle 1) | Dropped. BMW pipeline mints magic link inline via existing `step.auth_magic_link_generate`. No new gRPC service, no plugin CLI, no plugin binary CLI-vs-handshake dual-mode. |
+| Map-round-trip on `CredentialModuleConfig` | Not relevant (no new proto fields). |
+| `super_admins` allowlist as plugin step (rev 2) | Dropped. YAGNI — single consumer (BMW). Phase II will extract when second consumer arrives. |
 
-## Phases
+## Phases & PR plan
 
-### Phase 0 — Engine compatibility verification (zero-LOC, just a check)
+### PR-0 — BMW workflow engine pin bump (probable real 500 source)
 
-Before any code change in plugin or BMW:
-1. Confirm BMW's actual workflow engine pin (`grep "workflow " buymywishlist/go.mod`).
-2. Confirm whether sentinel-removal (workflow v0.57.x, 2026-05-17 cascade) affects plugin-auth gRPC contract surface. workflow-plugin-auth v0.2.4 uses strict-proto contracts (`internal/contracts/auth.proto`, `authContractRegistry` in `internal/plugin.go:265-300`) — these should survive the cascade unchanged, but verify by loading the plugin in the BMW-pinned engine and running an existing pipeline.
-3. If incompatible: bump `workflow` pin in plugin go.mod, rebuild, retag (e.g. v0.2.5). Separate PR before Phase 2.
+**Repo:** buymywishlist
+**Depends on:** nothing.
+**Risk class:** runtime — image rebuild, plugin handshake compatibility.
 
-**Output:** a single answer in PR-2's description — "Phase 0 verified at workflow vX.Y.Z" or "Phase 0 surfaced engine-pin bump required, shipped as PR-2a".
+1. Bump `github.com/GoCodeAlone/workflow` in `buymywishlist/go.mod` from v0.20.1 to the version that matches `workflow-plugin-auth` v0.2.4's pin (currently v0.51.6).
+2. `go mod tidy` + rebuild lockfile if any.
+3. `wfctl validate app.yaml` against the new engine.
+4. Local `docker compose up`; curl `/healthz`; curl all 6 auth routes (register, login, passkey×4) and capture HTTP status + body — establishes pre-Phase-1 baseline.
+5. If engine-pin bump alone fixes the 500s (gRPC handshake unblocked), Phase 1 may have nothing to do or only minor nil-deref guards remain.
+6. Build BMW container image; `docker run` smoke; `curl /healthz` returns 200.
 
-### Phase 1 — BMW signup/login hotfix (independent, ship first)
+**Rollback:** revert PR; BMW reverts to v0.20.1 + broken-500 baseline.
 
-Exhaustive audit:
+### PR-1 — BMW exhaustive nil-deref hotfix on auth pipelines
 
-1. `grep -n "\.row\." app.yaml` (current count: 20 across full file). Subset within auth pipelines (`auth-register`, `auth-login`, `passkey-*`): the investigator-confirmed 5 sites at `:1071, :1084, :1098, :6596, :6793` are the known set; the audit MUST run grep and check whether each site is already inside a `{{ if ... .found }}` block.
-2. For each unguarded site, wrap dependent steps in `{{ if .steps.<name>.found }}…{{ else }}<typed error>{{ end }}` and route the not-found branch to a structured JSON 401 / 404 response (NEVER let template render against nil row).
-3. Reproduce locally: `docker compose up` + curl all 6 register + login + passkey routes against:
-   - Valid signup with new email → 200 + user row inserted.
-   - Signup with existing email → 409 conflict (not 500).
-   - Signup with missing fields → 400 (already covered, verify still works).
-   - Valid login → 200 + JWT issued.
-   - Login with unknown email → 401 (not 500).
-   - Login with inactive user → 403 (not 500).
-   - Passkey login with missing session → 401 (not 500).
-   - Passkey login with unknown credential → 401 (not 500).
-4. If signup additionally fails for a non-nil-deref reason (e.g. `step.auth_methods_policy` config issue, password_enabled returning nil, hash_password failing because `auth.credential` module isn't loaded), root-cause and fix inline.
-5. Reverse-curl: confirm `wfctl validate app.yaml` is green and `docker compose up` runs to ready state.
+**Repo:** buymywishlist
+**Depends on:** PR-0 merged (so we can see whether 500s persist after engine bump or were resolved by it).
+**Risk class:** YAML template — no engine/migration/version-pin changes.
 
-**Ships as PR-1 against `buymywishlist`.** Restores access independently of plugin work.
+1. `grep -n "\.row\." app.yaml | grep -v "\.found"` — identify every unguarded `.row.` access.
+2. Subset within auth pipelines (`auth-register`, `auth-login`, `passkey-*`): the investigator-confirmed 5 sites at `:1071, :1084, :1098, :6596, :6793` plus any others surfaced by exhaustive grep.
+3. For each unguarded site, wrap dependent steps in `{{ if .steps.<name>.found }}…{{ else }}<typed JSON error>{{ end }}` blocks. Route not-found branches to structured-JSON 401/404 responses.
+4. Reproduce all 8 scenarios locally (`docker compose up` + curl):
+   - Signup with new email → 200.
+   - Signup with existing email → 409.
+   - Signup missing fields → 400.
+   - Login with valid creds → 200 + JWT.
+   - Login with unknown email → 401.
+   - Login with inactive user → 403.
+   - Passkey login with missing session → 401.
+   - Passkey login with unknown credential → 401.
+5. If signup additionally fails for non-nil-deref reasons (auth.credential module not loaded, password_enabled returning nil from `step.auth_methods_policy`, etc.) — root-cause inline.
+6. Delegate Playwright run to an Agent (per workspace `feedback_delegate_validation_runs` memory).
 
-### Phase 2 — workflow-plugin-auth admin bootstrap (small, additive)
+**Rollback:** revert PR; YAML guards back to baseline.
 
-**Single new step type:** `step.auth_super_admin_allowlist`
+### PR-2 — BMW admin bootstrap login flow
 
-- Input: `{email}` (current step input).
-- Config: `super_admins: [string]` (list of emails) — sourced from `auth.credential` module config via the existing config-flow.
-- Output: `{is_admin: bool, default_role: string}` — strict-proto contract additions in `internal/contracts/auth.proto`, registry entry in `internal/plugin.go:authContractRegistry`, typed wrapper in `internal/typed.go`, implementation in new file `internal/step_super_admin_allowlist.go` (~80 LOC).
+**Repo:** buymywishlist
+**Depends on:** PR-1.
+**Risk class:** migration + new HTTP routes + new YAML pipelines.
 
-**Module config extension:** add `super_admins: [{email: string, default_role: string}]` field to `CredentialModuleConfig` proto. Default empty (back-compat). Migration cost: regen proto + add 1 field to `module_credential.go` config-load path.
+1. **Migration:** `ALTER TABLE magic_link_tokens ADD COLUMN purpose TEXT NOT NULL DEFAULT 'login'`. (Adds purpose discriminator on existing table.)
+2. **Migration:** `INSERT INTO users (id, email, role, tenant_id, is_active, ...) VALUES (gen_random_uuid(), 'codingsloth@pm.me', 'super_admin', '<bmw_tenant_id>', true, ...) ON CONFLICT (email) DO UPDATE SET role='super_admin' WHERE users.role NOT IN ('super_admin');` — one-shot seed of platform super-admin.
+3. **Endpoint:** `POST /admin/bootstrap-link` (configured to bind localhost-only via existing BMW ingress / listener config). Header `X-Admin-Bootstrap-Token: $BOOTSTRAP_OPERATOR_TOKEN` (env-var-sourced; runbook documents rotation per deploy). Pipeline:
+   - Parse body `{email}`.
+   - `step.set check_token` validates `X-Admin-Bootstrap-Token` header equals config `bootstrap_operator_token`.
+   - `step.db_query lookup_admin`: `SELECT id, role FROM users WHERE email = $1 AND role = 'super_admin'`.
+   - `step.conditional` on `lookup_admin.found`:
+     - both branches return the SAME `{sent: true, message: "If your email is allowlisted, a link has been delivered"}` response (timing-safe).
+     - branch on `true`: call `step.auth_magic_link_generate` with email + signing_secret={{ config "jwt_secret" }} + expiry_minutes=10 → store `(token_hash, email, expires_at, purpose='admin_bootstrap')` in `magic_link_tokens` → write URL to response payload.
+4. **Endpoint:** `GET /admin/bootstrap-redeem?token=<token>`. Pipeline:
+   - `step.db_query find_bootstrap_token`: `SELECT id, token_hash, expires_at, email FROM magic_link_tokens WHERE purpose='admin_bootstrap' AND used_at IS NULL ORDER BY created_at DESC LIMIT 1` (filtered by email if present in query string, else by token-hash if BMW prefers stateless).
+   - `step.auth_magic_link_verify` against `find_bootstrap_token.row`.
+   - `step.db_exec mark_used`: `UPDATE magic_link_tokens SET used_at = NOW() WHERE id = $1 AND used_at IS NULL RETURNING id`. If no row returned (concurrent redeem), respond 401.
+   - `step.bmw.generate_token` to mint JWT session with `role=super_admin` (call site #11 — bespoke step retained).
+   - Redirect to `/admin/enrol-passkey`.
+5. **UI surface:** `/admin/enrol-passkey` — existing passkey-register-begin / passkey-register-finish routes ALREADY exist (app.yaml:6485/6549). Gate access at the route level to `role='super_admin'` (strictly; not `IN ('admin','super_admin')`).
+6. **Runbook (`docs/runbooks/admin-bootstrap.md` NEW):**
+   - Set `BOOTSTRAP_OPERATOR_TOKEN` env var on BMW deploy (rotate per deploy).
+   - Operator: `curl --unix-socket /var/run/bmw.sock -H "X-Admin-Bootstrap-Token: $BOOTSTRAP_OPERATOR_TOKEN" -d '{"email":"codingsloth@pm.me"}' http://localhost/admin/bootstrap-link` → returns magic URL in response body.
+   - User opens URL in browser → session granted → enrols passkey → bootstrap retired (passkey login replaces it).
 
-**New gRPC admin RPC:** `AdminBootstrapLink(email) → magic_link_url` — convenience wrapper that the plugin exposes for `wfctl` to call. Internally: looks up super_admins, runs `step.auth_magic_link_generate` logic, returns URL string. The caller (BMW) is still responsible for storing the token_hash via its pipeline; the RPC just mints and the host echoes the URL. *Decision:* implemented as a new gRPC service method on the existing plugin server interface (avoids adding wfctl knowledge of per-plugin CLI).
+**Rollback:** revert PR; bootstrap pipelines disabled; `magic_link_tokens.purpose` column harmless; seed row in `users` left in place (harmless; can be deleted manually).
 
-Wait — that requires BMW to also store the hash, which means the RPC alone doesn't work. **Revision:** the RPC pattern is wrong; the simpler pattern is:
+### PR-3 — BMW password step migration to plugin
 
-**Operator workflow (revised):**
-1. Operator hits BMW's `POST /admin/bootstrap-link` endpoint over `localhost` only (BMW gates by listener IP) with header `X-Admin-Bootstrap-Token: $BOOTSTRAP_OPERATOR_TOKEN` (env-var in BMW config).
-2. BMW pipeline:
-   - Parse body for `email`.
-   - Call `step.auth_super_admin_allowlist` to verify email is in allowlist.
-   - On allowlist match: call `step.auth_magic_link_generate` (existing step) with `email` + `signing_secret={{ config "jwt_secret" }}`.
-   - Insert `(token_hash, email, expires_at, purpose='admin_bootstrap')` into BMW `auth_magic_links` table (BMW-side; not plugin-side).
-   - Return JSON `{magic_link_url: "https://<host>/admin/bootstrap-redeem?token=<token>"}` to operator stdout.
-3. Operator pastes URL into browser.
-4. BMW `GET /admin/bootstrap-redeem?token=…` pipeline:
-   - Look up `auth_magic_links` row by token hash.
-   - Call `step.auth_magic_link_verify` to validate.
-   - UPSERT into `users` table with `role='super_admin'` on first redeem.
-   - Run existing session-creation step (issues JWT with `role` claim).
-   - Redirect to `/admin/enrol-passkey` (existing passkey route, gated to authenticated session).
-5. User enrols passkey via existing passkey routes.
-6. Future logins use passkey; bootstrap retired except as break-glass.
+**Repo:** buymywishlist
+**Depends on:** PR-2.
+**Risk class:** YAML step-type rename.
 
-**Net plugin additions:**
-- 1 new step type (`step.auth_super_admin_allowlist`)
-- 1 proto config field (`super_admins` in `CredentialModuleConfig`)
-- No new module type, no new migrations, no new tables, no new CLI, no new gRPC RPC
+1. Replace 1 call site `step.bmw.hash_password` → `step.auth_password_hash` (app.yaml:881).
+2. Replace 1 call site `step.bmw.verify_password` → `step.auth_password_verify` (app.yaml:1073).
+3. **KEEP** `step.bmw.generate_token` (11 call sites). Retirement is Phase II SSO IDP scope.
+4. Verify input/output keys match between bespoke and plugin equivalents (likely identical; both wrap bcrypt at cost=12).
+5. End-to-end smoke: signup → login → password verify → bootstrap-redeem → passkey enrol → passkey login. All 6 scenarios still pass.
+6. Bespoke `bmwplugin/step_auth.go` retains `generate_token` only; `hash_password` + `verify_password` functions can be left in place (unused) or deleted in a separate cleanup commit.
 
-**Plugin LOC estimate:** ~120 LOC + 4 proto messages + ~30 LOC test.
+**Rollback:** revert PR; YAML reverts to bespoke step types; plugin step types stay registered (harmless).
 
-Tag as **v0.3.0** (minor: additive feature, no contract breakage on existing surface).
+### Phase II (deferred)
 
-### Phase 3 — BMW migration
-
-1. Replace `step.bmw.hash_password` → `step.auth_password_hash` (1 call site).
-2. Replace `step.bmw.verify_password` → `step.auth_password_verify` (1 call site; line 1073).
-3. **KEEP** `step.bmw.generate_token` (9 call sites). Retirement deferred to Phase II.
-4. Add `auth.credential` module config: `super_admins: [{email: "codingsloth@pm.me", default_role: "super_admin"}]`.
-5. Add BMW migration: `CREATE TABLE auth_magic_links (token_hash, email, expires_at, purpose, consumed_at)` if it doesn't already exist (check current schema; BMW already has email-magic-link infrastructure per investigator findings).
-6. Add `POST /admin/bootstrap-link` pipeline (operator-only, localhost-bound).
-7. Add `GET /admin/bootstrap-redeem` pipeline (token redemption).
-8. Add `/admin/enrol-passkey` gating to require authenticated session with `role IN ('admin','super_admin')`.
-9. Verify Phase 1 hotfix from PR-1 is in place on the branch (rebase if necessary).
-10. End-to-end smoke: bootstrap-link → URL → redeem → JWT session → enrol passkey → log out → log back in with passkey → bootstrap link no longer needed.
-
-**Ships as PR-3 against `buymywishlist` after PR-2 (v0.3.0) is tagged + plugin.json sync workflow has bumped the manifest in the registry.** Depends on PR-1 + PR-2.
-
-### Phase II (deferred, post-merge)
-
-- Cross-product SSO IDP: `step.auth_jwt_issue` + `step.auth_jwt_verify` + `step.auth_jwks_serve` + `step.auth_refresh_token_*`, hosted JWKS endpoint module, key rotation hooks. Separate design doc.
-- Retire `step.bmw.generate_token` (9 call sites) after Phase II SSO IDP ships.
-- Migrate workflow-compute dashboard one-time codes onto Phase II steps.
-- Optional SSH-signature proof-of-possession on bootstrap-link redemption.
+- workflow-plugin-auth: extract `auth_jwt_issue` / `auth_jwt_verify` / hosted-JWKS / refresh-token steps. Separate design doc.
+- workflow-plugin-auth: extract `auth_super_admin_allowlist` step + bootstrap-link pipeline pattern when a 2nd consumer needs it.
+- BMW: retire `step.bmw.generate_token` (11 call sites) by swapping to `step.auth_jwt_issue`.
+- workflow-compute: migrate dashboard login codes onto extracted bootstrap pattern.
+- Optional SSH-signature proof-of-possession on bootstrap-link redeem.
+- Replace stopgap `BOOTSTRAP_OPERATOR_TOKEN` with mTLS / OS-process gate.
 
 ## Assumptions (load-bearing)
 
-1. **(Verified rev-2)** workflow-plugin-auth v0.2.4 gRPC contract surface is compatible with BMW's currently-pinned workflow engine (Phase 0 confirms this; otherwise bump plugin's engine pin first as PR-2a).
-2. Strict-proto contract additions in Phase 2 are non-breaking — only adds new step + new optional proto field. No signature change to existing 25 steps.
-3. BMW's existing CSRF middleware (if present) covers POST `/admin/bootstrap-link`. **If absent in BMW:** add a CSRF middleware to the admin pipeline group as a separate sub-task in PR-3.
-4. BMW's ingress / reverse proxy can constrain `/admin/bootstrap-link` to localhost-bind. **If false:** rely on `X-Admin-Bootstrap-Token` header alone (declarative env var) plus rate-limit; document operator security model in BMW runbook.
-5. BMW's existing magic-link table schema exists or can be added in one migration alongside the bootstrap pipeline.
-6. Single super-admin email (`codingsloth@pm.me`) is acceptable for initial production; the proto list shape accommodates multiple.
-7. Operator delivers magic-link URL via secure channel (1Password, Signal, in-person paste). Plugin not responsible for delivery.
-8. workflow-compute's dashboard login codes stay untouched in this design. **If false:** scope creeps significantly; refuse and split.
+1. **PR-0 verified before PR-1.** Engine bump from v0.20.1 to ≥v0.51.6 lands cleanly with no other code change required in BMW (no proto/struct-of-config breakage; existing pipelines using plugin steps remain semantically equivalent). *If false:* PR-0 grows to include any compatibility patches surfaced by `wfctl validate` + smoke; widens scope but doesn't change the plan.
+2. **BMW ingress can localhost-bind `/admin/bootstrap-link`** or, failing that, the env-var-sourced bearer token + per-deploy rotation is acceptable as a stopgap. *If false:* operator must rotate token via Phase II proper hardening.
+3. **`magic_link_tokens` table ALTER ADD COLUMN purpose is safe.** PostgreSQL is BMW's DB; ALTER ADD COLUMN with a DEFAULT is metadata-only (PG 11+, no full-table rewrite). Verified for the schema in current production.
+4. **BMW deploy can run one-shot SQL seed** in a forward migration to insert the super-admin row. Existing migration runner (golang-migrate based, per the migrations/ directory pattern) supports this.
+5. **`step.auth_password_hash` and `step.auth_password_verify` have input/output keys compatible with the bespoke `step.bmw.hash_password` / `step.bmw.verify_password` call shape.** Both wrap bcrypt; the plugin step is the canonical version. Confirmed by reading `workflow-plugin-auth/internal/step_password.go`. *If false:* PR-3 expands to YAML adapter glue.
+6. **Operator delivers magic-link URL via secure channel** (1Password, Signal, direct console paste). Bootstrap pipeline not responsible for delivery.
+7. **workflow-plugin-auth v0.2.4 stays as the BMW pin.** No plugin tag in this design. *If false:* unexpected scope creep; defer.
 
 ## Rollback (per change class)
 
-| Phase | Change class | Rollback |
+| PR | Change class | Rollback |
 |---|---|---|
-| 0 | Engine verification (no code) | None needed; output is a paragraph in PR description. |
-| 1 | BMW YAML changes (no engine/migration/version-pin changes) | Revert PR; signup/login returns to broken-500 baseline. |
-| 2 | workflow-plugin-auth v0.3.0 release (1 new step, 1 proto config field, no migration) | Untag v0.3.0; consumers stay on v0.2.4. Proto additive field is back-compat — no consumer rebuild required (default empty list). |
-| 3 | BMW migration onto plugin steps + new admin pipelines + 1 new table | Revert PR; bespoke `step.bmw.hash_password` / `verify_password` paths return; admin pipelines disabled. Empty `auth_magic_links` table left in place (harmless). |
+| PR-0 | BMW workflow engine pin (v0.20.1 → v0.51.6+); rebuild image | Revert PR; BMW image rolls back to v0.20.1 + broken-500 baseline. Plugin handshake fails again but at least matches the prior state. |
+| PR-1 | BMW YAML guard wrapping (no engine/migration changes) | Revert PR; nil-deref vulnerability returns. |
+| PR-2 | BMW migration (ALTER + seed) + new admin pipelines + 1 new HTTP endpoint pair | Revert PR; admin endpoints disabled; ALTER COLUMN left (harmless); seed row left (harmless; manual delete if desired). |
+| PR-3 | BMW YAML step-type rename for 2 call sites | Revert PR; bespoke steps return; plugin steps stay registered (harmless). |
 
 ## Verification gates
 
-- **Phase 0:** Plugin loads in BMW's current engine pin; an existing BMW pipeline using plugin steps (e.g. passkey routes already in use) runs to success. Output: PR description paragraph confirming compatibility.
-- **Phase 1:** Local `docker compose up`; curl all 8 scenarios listed in §Phase 1 Step 3; each returns the documented status (no 500s). Playwright smoke against BMW's existing auth tests passes. `wfctl validate app.yaml` green.
-- **Phase 2:** `go test ./...` in plugin repo (≥95% on new files); `make proto` clean regen; CHANGELOG.md entry; v0.3.0 tag; goreleaser CI green; manual smoke against BMW staging or a `workflow-scenarios` scenario invoking the new step.
-- **Phase 3:** `docker compose up` of BMW with v0.3.0 plugin pinned; end-to-end bootstrap-link → URL → redeem → JWT session → enrol passkey → re-login via passkey flow exercised. `wfctl validate` green. Playwright suite extended to cover bootstrap-redeem pipeline.
+- **PR-0:** `docker compose up` boots BMW with new engine pin; `/healthz` 200; all 6 auth routes return non-500 status codes (which may or may not be successful auth, but no engine-side panic). PR description quotes pre-bump vs post-bump status codes side-by-side.
+- **PR-1:** All 8 manual curl scenarios in §PR-1 step 4 pass; `wfctl validate app.yaml` green; Playwright smoke green (delegated to Agent).
+- **PR-2:** Migration applies cleanly forward + reverse; bootstrap endpoint mints URL; redeem creates valid JWT session; concurrent-redeem race serialised correctly; allowlist-miss returns timing-safe 200; `/admin/enrol-passkey` rejects non-super_admin sessions.
+- **PR-3:** All 6 auth scenarios pass with plugin-backed password steps; bootstrap-redeem still mints JWT (call site #11 of `step.bmw.generate_token` works); no other regression.
 
 ## File touch surface (approximate)
 
 | Repo | Files touched | Approx LOC |
 |---|---|---|
-| buymywishlist | app.yaml (Phase 1: ~30 lines of guard wrapping; Phase 3: ~120 lines admin pipelines + 1 migration file ~20 lines); migrations/NNNN_auth_magic_links.sql (NEW, if not present) | ~170 |
-| workflow-plugin-auth | internal/contracts/auth.proto (+1 message + 1 config field, ~15 LOC); internal/plugin.go (+1 registry entry, +1 step type, ~10 LOC); internal/step_super_admin_allowlist.go (NEW, ~80 LOC); internal/typed.go (~15 LOC); internal/module_credential.go (super_admins config load, ~20 LOC); CHANGELOG.md | ~140 |
+| buymywishlist | go.mod (PR-0); app.yaml (PR-1 ~30 lines; PR-2 ~150 lines bootstrap pipelines; PR-3 ~6 lines step rename); migrations/NNNN_alter_magic_link_tokens_purpose.up.sql + .down.sql (NEW, ~6 LOC); migrations/NNNN_seed_super_admin.up.sql + .down.sql (NEW, ~10 LOC); docs/runbooks/admin-bootstrap.md (NEW) | ~200 |
+| workflow-plugin-auth | none | 0 |
 
-## Sequencing & PR plan
+## Sequencing & PR plan summary
 
-- **PR-1** (BMW Phase 1): exhaustive auth-pipeline nil-deref audit + fix. Standalone. Merge first.
-- **PR-2a** (workflow-plugin-auth Phase 0 follow-up — only if needed): engine pin bump.
-- **PR-2** (workflow-plugin-auth Phase 2): new step + proto field + v0.3.0 tag.
-- **PR-3** (BMW Phase 3): bespoke→plugin password step swap + admin bootstrap pipelines. Depends on PR-2.
+| PR | Repo | Scope | Depends on |
+|---|---|---|---|
+| PR-0 | buymywishlist | Engine pin bump | (none) |
+| PR-1 | buymywishlist | Nil-deref hotfix | PR-0 |
+| PR-2 | buymywishlist | Admin bootstrap pipelines + migration | PR-1 |
+| PR-3 | buymywishlist | Password step migration to plugin | PR-2 |
 
-PR-1 and PR-2 may run in parallel (independent repos).
-
-## Open questions (carried forward to writing-plans)
-
-None remaining — adversarial-review-cycle-1 decisions resolved all rev-1 hedges. The writing-plans phase produces concrete task breakdown but introduces no new design decisions.
+Sequential. PR-0 is the riskiest (engine pin straddles strict-contracts cutover) and possibly the most impactful (fixes the 500s if they're handshake-level). PRs 1-3 are additive YAML/migration work each rollback-clean.
 
 ## References
 
 - workflow-compute dashboard login codes: `workflow-compute/internal/server/auth.go:1413` (defaultTokenGenerator), `:1055` (createDashboardLoginCode), `:1131` (createDashboardSession), CLI `cmd/compute/main.go:369` (login-codes create).
 - workflow-compute feature gap: `workflow-compute/docs/feature-state.md:82` (Cross-product passwordless identity, T411-T413).
-- BMW current auth: `buymywishlist/app.yaml:784` (register), `:999` (login), `:6485..:6720` (passkey routes), `bmwplugin/step_auth.go` (bespoke steps).
+- BMW current auth: `buymywishlist/app.yaml:784` (register), `:999` (login), `:6485..:6720` (passkey routes).
+- BMW magic-link existing pipeline: `app.yaml:7103..:7221` (already uses `step.auth_magic_link_*` against `magic_link_tokens` table).
 - BMW nil-deref sample sites (audit must scan exhaustively): `:1071, :1084, :1098, :6596, :6793`.
-- BMW `step.bmw.generate_token` call sites (retain in this design): `:668, :1103, :6848, :7023, :7241, :7571, :7625, :7887, :10940`.
-- workflow-plugin-auth current surface: v0.2.4, `internal/plugin.go:265-300` (authContractRegistry, 26 contracts in STRICT mode), `internal/contracts/auth.proto`.
-- workflow-plugin-auth magic-link API: `internal/step_magic_link.go:23-75` (stateless: caller stores token_hash).
+- BMW `step.bmw.generate_token` call sites (retained — Phase II retires): `:668, :1103, :6848, :7023, :7240, :7241, :7571, :7625, :7887, :10940` + 1 new in bootstrap-redeem (= 11 total).
+- BMW RBAC schema: `migrations/20260308000001_add_rbac_permissions.up.sql` (roles: `super_admin / admin / operator / viewer`).
+- BMW engine pin: `buymywishlist/go.mod:7` = `github.com/GoCodeAlone/workflow v0.20.1` (predates strict-contracts cutover).
+- workflow-plugin-auth current: v0.2.4, pins `workflow v0.51.6`, strict-proto contracts (`internal/plugin.go:265-300`).
+- workflow-plugin-auth password steps: `internal/step_password.go` (bcrypt cost=12, identical to bespoke `step.bmw.hash_password` / `verify_password`).
+- workflow-plugin-auth magic-link API: `internal/step_magic_link.go:23-99` (stateless: caller stores token_hash).
