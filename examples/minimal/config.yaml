@@ -1,5 +1,8 @@
 # Minimal workflow-plugin-auth example.
-# Demonstrates password hashing and verification using auth.credential module.
+# Demonstrates signed-challenge generation and verification (JWT-equivalent auth flow).
+#
+# Prerequisites:
+#   export AUTH_SIGNING_SECRET=<your-signing-secret>
 #
 # Usage:
 #   wfctl validate --skip-unknown-types examples/minimal/config.yaml
@@ -14,15 +17,20 @@ modules:
       optional: true
 
 workflows:
-  password-auth:
+  generate-challenge:
     trigger:
       type: http
       config:
-        path: /auth/password
+        path: /auth/challenge
         method: POST
     steps:
-      - name: hash-password
-        type: step.auth_password_hash
+      - name: generate
+        type: step.auth_challenge_generate
+        config:
+          signing_secret: ${AUTH_SIGNING_SECRET}
+          ttl_minutes: 10
 
-      - name: verify-password
-        type: step.auth_password_verify
+      - name: verify
+        type: step.auth_challenge_verify
+        config:
+          signing_secret: ${AUTH_SIGNING_SECRET}

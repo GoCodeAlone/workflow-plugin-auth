@@ -6,6 +6,15 @@ This plugin is part of the [GoCodeAlone/workflow](https://github.com/GoCodeAlone
 
 Read the [upstream CONTRIBUTING.md](https://github.com/GoCodeAlone/workflow/blob/main/CONTRIBUTING.md) for general conventions, signing, and review expectations.
 
+## Installation note
+
+This plugin is marked `private` in the workflow registry. `wfctl plugin install` requires:
+
+```sh
+export GH_TOKEN=<github-personal-access-token-with-read:packages>
+wfctl plugin install workflow-plugin-auth
+```
+
 ## Local development
 
 ```sh
