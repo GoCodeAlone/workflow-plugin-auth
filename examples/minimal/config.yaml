@@ -1,0 +1,28 @@
+# Minimal workflow-plugin-auth example.
+# Demonstrates password hashing and verification using auth.credential module.
+#
+# Usage:
+#   wfctl validate --skip-unknown-types examples/minimal/config.yaml
+
+modules:
+  - name: auth-credential
+    type: auth.credential
+    config:
+      rp_display_name: "My App"
+      rp_id: "example.com"
+      origin: "https://example.com"
+      optional: true
+
+workflows:
+  password-auth:
+    trigger:
+      type: http
+      config:
+        path: /auth/password
+        method: POST
+    steps:
+      - name: hash-password
+        type: step.auth_password_hash
+
+      - name: verify-password
+        type: step.auth_password_verify

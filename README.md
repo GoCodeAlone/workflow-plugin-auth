@@ -1,5 +1,7 @@
 # workflow-plugin-auth
 
+> ✅ **Verified** — used in production at **buymywishlist**. This plugin has been validated end-to-end in a merged main-branch wfctl.yaml of an active GoCodeAlone project.
+
 Authentication primitives for Workflow applications.
 
 ## Module Types
