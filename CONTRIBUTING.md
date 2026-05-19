@@ -20,8 +20,8 @@ wfctl plugin install workflow-plugin-auth
 ```sh
 git clone https://github.com/GoCodeAlone/workflow-plugin-auth.git
 cd workflow-plugin-auth
-go build ./...
-go test ./...
+GOWORK=off go build ./...
+GOWORK=off go test ./...
 ```
 
 ## Pull requests
@@ -29,7 +29,7 @@ go test ./...
 - One feature or bugfix per PR.
 - Update CHANGELOG.md with a Keep-a-Changelog entry.
 - Add tests covering new behavior.
-- Run `go vet ./...` before pushing.
+- Run `GOWORK=off go vet ./...` before pushing.
 
 ## Reporting issues
 
