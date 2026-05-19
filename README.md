@@ -1,6 +1,19 @@
 # workflow-plugin-auth
 
+> ✅ **Verified** — used in production at **buymywishlist**. This plugin has been validated end-to-end in a merged main-branch wfctl.yaml of an active GoCodeAlone project.
+
 Authentication primitives for Workflow applications.
+
+## Installation
+
+This plugin is marked `private` in the workflow registry, meaning `wfctl plugin install` requires a GitHub token with `read:packages` scope:
+
+```sh
+export GH_TOKEN=<your-github-personal-access-token>
+wfctl plugin install workflow-plugin-auth
+```
+
+The plugin binary itself is distributed via public GitHub Releases — `GH_TOKEN` is only required for the registry lookup step.
 
 ## Module Types
 
