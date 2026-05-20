@@ -13,10 +13,26 @@ type credentialModule struct {
 	name     string
 	config   map[string]any
 	webauthn *webauthn.WebAuthn
+
+	// disablePasswordAuth, when true, causes step.auth_password_hash and
+	// step.auth_password_verify invocations to short-circuit with an
+	// "auth: password authentication disabled" error.
+	//
+	// Set via module config `disable_password_auth: true`. Default false
+	// keeps backwards-compatible behaviour for existing consumers.
+	//
+	// Used by hosts that want a passwordless-only posture
+	// (e.g. gocodealone-multisite SPEC.md V17). The plugin still ships
+	// the password steps; this flag is the host's opt-out switch.
+	disablePasswordAuth bool
 }
 
 func newCredentialModule(name string, config map[string]any) (*credentialModule, error) {
-	return &credentialModule{name: name, config: config}, nil
+	return &credentialModule{
+		name:                name,
+		config:              config,
+		disablePasswordAuth: configBool(config, "disable_password_auth"),
+	}, nil
 }
 
 func (m *credentialModule) Init() error {
