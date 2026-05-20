@@ -15,6 +15,13 @@ func newPasswordHashStep(name string, _ map[string]any) *passwordHashStep {
 }
 
 func (s *passwordHashStep) Execute(_ context.Context, _ map[string]any, _ map[string]map[string]any, current, _, _ map[string]any) (*sdk.StepResult, error) {
+	if passwordAuthDisabled() {
+		return &sdk.StepResult{Output: map[string]any{
+			"error":    "auth: password authentication disabled by host config",
+			"disabled": true,
+		}}, nil
+	}
+
 	password, _ := current["password"].(string)
 	if password == "" {
 		return &sdk.StepResult{Output: map[string]any{"error": "missing password"}}, nil
@@ -35,6 +42,14 @@ func newPasswordVerifyStep(name string, _ map[string]any) *passwordVerifyStep {
 }
 
 func (s *passwordVerifyStep) Execute(_ context.Context, _ map[string]any, _ map[string]map[string]any, current, _, _ map[string]any) (*sdk.StepResult, error) {
+	if passwordAuthDisabled() {
+		return &sdk.StepResult{Output: map[string]any{
+			"valid":    false,
+			"error":    "auth: password authentication disabled by host config",
+			"disabled": true,
+		}}, nil
+	}
+
 	password, _ := current["password"].(string)
 	hash, _ := current["hash"].(string)
 	if password == "" || hash == "" {
