@@ -10,5 +10,5 @@ import (
 )
 
 func main() {
-	sdk.Serve(internal.NewAuthPlugin())
+	sdk.Serve(internal.NewAuthPlugin(), sdk.WithBuildVersion(sdk.ResolveBuildVersion(internal.Version)))
 }
