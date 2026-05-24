@@ -14,7 +14,7 @@ import (
 
 // Version is set at build time via -ldflags
 // "-X github.com/GoCodeAlone/workflow-plugin-auth/internal.Version=X.Y.Z"
-var Version = "dev"
+var Version = "0.0.0"
 
 var allStepTypes = []string{
 	"step.auth_passkey_begin_register",
