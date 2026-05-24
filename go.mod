@@ -3,7 +3,7 @@ module github.com/GoCodeAlone/workflow-plugin-auth
 go 1.26.0
 
 require (
-	github.com/GoCodeAlone/workflow v0.62.0
+	github.com/GoCodeAlone/workflow v0.64.0
 	github.com/go-webauthn/webauthn v0.16.0
 	github.com/pquerna/otp v1.5.0
 	github.com/wneessen/go-mail v0.7.2
