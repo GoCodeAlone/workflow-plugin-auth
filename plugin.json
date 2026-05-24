@@ -69,5 +69,39 @@
     "step.auth_oauth_userinfo",
     "step.auth_credential_list",
     "step.auth_credential_revoke"
-  ]
+  ],
+  "capabilities": {
+    "configProvider": false,
+    "moduleTypes": [
+      "auth.credential"
+    ],
+    "stepTypes": [
+      "step.auth_passkey_begin_register",
+      "step.auth_passkey_finish_register",
+      "step.auth_passkey_begin_login",
+      "step.auth_passkey_finish_login",
+      "step.auth_totp_generate_secret",
+      "step.auth_totp_verify",
+      "step.auth_totp_recovery_codes",
+      "step.auth_magic_link_generate",
+      "step.auth_magic_link_verify",
+      "step.auth_magic_link_send",
+      "step.auth_password_hash",
+      "step.auth_password_verify",
+      "step.auth_challenge_generate",
+      "step.auth_challenge_verify",
+      "step.auth_normalize_phone",
+      "step.auth_methods_policy",
+      "step.auth_policy_gate",
+      "step.auth_methods_response",
+      "step.auth_policy_audit",
+      "step.auth_oauth_provider_config",
+      "step.auth_oauth_start",
+      "step.auth_oauth_exchange",
+      "step.auth_oauth_userinfo",
+      "step.auth_credential_list",
+      "step.auth_credential_revoke"
+    ],
+    "triggerTypes": []
+  }
 }
