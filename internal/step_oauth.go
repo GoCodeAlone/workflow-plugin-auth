@@ -21,12 +21,16 @@ const (
 	googleOAuthAuthorizationURL = "https://accounts.google.com/o/oauth2/v2/auth"
 	googleOAuthTokenURL         = "https://oauth2.googleapis.com/token"
 	googleOAuthUserinfoURL      = "https://openidconnect.googleapis.com/v1/userinfo"
+	facebookOAuthAuthorizationURL = "https://www.facebook.com/v18.0/dialog/oauth"
+	facebookOAuthTokenURL         = "https://graph.facebook.com/v18.0/oauth/access_token"
+	facebookOAuthUserinfoURL      = "https://graph.facebook.com/me?fields=id,email,name"
 	oauthDefaultReturnTo        = "/auth/callback"
 	oauthDefaultStateTTL        = 15 * time.Minute
 	oauthJSONBodyLimit          = 1 << 20
 )
 
 var googleOAuthScopes = []string{"openid", "email", "profile"}
+var facebookOAuthScopes = []string{"email", "public_profile"}
 
 type oauthProviderConfigStep struct {
 	name   string
@@ -290,7 +294,37 @@ func oauthProviderConfig(config map[string]any, provider string) (oauthProviderC
 			cfg.userinfoURL = override
 		}
 		return cfg, ""
-	case "facebook", "instagram", "x", "bluesky":
+	case "facebook":
+		cfg := oauthProviderConfigData{
+			provider:         "facebook",
+			clientID:         oauthString(config, "facebook_oauth_client_id"),
+			clientSecret:     oauthString(config, "facebook_oauth_client_secret"),
+			redirectURL:      oauthString(config, "facebook_oauth_redirect_url"),
+			authorizationURL: facebookOAuthAuthorizationURL,
+			tokenURL:         facebookOAuthTokenURL,
+			userinfoURL:      facebookOAuthUserinfoURL,
+			scopes:           append([]string(nil), facebookOAuthScopes...),
+		}
+		if cfg.clientID == "" || cfg.clientSecret == "" || cfg.redirectURL == "" {
+			return cfg, "facebook oauth is not fully configured"
+		}
+		if override, ok := oauthEndpointURL(config, "facebook_oauth_authorization_url", facebookOAuthAuthorizationURL, "www.facebook.com"); !ok {
+			return cfg, "facebook authorization_url must use https and the expected Facebook hostname unless test endpoints are explicitly enabled"
+		} else {
+			cfg.authorizationURL = override
+		}
+		if override, ok := oauthEndpointURL(config, "facebook_oauth_token_url", facebookOAuthTokenURL, "graph.facebook.com"); !ok {
+			return cfg, "facebook token_url must use https and the expected Facebook hostname unless test endpoints are explicitly enabled"
+		} else {
+			cfg.tokenURL = override
+		}
+		if override, ok := oauthEndpointURL(config, "facebook_oauth_userinfo_url", facebookOAuthUserinfoURL, "graph.facebook.com"); !ok {
+			return cfg, "facebook userinfo_url must use https and the expected Facebook hostname unless test endpoints are explicitly enabled"
+		} else {
+			cfg.userinfoURL = override
+		}
+		return cfg, ""
+	case "instagram", "x", "bluesky":
 		return oauthProviderConfigData{provider: provider}, provider + " oauth provider is disabled in this release"
 	case "":
 		return oauthProviderConfigData{}, "missing oauth provider"
