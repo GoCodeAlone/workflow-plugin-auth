@@ -386,3 +386,51 @@ func googleOAuthTestConfig(extra map[string]any) map[string]any {
 	}
 	return config
 }
+
+func facebookOAuthTestConfig(extra map[string]any) map[string]any {
+	config := map[string]any{
+		"facebook_oauth_client_id":     "fb-client",
+		"facebook_oauth_client_secret": "fb-secret",
+		"facebook_oauth_redirect_url":  "https://app.example.com/auth/facebook/callback",
+	}
+	for k, v := range extra {
+		config[k] = v
+	}
+	return config
+}
+
+func TestOAuthProviderConfig_FacebookAvailable(t *testing.T) {
+	step := newOAuthProviderConfigStep("test", facebookOAuthTestConfig(nil))
+	result, err := step.Execute(context.Background(), nil, nil, map[string]any{"provider": "facebook"}, nil, nil)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if result.Output["available"] != true {
+		t.Fatalf("expected available=true, got %v", result.Output["available"])
+	}
+	if result.Output["provider"] != "facebook" {
+		t.Fatalf("expected provider=facebook, got %v", result.Output["provider"])
+	}
+	if result.Output["client_id"] != "fb-client" {
+		t.Fatalf("expected client_id=fb-client, got %v", result.Output["client_id"])
+	}
+	if scopes, ok := result.Output["scopes"].([]string); !ok || len(scopes) == 0 {
+		t.Fatalf("expected scopes, got %v", result.Output["scopes"])
+	}
+}
+
+func TestOAuthProviderConfig_FacebookIncompleteUnavailable(t *testing.T) {
+	step := newOAuthProviderConfigStep("test", map[string]any{
+		"facebook_oauth_client_id": "fb-client",
+	})
+	result, err := step.Execute(context.Background(), nil, nil, map[string]any{"provider": "facebook"}, nil, nil)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if result.Output["available"] != false {
+		t.Fatalf("expected available=false, got %v", result.Output["available"])
+	}
+	if result.Output["disabled_reason"] == "" || result.Output["disabled_reason"] == nil {
+		t.Fatalf("expected disabled_reason, got %v", result.Output["disabled_reason"])
+	}
+}
