@@ -1,0 +1,1 @@
+{"ts":"2026-05-27T07:31:06Z","ev":"plan","pl":"2026-05-27-auth-admin-contracts.md","st":"complete","e":"Auth PR #36 and scenario PR #28 green in GitHub checks; no unresolved non-outdated review threads; auth release v0.2.9 green; scenario Docker app healthy; local and tailnet /admin redirect to login; scenario tests 89 passed, 0 failed; Playwright screenshots generated."}
