@@ -30,7 +30,7 @@
 | 1 | Auth plugin admin contracts | Task 1, Task 2, Task 3, Task 7 | feat/auth-admin-contracts |
 | 2 | Scenario auth admin proof | Task 4, Task 5, Task 6 | pr-27-v2 |
 
-**Status:** Draft
+**Status:** Locked 2026-05-27T06:23:26Z
 
 ### Task 1: Auth Admin Contract Tests
 
@@ -294,4 +294,3 @@
 | Task 7 | R6 | Justified |
 
 **Drift Items:** none.
-
