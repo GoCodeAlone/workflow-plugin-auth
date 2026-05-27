@@ -385,10 +385,12 @@ message AuthAdminConfig {
   string x_oauth_client_id = 30;
   string x_oauth_client_secret = 31;
   optional bool allow_insecure_test_oauth_endpoints = 32;
+  repeated AuthProviderDescriptor providers = 33;
 }
 
 message AuthAdminDescribeInput {
   AuthAdminConfig config = 1;
+  repeated AuthProviderDescriptor providers = 2;
 }
 
 message AuthAdminControlOption {
@@ -442,6 +444,7 @@ message AuthAdminValidateConfig {
 message AuthAdminValidateInput {
   google.protobuf.Struct desired_config = 1;
   optional bool require_primary_method = 2;
+  repeated AuthProviderDescriptor providers = 3;
 }
 
 message AuthAdminValidateOutput {
@@ -535,6 +538,65 @@ message OAuthUserinfoOutput {
   string name = 7;
   string picture = 8;
   google.protobuf.Struct raw_claims = 9;
+  string error = 100;
+}
+
+message AuthProviderConfigOption {
+  string value = 1;
+  string label = 2;
+  string description = 3;
+}
+
+message AuthProviderConfigField {
+  string key = 1;
+  string label = 2;
+  string description = 3;
+  string help_text = 4;
+  string input_type = 5;
+  bool secret = 6;
+  bool required = 7;
+  repeated AuthProviderConfigOption options = 8;
+  string lookup = 9;
+  string validation_pattern = 10;
+}
+
+message AuthProviderCapability {
+  string key = 1;
+  string label = 2;
+  string category = 3;
+  string description = 4;
+  bool supported = 5;
+  string disabled_reason = 6;
+  repeated string app_scopes = 7;
+  repeated string admin_read_scopes = 8;
+  repeated string admin_write_scopes = 9;
+  repeated AuthProviderConfigField config_fields = 10;
+}
+
+message AuthProviderDescriptor {
+  string id = 1;
+  string label = 2;
+  string description = 3;
+  repeated string categories = 4;
+  string implementation = 5;
+  string version = 6;
+  string docs_url = 7;
+  string support_level = 8;
+  string disabled_reason = 9;
+  repeated AuthProviderCapability capabilities = 10;
+}
+
+message AuthProviderCatalogConfig {
+  repeated AuthProviderDescriptor providers = 1;
+}
+
+message AuthProviderCatalogInput {
+  repeated AuthProviderDescriptor providers = 1;
+}
+
+message AuthProviderCatalogOutput {
+  repeated AuthProviderDescriptor providers = 1;
+  repeated AuthAdminDiagnostic warnings = 2;
   string error = 100;
 }
 

@@ -42,7 +42,7 @@ func newAuthAdminConfigValidateStep(name string, config map[string]any) *authAdm
 
 func (s *authAdminConfigValidateStep) Execute(_ context.Context, _ map[string]any, _ map[string]map[string]any, current, _, runtimeConfig map[string]any) (*sdk.StepResult, error) {
 	desired := authAdminNestedConfig(current, "desired_config")
-	source := mergePolicyInputs(s.config, runtimeConfig, desired)
+	source := mergePolicyInputs(s.config, runtimeConfig, current, desired)
 	policy := buildAuthMethodsPolicy(source)
 
 	var errors []map[string]any
@@ -128,6 +128,23 @@ func buildOAuthAdminControls(source map[string]any) []map[string]any {
 	controls := []map[string]any{
 		authAdminControl(source, "auth_routes_enabled", "Auth routes", "toggle", "Enables HTTP auth routes used by OAuth callback flows.", "OAuth login requires auth routes before any provider can become login-ready.", false, ""),
 	}
+	if providers := authProviderOAuthProviders(source); len(providers) > 0 {
+		for _, provider := range providers {
+			disabledReason := provider.DisabledReason
+			for _, capability := range provider.oauthCapabilities() {
+				if !capability.Supported && disabledReason == "" {
+					disabledReason = "provider is not enabled"
+				}
+				if capability.DisabledReason != "" {
+					disabledReason = capability.DisabledReason
+				}
+				for _, field := range capability.ConfigFields {
+					controls = append(controls, authAdminProviderControl(source, provider, capability, field, disabledReason))
+				}
+			}
+		}
+		return controls
+	}
 	for _, provider := range []struct {
 		key   string
 		label string
@@ -147,6 +164,36 @@ func buildOAuthAdminControls(source map[string]any) []map[string]any {
 		}
 	}
 	return controls
+}
+
+func authAdminProviderControl(source map[string]any, provider authProviderDescriptor, capability authProviderCapability, field authProviderConfigField, disabledReason string) map[string]any {
+	control := authAdminControl(source, field.Key, field.Label, field.InputType, field.Description, field.HelpText, field.Required, disabledReason)
+	control["secret"] = field.Secret || authAdminSecretKey(field.Key)
+	control["config_key"] = field.Key
+	control["configured"] = policyPresent(source, field.Key)
+	control["options"] = authAdminProviderControlOptions(field.Options)
+	if control["description"] == "" {
+		control["description"] = capability.Description
+	}
+	if control["description"] == "" {
+		control["description"] = provider.Description
+	}
+	if control["help_text"] == "" {
+		control["help_text"] = "Configure " + provider.Label + "."
+	}
+	return control
+}
+
+func authAdminProviderControlOptions(options []authProviderConfigOption) []map[string]any {
+	out := make([]map[string]any, 0, len(options))
+	for _, option := range options {
+		out = append(out, map[string]any{
+			"value":       option.Value,
+			"label":       option.Label,
+			"description": option.Description,
+		})
+	}
+	return out
 }
 
 func authAdminControl(source map[string]any, key, label, inputType, description, helpText string, required bool, disabledReason string) map[string]any {
@@ -197,6 +244,9 @@ func validatePasskeyAdminConfig(source map[string]any) []map[string]any {
 }
 
 func validateOAuthAdminConfig(source map[string]any) []map[string]any {
+	if providers := authProviderOAuthProviders(source); len(providers) > 0 {
+		return validateDescriptorOAuthAdminConfig(source, providers)
+	}
 	var errors []map[string]any
 	for _, provider := range []string{"google", "facebook", "instagram", "x"} {
 		if !authAdminOAuthProviderRequested(source, provider) {
@@ -219,6 +269,52 @@ func validateOAuthAdminConfig(source map[string]any) []map[string]any {
 		}
 	}
 	return errors
+}
+
+func validateDescriptorOAuthAdminConfig(source map[string]any, providers []authProviderDescriptor) []map[string]any {
+	var errors []map[string]any
+	for _, provider := range providers {
+		if !authAdminDescriptorProviderRequested(source, provider) {
+			continue
+		}
+		disabledReason := provider.DisabledReason
+		for _, capability := range provider.oauthCapabilities() {
+			reason := disabledReason
+			if !capability.Supported && reason == "" {
+				reason = "provider is not enabled"
+			}
+			if capability.DisabledReason != "" {
+				reason = capability.DisabledReason
+			}
+			if reason != "" {
+				errors = append(errors, authAdminDiagnostic(provider.ID+"_oauth", "error", reason))
+				continue
+			}
+			if !policyAnyStrictTrue(source, "auth_routes_enabled", "routes_enabled", "oauth_routes_enabled") {
+				errors = append(errors, authAdminDiagnostic("auth_routes_enabled", "error", provider.ID+" oauth requires auth routes to be enabled"))
+			}
+			for _, field := range capability.ConfigFields {
+				if field.Required && !policyPresent(source, field.Key) {
+					errors = append(errors, authAdminDiagnostic(field.Key, "error", provider.ID+" oauth requires "+field.Key))
+				}
+			}
+		}
+	}
+	return errors
+}
+
+func authAdminDescriptorProviderRequested(source map[string]any, provider authProviderDescriptor) bool {
+	if normalizeOAuthProvider(policyString(source, "oauth_provider")) == provider.ID {
+		return true
+	}
+	for _, capability := range provider.oauthCapabilities() {
+		for _, field := range capability.ConfigFields {
+			if policyPresent(source, field.Key) {
+				return true
+			}
+		}
+	}
+	return false
 }
 
 func authAdminOAuthProviderRequested(source map[string]any, provider string) bool {

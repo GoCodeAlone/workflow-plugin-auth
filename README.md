@@ -40,6 +40,7 @@ The plugin binary itself is distributed via public GitHub Releases — `GH_TOKEN
 - `step.auth_policy_gate`
 - `step.auth_methods_response`
 - `step.auth_policy_audit`
+- `step.auth_provider_catalog`
 - `step.auth_admin_config_describe`
 - `step.auth_admin_config_validate`
 - `step.auth_oauth_provider_config`
@@ -110,12 +111,27 @@ config store. Secret values are never echoed in outputs. Production password
 auth, incomplete passkey settings, incomplete OAuth settings, and zero-primary
 method configurations are rejected when applicable.
 
+`step.auth_provider_catalog` merges provider descriptors from auth-provider
+plugins. Descriptors advertise provider categories, capabilities, required
+config fields, selectable options, admin/app scopes, disabled reasons, and
+secret field metadata. `step.auth_admin_config_describe` consumes these
+descriptors so admin portals render provider controls dynamically instead of
+hard-coding vendor-specific fields in the admin shell or auth plugin. When no
+provider descriptors are supplied, the existing Google/Facebook OAuth controls
+remain as a compatibility fallback. Provider capabilities are default-deny:
+capabilities must set `supported: true` before auth admin or policy code treats
+them as usable.
+
 ## OAuth
 
-OAuth provider config supports Google and Facebook. Policy advertising remains
-conservative and only marks providers login-ready when the configured provider
-is supported by the current policy path. Instagram, X, and unknown providers
-return disabled metadata and are not advertised as login-ready.
+OAuth provider config supports Google and Facebook directly as compatibility
+providers. Additional providers should be supplied by provider descriptors from
+plugins such as SSO, Okta, Auth0, Entra, Ory, or another provider integration.
+Policy advertising remains conservative and only marks providers login-ready
+when the configured provider is supported by the current policy path and every
+required descriptor field is configured. Instagram, X, and unknown providers
+return disabled metadata and are not advertised as login-ready unless a provider
+plugin supplies a real descriptor and implementation.
 
 `step.auth_oauth_start` emits `state`, optional PKCE values, `return_to`,
 `expires_at`, and `authorization_url`. The plugin does not store OAuth state.
