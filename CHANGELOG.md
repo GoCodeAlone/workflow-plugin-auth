@@ -5,6 +5,13 @@
 - README verified-status banner per workflow#714 (multi-repo QoL sweep).
 - CONTRIBUTING.md, examples/minimal/config.yaml, and GitHub issue/PR templates.
 
+## v0.2.10 (2026-05-27)
+
+### Changed
+
+- Re-release auth admin config contracts from merged `main`.
+- Keeps `v0.2.9` intact, which was cut before the PR merge.
+
 ## v0.2.9 (2026-05-27)
 
 ### Added
