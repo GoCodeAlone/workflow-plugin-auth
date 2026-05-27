@@ -3,6 +3,7 @@ package internal
 import (
 	"context"
 	"fmt"
+	"sort"
 	"strconv"
 	"strings"
 
@@ -243,6 +244,9 @@ func countPrimaryPolicyMethods(output map[string]any) int {
 }
 
 func oauthPolicyProviders(source map[string]any) []string {
+	if providers := authProviderOAuthProviders(source); len(providers) > 0 {
+		return descriptorOAuthPolicyProviders(source, providers)
+	}
 	provider := strings.ToLower(policyString(source, "oauth_provider"))
 	if provider != "" && provider != "google" {
 		return nil
@@ -259,6 +263,46 @@ func oauthPolicyProviders(source map[string]any) []string {
 		return nil
 	}
 	return []string{"google"}
+}
+
+func descriptorOAuthPolicyProviders(source map[string]any, providers []authProviderDescriptor) []string {
+	if !policyAnyStrictTrue(source, "auth_routes_enabled", "routes_enabled", "oauth_routes_enabled") {
+		return nil
+	}
+	requested := normalizeOAuthProvider(policyString(source, "oauth_provider"))
+	enabled := make([]string, 0, len(providers))
+	for _, provider := range providers {
+		if requested != "" && requested != provider.ID {
+			continue
+		}
+		if provider.DisabledReason != "" {
+			continue
+		}
+		if descriptorOAuthProviderReady(source, provider) {
+			enabled = append(enabled, provider.ID)
+		}
+	}
+	sort.Strings(enabled)
+	return enabled
+}
+
+func descriptorOAuthProviderReady(source map[string]any, provider authProviderDescriptor) bool {
+	for _, capability := range provider.oauthCapabilities() {
+		if !capability.Supported || capability.DisabledReason != "" {
+			continue
+		}
+		ready := true
+		for _, field := range capability.ConfigFields {
+			if field.Required && !policyPresent(source, field.Key) {
+				ready = false
+				break
+			}
+		}
+		if ready {
+			return true
+		}
+	}
+	return false
 }
 
 func smsPolicyReady(source map[string]any) bool {

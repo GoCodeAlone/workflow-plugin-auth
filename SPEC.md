@@ -82,6 +82,7 @@ Policy:
 - `step.auth_methods_response` — frame methods in API response
 - `step.auth_policy_gate` — pre-handler gate
 - `step.auth_policy_audit` — audit trail
+- `step.auth_provider_catalog` — merge provider descriptors from auth-provider plugins
 - `step.auth_admin_config_describe` — admin-renderable auth config controls
 - `step.auth_admin_config_validate` — validate and sanitize admin config patches
 
@@ -108,6 +109,8 @@ Misc:
 - V8: Admin config describe/validate outputs MUST NOT echo secret values; outputs expose configured state and `secret_fields` only.
 - V9: Admin config validation MUST reject production password enablement and zero-primary-method configs when `require_primary_method` is true.
 - V10: Admin config controls MUST map to real plugin config keys; no UI-only fake auth toggles.
+- V11: Provider-specific admin controls MUST be sourced from `AuthProviderDescriptor` values when descriptors are supplied; vendor-specific Google/Facebook controls are compatibility fallback only.
+- V12: Provider descriptors MUST NOT advertise a capability as supported unless the owning provider plugin has a real runtime or management implementation and tests for it; missing `supported` is treated as false.
 
 ## §T — Tasks (status as of 2026-05-25)
 
@@ -125,6 +128,7 @@ Misc:
 | T-AUTH-10 SPEC.md backport | ✅ (this doc) | filed as #33 |
 | T-AUTH-11 registry manifest update | ✅ | workflow-registry#149 merged |
 | T-AUTH-12 admin config contracts | ✅ | `step.auth_admin_config_describe`, `step.auth_admin_config_validate`, strict proto contracts |
+| T-AUTH-13 provider catalog contracts | ✅ | `step.auth_provider_catalog`, `AuthProviderDescriptor`, dynamic admin-provider controls |
 
 ## §X — References
 
