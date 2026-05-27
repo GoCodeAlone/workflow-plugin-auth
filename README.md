@@ -40,6 +40,8 @@ The plugin binary itself is distributed via public GitHub Releases — `GH_TOKEN
 - `step.auth_policy_gate`
 - `step.auth_methods_response`
 - `step.auth_policy_audit`
+- `step.auth_admin_config_describe`
+- `step.auth_admin_config_validate`
 - `step.auth_oauth_provider_config`
 - `step.auth_oauth_start`
 - `step.auth_oauth_exchange`
@@ -93,10 +95,27 @@ issuance in the consuming app.
 shape. `step.auth_policy_audit` reports production password policy violations
 for CI or operational checks.
 
+## Admin Configuration Contracts
+
+`step.auth_admin_config_describe` exposes a strict proto contract for admin
+portals to render authentication settings. It returns grouped controls with
+labels, help text, input types, config keys, disabled reasons, and write-only
+secret state. Controls map to real plugin config keys consumed by the auth
+policy, OAuth, WebAuthn, challenge, and delivery steps.
+
+`step.auth_admin_config_validate` accepts a desired config patch and returns a
+sanitized accepted patch plus diagnostics. The plugin validates the patch; the
+admin host persists accepted config into Workflow configuration or its own
+config store. Secret values are never echoed in outputs. Production password
+auth, incomplete passkey settings, incomplete OAuth settings, and zero-primary
+method configurations are rejected when applicable.
+
 ## OAuth
 
-The first OAuth slice supports Google. Other providers currently return disabled
-metadata and are not advertised as login-ready.
+OAuth provider config supports Google and Facebook. Policy advertising remains
+conservative and only marks providers login-ready when the configured provider
+is supported by the current policy path. Instagram, X, and unknown providers
+return disabled metadata and are not advertised as login-ready.
 
 `step.auth_oauth_start` emits `state`, optional PKCE values, `return_to`,
 `expires_at`, and `authorization_url`. The plugin does not store OAuth state.

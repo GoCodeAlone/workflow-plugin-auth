@@ -352,6 +352,108 @@ message AuthPolicyAuditOutput {
   string error = 100;
 }
 
+message AuthAdminConfig {
+  string environment = 1;
+  optional bool password_auth_enabled = 2;
+  optional bool password_enabled = 3;
+  optional bool totp_auth_enabled = 4;
+  optional bool totp_enabled = 5;
+  string webauthn_rp_id = 6;
+  string webauthn_origin = 7;
+  string smtp_host = 8;
+  string smtp_from = 9;
+  optional bool auth_routes_enabled = 10;
+  optional bool routes_enabled = 11;
+  optional bool oauth_routes_enabled = 12;
+  string google_oauth_client_id = 13;
+  string google_oauth_client_secret = 14;
+  string google_oauth_redirect_url = 15;
+  string oauth_provider = 16;
+  optional bool sms_enabled = 17;
+  string twilio_verify_service_sid = 18;
+  string twilio_account_sid = 19;
+  string twilio_auth_token = 20;
+  string twilio_api_key_sid = 21;
+  string twilio_api_key_secret = 22;
+  string jwt_secret = 23;
+  optional bool sms_auth_enabled = 24;
+  string facebook_oauth_client_id = 25;
+  string facebook_oauth_client_secret = 26;
+  string facebook_oauth_redirect_url = 27;
+  string instagram_oauth_client_id = 28;
+  string instagram_oauth_client_secret = 29;
+  string x_oauth_client_id = 30;
+  string x_oauth_client_secret = 31;
+  optional bool allow_insecure_test_oauth_endpoints = 32;
+}
+
+message AuthAdminDescribeInput {
+  AuthAdminConfig config = 1;
+}
+
+message AuthAdminControlOption {
+  string value = 1;
+  string label = 2;
+  string description = 3;
+}
+
+message AuthAdminControl {
+  string key = 1;
+  string group_key = 2;
+  string label = 3;
+  string description = 4;
+  string help_text = 5;
+  string input_type = 6;
+  string config_key = 7;
+  bool secret = 8;
+  bool configured = 9;
+  bool required = 10;
+  bool enabled = 11;
+  string disabled_reason = 12;
+  repeated AuthAdminControlOption options = 13;
+}
+
+message AuthAdminControlGroup {
+  string key = 1;
+  string label = 2;
+  string description = 3;
+  repeated AuthAdminControl controls = 4;
+}
+
+message AuthAdminDiagnostic {
+  string field = 1;
+  string severity = 2;
+  string message = 3;
+}
+
+message AuthAdminDescribeOutput {
+  repeated AuthAdminControlGroup groups = 1;
+  google.protobuf.Struct effective_config = 2;
+  google.protobuf.Struct methods_policy = 3;
+  repeated AuthAdminDiagnostic warnings = 4;
+  repeated string secret_fields = 5;
+  string error = 100;
+}
+
+message AuthAdminValidateConfig {
+  optional bool require_primary_method = 1;
+}
+
+message AuthAdminValidateInput {
+  google.protobuf.Struct desired_config = 1;
+  optional bool require_primary_method = 2;
+}
+
+message AuthAdminValidateOutput {
+  bool valid = 1;
+  google.protobuf.Struct accepted_config = 2;
+  google.protobuf.Struct methods_policy = 3;
+  repeated AuthAdminDiagnostic errors = 4;
+  repeated AuthAdminDiagnostic warnings = 5;
+  repeated string secret_fields = 6;
+  string error = 100;
+}
+
 message OAuthProviderConfig {
   string provider = 1;
   string google_oauth_client_id = 2;
