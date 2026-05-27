@@ -82,6 +82,8 @@ Policy:
 - `step.auth_methods_response` — frame methods in API response
 - `step.auth_policy_gate` — pre-handler gate
 - `step.auth_policy_audit` — audit trail
+- `step.auth_admin_config_describe` — admin-renderable auth config controls
+- `step.auth_admin_config_validate` — validate and sanitize admin config patches
 
 Misc:
 - `step.auth_normalize_phone`
@@ -103,6 +105,9 @@ Misc:
 - V5: WebAuthn RP ID + origin pinned to env vars (no silent cross-origin).
 - V6: Disable_password_auth=true at module config → password steps return `{"disabled": true}` + endpoints return 410.
 - V7: Module-level disable knob, not global — multiple credentialModule instances may differ.
+- V8: Admin config describe/validate outputs MUST NOT echo secret values; outputs expose configured state and `secret_fields` only.
+- V9: Admin config validation MUST reject production password enablement and zero-primary-method configs when `require_primary_method` is true.
+- V10: Admin config controls MUST map to real plugin config keys; no UI-only fake auth toggles.
 
 ## §T — Tasks (status as of 2026-05-25)
 
@@ -119,6 +124,7 @@ Misc:
 | T-AUTH-9 test matrix | ⚠️ partial | 16 test files |
 | T-AUTH-10 SPEC.md backport | ✅ (this doc) | filed as #33 |
 | T-AUTH-11 registry manifest update | ✅ | workflow-registry#149 merged |
+| T-AUTH-12 admin config contracts | ✅ | `step.auth_admin_config_describe`, `step.auth_admin_config_validate`, strict proto contracts |
 
 ## §X — References
 

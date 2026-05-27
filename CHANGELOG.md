@@ -5,6 +5,23 @@
 - README verified-status banner per workflow#714 (multi-repo QoL sweep).
 - CONTRIBUTING.md, examples/minimal/config.yaml, and GitHub issue/PR templates.
 
+## v0.2.9 (2026-05-27)
+
+### Added
+
+- Added strict proto admin config contracts:
+  - `step.auth_admin_config_describe`
+  - `step.auth_admin_config_validate`
+- Admin descriptors expose grouped controls, labels, help text, input types,
+  config keys, disabled reasons, and write-only secret configured state.
+- Admin validation rejects unsafe auth config patches, including production
+  password enablement and zero-primary-method configs when required.
+
+### Security
+
+- Admin describe/validate outputs never echo secret values; outputs return
+  sanitized config plus `secret_fields` metadata.
+
 ## v0.2.4 (2026-05-13)
 
 ### Strict-proto config-field gaps closed (BMW local smoke vs workflow v0.51.5, round 3)
