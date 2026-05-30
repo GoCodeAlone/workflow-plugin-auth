@@ -4004,6 +4004,7 @@ type AuthAdminContributionConfig struct {
 	AppContext    string                             `protobuf:"bytes,6,opt,name=app_context,json=appContext,proto3" json:"app_context,omitempty"`
 	Permissions   []*AuthAdminContributionPermission `protobuf:"bytes,7,rep,name=permissions,proto3" json:"permissions,omitempty"`
 	Actions       []string                           `protobuf:"bytes,8,rep,name=actions,proto3" json:"actions,omitempty"`
+	Metadata      *structpb.Struct                   `protobuf:"bytes,9,opt,name=metadata,proto3" json:"metadata,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -4090,6 +4091,13 @@ func (x *AuthAdminContributionConfig) GetPermissions() []*AuthAdminContributionP
 func (x *AuthAdminContributionConfig) GetActions() []string {
 	if x != nil {
 		return x.Actions
+	}
+	return nil
+}
+
+func (x *AuthAdminContributionConfig) GetMetadata() *structpb.Struct {
+	if x != nil {
+		return x.Metadata
 	}
 	return nil
 }
@@ -4208,6 +4216,7 @@ type AuthAdminContribution struct {
 	AppContext    string                             `protobuf:"bytes,6,opt,name=app_context,json=appContext,proto3" json:"app_context,omitempty"`
 	Permissions   []*AuthAdminContributionPermission `protobuf:"bytes,7,rep,name=permissions,proto3" json:"permissions,omitempty"`
 	Actions       []string                           `protobuf:"bytes,8,rep,name=actions,proto3" json:"actions,omitempty"`
+	Metadata      *structpb.Struct                   `protobuf:"bytes,9,opt,name=metadata,proto3" json:"metadata,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -4294,6 +4303,13 @@ func (x *AuthAdminContribution) GetPermissions() []*AuthAdminContributionPermiss
 func (x *AuthAdminContribution) GetActions() []string {
 	if x != nil {
 		return x.Actions
+	}
+	return nil
+}
+
+func (x *AuthAdminContribution) GetMetadata() *structpb.Struct {
+	if x != nil {
+		return x.Metadata
 	}
 	return nil
 }
@@ -6574,7 +6590,7 @@ const file_internal_contracts_auth_proto_rawDesc = "" +
 	"\x13AuthAdminDiagnostic\x12\x14\n" +
 	"\x05field\x18\x01 \x01(\tR\x05field\x12\x1a\n" +
 	"\bseverity\x18\x02 \x01(\tR\bseverity\x12\x18\n" +
-	"\amessage\x18\x03 \x01(\tR\amessage\"\xac\x02\n" +
+	"\amessage\x18\x03 \x01(\tR\amessage\"\xe1\x02\n" +
 	"\x1bAuthAdminContributionConfig\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x14\n" +
 	"\x05title\x18\x02 \x01(\tR\x05title\x12\x1a\n" +
@@ -6585,7 +6601,8 @@ const file_internal_contracts_auth_proto_rawDesc = "" +
 	"\vapp_context\x18\x06 \x01(\tR\n" +
 	"appContext\x12[\n" +
 	"\vpermissions\x18\a \x03(\v29.workflow.plugins.auth.v1.AuthAdminContributionPermissionR\vpermissions\x12\x18\n" +
-	"\aactions\x18\b \x03(\tR\aactions\"q\n" +
+	"\aactions\x18\b \x03(\tR\aactions\x123\n" +
+	"\bmetadata\x18\t \x01(\v2\x17.google.protobuf.StructR\bmetadata\"q\n" +
 	"\x1aAuthAdminContributionInput\x12S\n" +
 	"\fcontribution\x18\x01 \x01(\v2/.workflow.plugins.auth.v1.AuthAdminContributionR\fcontribution\"u\n" +
 	"\x1fAuthAdminContributionPermission\x12\x1a\n" +
@@ -6593,7 +6610,7 @@ const file_internal_contracts_auth_proto_rawDesc = "" +
 	"\x06action\x18\x02 \x01(\tR\x06action\x12\x1e\n" +
 	"\n" +
 	"permission\x18\x03 \x01(\tR\n" +
-	"permission\"\xa6\x02\n" +
+	"permission\"\xdb\x02\n" +
 	"\x15AuthAdminContribution\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x14\n" +
 	"\x05title\x18\x02 \x01(\tR\x05title\x12\x1a\n" +
@@ -6604,7 +6621,8 @@ const file_internal_contracts_auth_proto_rawDesc = "" +
 	"\vapp_context\x18\x06 \x01(\tR\n" +
 	"appContext\x12[\n" +
 	"\vpermissions\x18\a \x03(\v29.workflow.plugins.auth.v1.AuthAdminContributionPermissionR\vpermissions\x12\x18\n" +
-	"\aactions\x18\b \x03(\tR\aactions\"\x88\x01\n" +
+	"\aactions\x18\b \x03(\tR\aactions\x123\n" +
+	"\bmetadata\x18\t \x01(\v2\x17.google.protobuf.StructR\bmetadata\"\x88\x01\n" +
 	"\x1bAuthAdminContributionOutput\x12S\n" +
 	"\fcontribution\x18\x01 \x01(\v2/.workflow.plugins.auth.v1.AuthAdminContributionR\fcontribution\x12\x14\n" +
 	"\x05error\x18d \x01(\tR\x05error\"\xec\x02\n" +
@@ -6882,34 +6900,36 @@ var file_internal_contracts_auth_proto_depIdxs = []int32{
 	45, // 3: workflow.plugins.auth.v1.AuthAdminControl.options:type_name -> workflow.plugins.auth.v1.AuthAdminControlOption
 	46, // 4: workflow.plugins.auth.v1.AuthAdminControlGroup.controls:type_name -> workflow.plugins.auth.v1.AuthAdminControl
 	51, // 5: workflow.plugins.auth.v1.AuthAdminContributionConfig.permissions:type_name -> workflow.plugins.auth.v1.AuthAdminContributionPermission
-	52, // 6: workflow.plugins.auth.v1.AuthAdminContributionInput.contribution:type_name -> workflow.plugins.auth.v1.AuthAdminContribution
-	51, // 7: workflow.plugins.auth.v1.AuthAdminContribution.permissions:type_name -> workflow.plugins.auth.v1.AuthAdminContributionPermission
-	52, // 8: workflow.plugins.auth.v1.AuthAdminContributionOutput.contribution:type_name -> workflow.plugins.auth.v1.AuthAdminContribution
-	47, // 9: workflow.plugins.auth.v1.AuthAdminDescribeOutput.groups:type_name -> workflow.plugins.auth.v1.AuthAdminControlGroup
-	76, // 10: workflow.plugins.auth.v1.AuthAdminDescribeOutput.effective_config:type_name -> google.protobuf.Struct
-	76, // 11: workflow.plugins.auth.v1.AuthAdminDescribeOutput.methods_policy:type_name -> google.protobuf.Struct
-	48, // 12: workflow.plugins.auth.v1.AuthAdminDescribeOutput.warnings:type_name -> workflow.plugins.auth.v1.AuthAdminDiagnostic
-	76, // 13: workflow.plugins.auth.v1.AuthAdminValidateInput.desired_config:type_name -> google.protobuf.Struct
-	67, // 14: workflow.plugins.auth.v1.AuthAdminValidateInput.providers:type_name -> workflow.plugins.auth.v1.AuthProviderDescriptor
-	76, // 15: workflow.plugins.auth.v1.AuthAdminValidateOutput.accepted_config:type_name -> google.protobuf.Struct
-	76, // 16: workflow.plugins.auth.v1.AuthAdminValidateOutput.methods_policy:type_name -> google.protobuf.Struct
-	48, // 17: workflow.plugins.auth.v1.AuthAdminValidateOutput.errors:type_name -> workflow.plugins.auth.v1.AuthAdminDiagnostic
-	48, // 18: workflow.plugins.auth.v1.AuthAdminValidateOutput.warnings:type_name -> workflow.plugins.auth.v1.AuthAdminDiagnostic
-	76, // 19: workflow.plugins.auth.v1.OAuthExchangeOutput.raw_tokens:type_name -> google.protobuf.Struct
-	76, // 20: workflow.plugins.auth.v1.OAuthUserinfoOutput.raw_claims:type_name -> google.protobuf.Struct
-	64, // 21: workflow.plugins.auth.v1.AuthProviderConfigField.options:type_name -> workflow.plugins.auth.v1.AuthProviderConfigOption
-	65, // 22: workflow.plugins.auth.v1.AuthProviderCapability.config_fields:type_name -> workflow.plugins.auth.v1.AuthProviderConfigField
-	66, // 23: workflow.plugins.auth.v1.AuthProviderDescriptor.capabilities:type_name -> workflow.plugins.auth.v1.AuthProviderCapability
-	67, // 24: workflow.plugins.auth.v1.AuthProviderCatalogConfig.providers:type_name -> workflow.plugins.auth.v1.AuthProviderDescriptor
-	67, // 25: workflow.plugins.auth.v1.AuthProviderCatalogInput.providers:type_name -> workflow.plugins.auth.v1.AuthProviderDescriptor
-	67, // 26: workflow.plugins.auth.v1.AuthProviderCatalogOutput.providers:type_name -> workflow.plugins.auth.v1.AuthProviderDescriptor
-	48, // 27: workflow.plugins.auth.v1.AuthProviderCatalogOutput.warnings:type_name -> workflow.plugins.auth.v1.AuthAdminDiagnostic
-	72, // 28: workflow.plugins.auth.v1.CredentialListOutput.credentials:type_name -> workflow.plugins.auth.v1.CredentialSummary
-	29, // [29:29] is the sub-list for method output_type
-	29, // [29:29] is the sub-list for method input_type
-	29, // [29:29] is the sub-list for extension type_name
-	29, // [29:29] is the sub-list for extension extendee
-	0,  // [0:29] is the sub-list for field type_name
+	76, // 6: workflow.plugins.auth.v1.AuthAdminContributionConfig.metadata:type_name -> google.protobuf.Struct
+	52, // 7: workflow.plugins.auth.v1.AuthAdminContributionInput.contribution:type_name -> workflow.plugins.auth.v1.AuthAdminContribution
+	51, // 8: workflow.plugins.auth.v1.AuthAdminContribution.permissions:type_name -> workflow.plugins.auth.v1.AuthAdminContributionPermission
+	76, // 9: workflow.plugins.auth.v1.AuthAdminContribution.metadata:type_name -> google.protobuf.Struct
+	52, // 10: workflow.plugins.auth.v1.AuthAdminContributionOutput.contribution:type_name -> workflow.plugins.auth.v1.AuthAdminContribution
+	47, // 11: workflow.plugins.auth.v1.AuthAdminDescribeOutput.groups:type_name -> workflow.plugins.auth.v1.AuthAdminControlGroup
+	76, // 12: workflow.plugins.auth.v1.AuthAdminDescribeOutput.effective_config:type_name -> google.protobuf.Struct
+	76, // 13: workflow.plugins.auth.v1.AuthAdminDescribeOutput.methods_policy:type_name -> google.protobuf.Struct
+	48, // 14: workflow.plugins.auth.v1.AuthAdminDescribeOutput.warnings:type_name -> workflow.plugins.auth.v1.AuthAdminDiagnostic
+	76, // 15: workflow.plugins.auth.v1.AuthAdminValidateInput.desired_config:type_name -> google.protobuf.Struct
+	67, // 16: workflow.plugins.auth.v1.AuthAdminValidateInput.providers:type_name -> workflow.plugins.auth.v1.AuthProviderDescriptor
+	76, // 17: workflow.plugins.auth.v1.AuthAdminValidateOutput.accepted_config:type_name -> google.protobuf.Struct
+	76, // 18: workflow.plugins.auth.v1.AuthAdminValidateOutput.methods_policy:type_name -> google.protobuf.Struct
+	48, // 19: workflow.plugins.auth.v1.AuthAdminValidateOutput.errors:type_name -> workflow.plugins.auth.v1.AuthAdminDiagnostic
+	48, // 20: workflow.plugins.auth.v1.AuthAdminValidateOutput.warnings:type_name -> workflow.plugins.auth.v1.AuthAdminDiagnostic
+	76, // 21: workflow.plugins.auth.v1.OAuthExchangeOutput.raw_tokens:type_name -> google.protobuf.Struct
+	76, // 22: workflow.plugins.auth.v1.OAuthUserinfoOutput.raw_claims:type_name -> google.protobuf.Struct
+	64, // 23: workflow.plugins.auth.v1.AuthProviderConfigField.options:type_name -> workflow.plugins.auth.v1.AuthProviderConfigOption
+	65, // 24: workflow.plugins.auth.v1.AuthProviderCapability.config_fields:type_name -> workflow.plugins.auth.v1.AuthProviderConfigField
+	66, // 25: workflow.plugins.auth.v1.AuthProviderDescriptor.capabilities:type_name -> workflow.plugins.auth.v1.AuthProviderCapability
+	67, // 26: workflow.plugins.auth.v1.AuthProviderCatalogConfig.providers:type_name -> workflow.plugins.auth.v1.AuthProviderDescriptor
+	67, // 27: workflow.plugins.auth.v1.AuthProviderCatalogInput.providers:type_name -> workflow.plugins.auth.v1.AuthProviderDescriptor
+	67, // 28: workflow.plugins.auth.v1.AuthProviderCatalogOutput.providers:type_name -> workflow.plugins.auth.v1.AuthProviderDescriptor
+	48, // 29: workflow.plugins.auth.v1.AuthProviderCatalogOutput.warnings:type_name -> workflow.plugins.auth.v1.AuthAdminDiagnostic
+	72, // 30: workflow.plugins.auth.v1.CredentialListOutput.credentials:type_name -> workflow.plugins.auth.v1.CredentialSummary
+	31, // [31:31] is the sub-list for method output_type
+	31, // [31:31] is the sub-list for method input_type
+	31, // [31:31] is the sub-list for extension type_name
+	31, // [31:31] is the sub-list for extension extendee
+	0,  // [0:31] is the sub-list for field type_name
 }
 
 func init() { file_internal_contracts_auth_proto_init() }

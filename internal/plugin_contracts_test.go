@@ -212,7 +212,7 @@ func TestPasskeyAndTOTPContractsUseRuntimeMapKeys(t *testing.T) {
 	requireProtoFields(t, &contracts.AuthProviderCapability{}, "key", "label", "category", "supported", "config_fields", "admin_read_scopes", "admin_write_scopes")
 	requireProtoFields(t, &contracts.AuthProviderConfigField{}, "key", "label", "input_type", "secret", "required", "options", "lookup")
 	requireProtoFields(t, &contracts.AuthProviderCatalogOutput{}, "providers", "warnings", "error")
-	requireProtoFields(t, &contracts.AuthAdminContribution{}, "id", "title", "category", "path", "render_mode", "app_context", "permissions", "actions")
+	requireProtoFields(t, &contracts.AuthAdminContribution{}, "id", "title", "category", "path", "render_mode", "app_context", "permissions", "actions", "metadata")
 	requireProtoFields(t, &contracts.AuthAdminContributionPermission{}, "resource", "action", "permission")
 	requireProtoFields(t, &contracts.AuthAdminContributionOutput{}, "contribution", "error")
 }

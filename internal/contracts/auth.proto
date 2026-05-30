@@ -437,6 +437,7 @@ message AuthAdminContributionConfig {
   string app_context = 6;
   repeated AuthAdminContributionPermission permissions = 7;
   repeated string actions = 8;
+  google.protobuf.Struct metadata = 9;
 }
 
 message AuthAdminContributionInput {
@@ -458,6 +459,7 @@ message AuthAdminContribution {
   string app_context = 6;
   repeated AuthAdminContributionPermission permissions = 7;
   repeated string actions = 8;
+  google.protobuf.Struct metadata = 9;
 }
 
 message AuthAdminContributionOutput {

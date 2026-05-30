@@ -21,11 +21,12 @@ func (s *authAdminContributionDescribeStep) Execute(_ context.Context, _ map[str
 		"id":          contributionString(source, "id", "auth-config"),
 		"title":       contributionString(source, "title", "Authentication"),
 		"category":    contributionString(source, "category", "security"),
-		"path":        contributionString(source, "path", "/admin/auth/"),
-		"render_mode": contributionString(source, "render_mode", "iframe"),
+		"path":        contributionString(source, "path", "/api/admin/auth/config"),
+		"render_mode": contributionString(source, "render_mode", "config-form"),
 		"app_context": contributionString(source, "app_context", "admin"),
 		"permissions": contributionPermissions(source["permissions"]),
 		"actions":     contributionActions(source["actions"]),
+		"metadata":    contributionMetadata(source["metadata"]),
 	}
 	return &sdk.StepResult{Output: map[string]any{"contribution": contribution}}, nil
 }
@@ -35,14 +36,18 @@ func defaultAuthAdminContribution() map[string]any {
 		"id":          "auth-config",
 		"title":       "Authentication",
 		"category":    "security",
-		"path":        "/admin/auth/",
-		"render_mode": "iframe",
+		"path":        "/api/admin/auth/config",
+		"render_mode": "config-form",
 		"app_context": "admin",
 		"permissions": []map[string]any{
 			{"resource": "auth.config", "action": "read", "permission": "admin:auth.config:read"},
 			{"resource": "auth.config", "action": "update", "permission": "admin:auth.config:update"},
 		},
 		"actions": []string{"read", "update"},
+		"metadata": map[string]any{
+			"describe_path": "/api/admin/auth/config",
+			"validate_path": "/api/admin/auth/config/validate",
+		},
 	}
 }
 
@@ -90,6 +95,23 @@ func contributionPermissions(value any) []map[string]any {
 		}
 	}
 	return cloneContributionPermissions(defaultAuthAdminContribution()["permissions"].([]map[string]any))
+}
+
+func contributionMetadata(value any) map[string]any {
+	switch metadata := value.(type) {
+	case map[string]any:
+		return metadata
+	case map[any]any:
+		out := make(map[string]any, len(metadata))
+		for key, item := range metadata {
+			if s, ok := key.(string); ok {
+				out[s] = item
+			}
+		}
+		return out
+	default:
+		return defaultAuthAdminContribution()["metadata"].(map[string]any)
+	}
 }
 
 func cloneContributionPermissions(permissions []map[string]any) []map[string]any {

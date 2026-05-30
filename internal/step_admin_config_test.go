@@ -113,7 +113,6 @@ func TestAuthAdminConfigDescribeExposesRealConfigControls(t *testing.T) {
 
 func TestAuthAdminContributionDescribeExposesManagementTool(t *testing.T) {
 	step := newAuthAdminContributionDescribeStep("admin", map[string]any{
-		"path":        "/admin/auth/",
 		"app_context": "admin",
 	})
 
@@ -130,8 +129,8 @@ func TestAuthAdminContributionDescribeExposesManagementTool(t *testing.T) {
 		"id":          "auth-config",
 		"title":       "Authentication",
 		"category":    "security",
-		"path":        "/admin/auth/",
-		"render_mode": "iframe",
+		"path":        "/api/admin/auth/config",
+		"render_mode": "config-form",
 		"app_context": "admin",
 	} {
 		if got := contribution[key]; got != want {
@@ -153,6 +152,13 @@ func TestAuthAdminContributionDescribeExposesManagementTool(t *testing.T) {
 	}
 	requireContributionPermission(t, permissions, "auth.config", "read", "admin:auth.config:read")
 	requireContributionPermission(t, permissions, "auth.config", "update", "admin:auth.config:update")
+	metadata, ok := contribution["metadata"].(map[string]any)
+	if !ok {
+		t.Fatalf("metadata has type %T, want map[string]any", contribution["metadata"])
+	}
+	if metadata["describe_path"] != "/api/admin/auth/config" || metadata["validate_path"] != "/api/admin/auth/config/validate" {
+		t.Fatalf("unexpected metadata: %#v", metadata)
+	}
 }
 
 func TestAuthAdminConfigValidateRejectsUnsafePasswordProduction(t *testing.T) {
