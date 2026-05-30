@@ -169,6 +169,14 @@
     },
     {
       "kind": "step",
+      "type": "step.auth_admin_contribution_describe",
+      "mode": "strict",
+      "config": "workflow.plugins.auth.v1.AuthAdminContributionConfig",
+      "input": "workflow.plugins.auth.v1.AuthAdminContributionInput",
+      "output": "workflow.plugins.auth.v1.AuthAdminContributionOutput"
+    },
+    {
+      "kind": "step",
       "type": "step.auth_admin_config_describe",
       "mode": "strict",
       "config": "workflow.plugins.auth.v1.EmptyConfig",

@@ -37,6 +37,7 @@ var allStepTypes = []string{
 	"step.auth_methods_response",
 	"step.auth_policy_audit",
 	"step.auth_provider_catalog",
+	"step.auth_admin_contribution_describe",
 	"step.auth_admin_config_describe",
 	"step.auth_admin_config_validate",
 	"step.auth_oauth_provider_config",
@@ -143,6 +144,8 @@ func (p *authPlugin) CreateStep(typeName, name string, config map[string]any) (s
 		return newAuthPolicyAuditStep(name, config), nil
 	case "step.auth_provider_catalog":
 		return newAuthProviderCatalogStep(name, config), nil
+	case "step.auth_admin_contribution_describe":
+		return newAuthAdminContributionDescribeStep(name, config), nil
 	case "step.auth_admin_config_describe":
 		return newAuthAdminConfigDescribeStep(name, config), nil
 	case "step.auth_admin_config_validate":
@@ -242,6 +245,10 @@ func (p *authPlugin) CreateTypedStep(typeName, name string, config *anypb.Any) (
 		return sdk.NewTypedStepFactory(typeName, &contracts.AuthProviderCatalogConfig{}, &contracts.AuthProviderCatalogInput{}, typedLegacyStep[*contracts.AuthProviderCatalogConfig, *contracts.AuthProviderCatalogInput, *contracts.AuthProviderCatalogOutput](func(name string, config map[string]any) sdk.StepInstance {
 			return newAuthProviderCatalogStep(name, config)
 		}, &contracts.AuthProviderCatalogOutput{})).CreateTypedStep(typeName, name, config)
+	case "step.auth_admin_contribution_describe":
+		return sdk.NewTypedStepFactory(typeName, &contracts.AuthAdminContributionConfig{}, &contracts.AuthAdminContributionInput{}, typedLegacyStep[*contracts.AuthAdminContributionConfig, *contracts.AuthAdminContributionInput, *contracts.AuthAdminContributionOutput](func(name string, config map[string]any) sdk.StepInstance {
+			return newAuthAdminContributionDescribeStep(name, config)
+		}, &contracts.AuthAdminContributionOutput{})).CreateTypedStep(typeName, name, config)
 	case "step.auth_admin_config_describe":
 		return sdk.NewTypedStepFactory(typeName, &contracts.EmptyConfig{}, &contracts.AuthAdminDescribeInput{}, typedLegacyStep[*contracts.EmptyConfig, *contracts.AuthAdminDescribeInput, *contracts.AuthAdminDescribeOutput](func(name string, config map[string]any) sdk.StepInstance {
 			return newAuthAdminConfigDescribeStep(name, config)
@@ -312,6 +319,7 @@ var authContractRegistry = &pb.ContractRegistry{
 		stepContract("step.auth_methods_response", "EmptyConfig", "AuthMethodsPolicyOutput", "AuthMethodsResponseOutput"),
 		stepContract("step.auth_policy_audit", "AuthMethodsPolicyConfig", "AuthMethodsPolicyInput", "AuthPolicyAuditOutput"),
 		stepContract("step.auth_provider_catalog", "AuthProviderCatalogConfig", "AuthProviderCatalogInput", "AuthProviderCatalogOutput"),
+		stepContract("step.auth_admin_contribution_describe", "AuthAdminContributionConfig", "AuthAdminContributionInput", "AuthAdminContributionOutput"),
 		stepContract("step.auth_admin_config_describe", "EmptyConfig", "AuthAdminDescribeInput", "AuthAdminDescribeOutput"),
 		stepContract("step.auth_admin_config_validate", "AuthAdminValidateConfig", "AuthAdminValidateInput", "AuthAdminValidateOutput"),
 		stepContract("step.auth_oauth_provider_config", "OAuthProviderConfig", "OAuthProviderInput", "OAuthProviderConfigOutput"),
