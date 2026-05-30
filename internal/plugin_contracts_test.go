@@ -157,6 +157,33 @@ func TestTypedMethodsPolicyUsesMetadataRuntimeConfig(t *testing.T) {
 	}
 }
 
+func TestTypedAuthAdminConfigValidateReadsHTTPTriggerBody(t *testing.T) {
+	result, err := typedAuthAdminConfigValidate(context.Background(), sdk.TypedStepRequest[*contracts.AuthAdminValidateConfig, *contracts.AuthAdminValidateInput]{
+		Config: &contracts.AuthAdminValidateConfig{RequirePrimaryMethod: protoBool(true)},
+		Input:  &contracts.AuthAdminValidateInput{},
+		TriggerData: map[string]any{
+			"body": map[string]any{
+				"desired_config": map[string]any{
+					"environment":           "production",
+					"password_auth_enabled": true,
+				},
+			},
+		},
+	})
+	if err != nil {
+		t.Fatalf("typed auth admin validate: %v", err)
+	}
+	if result.Output.GetValid() {
+		t.Fatal("typed auth admin validate accepted production password auth")
+	}
+	for _, diagnostic := range result.Output.GetErrors() {
+		if diagnostic.GetField() == "password_auth_enabled" && strings.Contains(diagnostic.GetMessage(), "password auth cannot be enabled in production") {
+			return
+		}
+	}
+	t.Fatalf("missing password production diagnostic: %v", result.Output.GetErrors())
+}
+
 func TestTypedPolicyGateUsesMetadataRuntimeConfig(t *testing.T) {
 	result, err := typedPolicyGate(context.Background(), sdk.TypedStepRequest[*contracts.AuthPolicyGateConfig, *contracts.AuthPolicyGateInput]{
 		Config: &contracts.AuthPolicyGateConfig{

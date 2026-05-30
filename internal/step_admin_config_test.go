@@ -179,6 +179,25 @@ func TestAuthAdminConfigValidateRejectsUnsafePasswordProduction(t *testing.T) {
 	requireAdminDiagnostic(t, result.Output, "password_auth_enabled", "password auth cannot be enabled in production")
 }
 
+func TestAuthAdminConfigValidateReadsHTTPBodyDesiredConfig(t *testing.T) {
+	step := newAuthAdminConfigValidateStep("admin", map[string]any{"require_primary_method": true})
+
+	result, err := step.Execute(context.Background(), nil, nil, map[string]any{
+		"body": map[string]any{
+			"desired_config": map[string]any{
+				"environment":           "production",
+				"password_auth_enabled": true,
+			},
+		},
+	}, nil, nil)
+	if err != nil {
+		t.Fatalf("validate admin config: %v", err)
+	}
+
+	assertBool(t, result.Output, "valid", false)
+	requireAdminDiagnostic(t, result.Output, "password_auth_enabled", "password auth cannot be enabled in production")
+}
+
 func TestAuthAdminConfigValidateRejectsZeroPrimaryMethods(t *testing.T) {
 	step := newAuthAdminConfigValidateStep("admin", nil)
 

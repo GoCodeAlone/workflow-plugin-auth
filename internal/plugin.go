@@ -254,9 +254,7 @@ func (p *authPlugin) CreateTypedStep(typeName, name string, config *anypb.Any) (
 			return newAuthAdminConfigDescribeStep(name, config)
 		}, &contracts.AuthAdminDescribeOutput{})).CreateTypedStep(typeName, name, config)
 	case "step.auth_admin_config_validate":
-		return sdk.NewTypedStepFactory(typeName, &contracts.AuthAdminValidateConfig{}, &contracts.AuthAdminValidateInput{}, typedLegacyStep[*contracts.AuthAdminValidateConfig, *contracts.AuthAdminValidateInput, *contracts.AuthAdminValidateOutput](func(name string, config map[string]any) sdk.StepInstance {
-			return newAuthAdminConfigValidateStep(name, config)
-		}, &contracts.AuthAdminValidateOutput{})).CreateTypedStep(typeName, name, config)
+		return sdk.NewTypedStepFactory(typeName, &contracts.AuthAdminValidateConfig{}, &contracts.AuthAdminValidateInput{}, typedAuthAdminConfigValidate).CreateTypedStep(typeName, name, config)
 	case "step.auth_oauth_provider_config":
 		return sdk.NewTypedStepFactory(typeName, &contracts.OAuthProviderConfig{}, &contracts.OAuthProviderInput{}, typedLegacyStep[*contracts.OAuthProviderConfig, *contracts.OAuthProviderInput, *contracts.OAuthProviderConfigOutput](func(name string, config map[string]any) sdk.StepInstance {
 			return newOAuthProviderConfigStep(name, config)

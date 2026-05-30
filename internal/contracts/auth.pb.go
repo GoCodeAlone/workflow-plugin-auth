@@ -4556,7 +4556,7 @@ func (x *AuthAdminValidateInput) GetProviders() []*AuthProviderDescriptor {
 
 type AuthAdminValidateOutput struct {
 	state          protoimpl.MessageState `protogen:"open.v1"`
-	Valid          bool                   `protobuf:"varint,1,opt,name=valid,proto3" json:"valid,omitempty"`
+	Valid          *bool                  `protobuf:"varint,1,opt,name=valid,proto3,oneof" json:"valid,omitempty"`
 	AcceptedConfig *structpb.Struct       `protobuf:"bytes,2,opt,name=accepted_config,json=acceptedConfig,proto3" json:"accepted_config,omitempty"`
 	MethodsPolicy  *structpb.Struct       `protobuf:"bytes,3,opt,name=methods_policy,json=methodsPolicy,proto3" json:"methods_policy,omitempty"`
 	Errors         []*AuthAdminDiagnostic `protobuf:"bytes,4,rep,name=errors,proto3" json:"errors,omitempty"`
@@ -4598,8 +4598,8 @@ func (*AuthAdminValidateOutput) Descriptor() ([]byte, []int) {
 }
 
 func (x *AuthAdminValidateOutput) GetValid() bool {
-	if x != nil {
-		return x.Valid
+	if x != nil && x.Valid != nil {
+		return *x.Valid
 	}
 	return false
 }
@@ -6640,15 +6640,16 @@ const file_internal_contracts_auth_proto_rawDesc = "" +
 	"\x0edesired_config\x18\x01 \x01(\v2\x17.google.protobuf.StructR\rdesiredConfig\x129\n" +
 	"\x16require_primary_method\x18\x02 \x01(\bH\x00R\x14requirePrimaryMethod\x88\x01\x01\x12N\n" +
 	"\tproviders\x18\x03 \x03(\v20.workflow.plugins.auth.v1.AuthProviderDescriptorR\tprovidersB\x19\n" +
-	"\x17_require_primary_method\"\xfe\x02\n" +
-	"\x17AuthAdminValidateOutput\x12\x14\n" +
-	"\x05valid\x18\x01 \x01(\bR\x05valid\x12@\n" +
+	"\x17_require_primary_method\"\x8d\x03\n" +
+	"\x17AuthAdminValidateOutput\x12\x19\n" +
+	"\x05valid\x18\x01 \x01(\bH\x00R\x05valid\x88\x01\x01\x12@\n" +
 	"\x0faccepted_config\x18\x02 \x01(\v2\x17.google.protobuf.StructR\x0eacceptedConfig\x12>\n" +
 	"\x0emethods_policy\x18\x03 \x01(\v2\x17.google.protobuf.StructR\rmethodsPolicy\x12E\n" +
 	"\x06errors\x18\x04 \x03(\v2-.workflow.plugins.auth.v1.AuthAdminDiagnosticR\x06errors\x12I\n" +
 	"\bwarnings\x18\x05 \x03(\v2-.workflow.plugins.auth.v1.AuthAdminDiagnosticR\bwarnings\x12#\n" +
 	"\rsecret_fields\x18\x06 \x03(\tR\fsecretFields\x12\x14\n" +
-	"\x05error\x18d \x01(\tR\x05error\"\xba\x05\n" +
+	"\x05error\x18d \x01(\tR\x05errorB\b\n" +
+	"\x06_valid\"\xba\x05\n" +
 	"\x13OAuthProviderConfig\x12\x1a\n" +
 	"\bprovider\x18\x01 \x01(\tR\bprovider\x123\n" +
 	"\x16google_oauth_client_id\x18\x02 \x01(\tR\x13googleOauthClientId\x12;\n" +
@@ -6942,6 +6943,7 @@ func file_internal_contracts_auth_proto_init() {
 	file_internal_contracts_auth_proto_msgTypes[43].OneofWrappers = []any{}
 	file_internal_contracts_auth_proto_msgTypes[55].OneofWrappers = []any{}
 	file_internal_contracts_auth_proto_msgTypes[56].OneofWrappers = []any{}
+	file_internal_contracts_auth_proto_msgTypes[57].OneofWrappers = []any{}
 	file_internal_contracts_auth_proto_msgTypes[58].OneofWrappers = []any{}
 	file_internal_contracts_auth_proto_msgTypes[59].OneofWrappers = []any{}
 	type x struct{}

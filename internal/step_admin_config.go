@@ -41,7 +41,7 @@ func newAuthAdminConfigValidateStep(name string, config map[string]any) *authAdm
 }
 
 func (s *authAdminConfigValidateStep) Execute(_ context.Context, _ map[string]any, _ map[string]map[string]any, current, _, runtimeConfig map[string]any) (*sdk.StepResult, error) {
-	desired := authAdminNestedConfig(current, "desired_config")
+	desired := authAdminDesiredConfig(current)
 	source := mergePolicyInputs(s.config, runtimeConfig, current, desired)
 	policy := buildAuthMethodsPolicy(source)
 
@@ -362,6 +362,14 @@ func authAdminNestedConfig(source map[string]any, key string) map[string]any {
 	default:
 		return nil
 	}
+}
+
+func authAdminDesiredConfig(source map[string]any) map[string]any {
+	if desired := authAdminNestedConfig(source, "desired_config"); len(desired) > 0 {
+		return desired
+	}
+	body := authAdminNestedConfig(source, "body")
+	return authAdminNestedConfig(body, "desired_config")
 }
 
 func sanitizeAuthAdminConfig(source map[string]any) map[string]any {

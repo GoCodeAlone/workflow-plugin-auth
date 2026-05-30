@@ -18,6 +18,34 @@ var typedAuthMethodsPolicy = typedLegacyStep[*contracts.AuthMethodsPolicyConfig,
 	&contracts.AuthMethodsPolicyOutput{},
 )
 
+func typedAuthAdminConfigValidate(ctx context.Context, req sdk.TypedStepRequest[*contracts.AuthAdminValidateConfig, *contracts.AuthAdminValidateInput]) (*sdk.TypedStepResult[*contracts.AuthAdminValidateOutput], error) {
+	config, err := protoMessageToMap(req.Config)
+	if err != nil {
+		return nil, err
+	}
+	input, err := protoMessageToMap(req.Input)
+	if err != nil {
+		return nil, err
+	}
+	if len(authAdminNestedConfig(input, "desired_config")) == 0 {
+		if body := authAdminNestedConfig(req.TriggerData, "body"); len(body) > 0 {
+			if desired := authAdminNestedConfig(body, "desired_config"); len(desired) > 0 {
+				input["desired_config"] = desired
+			}
+		}
+	}
+	step := newAuthAdminConfigValidateStep("typed", config)
+	result, err := step.Execute(ctx, req.TriggerData, req.StepOutputs, mergeMaps(req.Current, input), req.Metadata, runtimeConfigFromMetadata(req.Metadata))
+	if err != nil {
+		return nil, err
+	}
+	output, err := mapToProto(result.Output, &contracts.AuthAdminValidateOutput{})
+	if err != nil {
+		return nil, err
+	}
+	return &sdk.TypedStepResult[*contracts.AuthAdminValidateOutput]{Output: output, StopPipeline: result.StopPipeline}, nil
+}
+
 func typedPolicyGate(ctx context.Context, req sdk.TypedStepRequest[*contracts.AuthPolicyGateConfig, *contracts.AuthPolicyGateInput]) (*sdk.TypedStepResult[*contracts.AuthMethodsPolicyOutput], error) {
 	config, err := protoMessageToMap(req.Config)
 	if err != nil {
