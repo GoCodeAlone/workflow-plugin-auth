@@ -56,6 +56,7 @@ func TestContractRegistryDeclaresStrictContracts(t *testing.T) {
 	requireContract(t, runtimeContracts, "step:step.auth_challenge_generate", "workflow.plugins.auth.v1.AuthChallengeGenerateConfig", "workflow.plugins.auth.v1.ChallengeGenerateInput", "workflow.plugins.auth.v1.ChallengeGenerateOutput")
 	requireContract(t, runtimeContracts, "step:step.auth_methods_policy", "workflow.plugins.auth.v1.AuthMethodsPolicyConfig", "workflow.plugins.auth.v1.AuthMethodsPolicyInput", "workflow.plugins.auth.v1.AuthMethodsPolicyOutput")
 	requireContract(t, runtimeContracts, "step:step.auth_provider_catalog", "workflow.plugins.auth.v1.AuthProviderCatalogConfig", "workflow.plugins.auth.v1.AuthProviderCatalogInput", "workflow.plugins.auth.v1.AuthProviderCatalogOutput")
+	requireContract(t, runtimeContracts, "step:step.auth_admin_contribution_describe", "workflow.plugins.auth.v1.AuthAdminContributionConfig", "workflow.plugins.auth.v1.AuthAdminContributionInput", "workflow.plugins.auth.v1.AuthAdminContributionOutput")
 	requireContract(t, runtimeContracts, "step:step.auth_admin_config_describe", "workflow.plugins.auth.v1.EmptyConfig", "workflow.plugins.auth.v1.AuthAdminDescribeInput", "workflow.plugins.auth.v1.AuthAdminDescribeOutput")
 	requireContract(t, runtimeContracts, "step:step.auth_admin_config_validate", "workflow.plugins.auth.v1.AuthAdminValidateConfig", "workflow.plugins.auth.v1.AuthAdminValidateInput", "workflow.plugins.auth.v1.AuthAdminValidateOutput")
 }
@@ -156,6 +157,33 @@ func TestTypedMethodsPolicyUsesMetadataRuntimeConfig(t *testing.T) {
 	}
 }
 
+func TestTypedAuthAdminConfigValidateReadsHTTPTriggerBody(t *testing.T) {
+	result, err := typedAuthAdminConfigValidate(context.Background(), sdk.TypedStepRequest[*contracts.AuthAdminValidateConfig, *contracts.AuthAdminValidateInput]{
+		Config: &contracts.AuthAdminValidateConfig{RequirePrimaryMethod: protoBool(true)},
+		Input:  &contracts.AuthAdminValidateInput{},
+		TriggerData: map[string]any{
+			"body": map[string]any{
+				"desired_config": map[string]any{
+					"environment":           "production",
+					"password_auth_enabled": true,
+				},
+			},
+		},
+	})
+	if err != nil {
+		t.Fatalf("typed auth admin validate: %v", err)
+	}
+	if result.Output.GetValid() {
+		t.Fatal("typed auth admin validate accepted production password auth")
+	}
+	for _, diagnostic := range result.Output.GetErrors() {
+		if diagnostic.GetField() == "password_auth_enabled" && strings.Contains(diagnostic.GetMessage(), "password auth cannot be enabled in production") {
+			return
+		}
+	}
+	t.Fatalf("missing password production diagnostic: %v", result.Output.GetErrors())
+}
+
 func TestTypedPolicyGateUsesMetadataRuntimeConfig(t *testing.T) {
 	result, err := typedPolicyGate(context.Background(), sdk.TypedStepRequest[*contracts.AuthPolicyGateConfig, *contracts.AuthPolicyGateInput]{
 		Config: &contracts.AuthPolicyGateConfig{
@@ -211,6 +239,9 @@ func TestPasskeyAndTOTPContractsUseRuntimeMapKeys(t *testing.T) {
 	requireProtoFields(t, &contracts.AuthProviderCapability{}, "key", "label", "category", "supported", "config_fields", "admin_read_scopes", "admin_write_scopes")
 	requireProtoFields(t, &contracts.AuthProviderConfigField{}, "key", "label", "input_type", "secret", "required", "options", "lookup")
 	requireProtoFields(t, &contracts.AuthProviderCatalogOutput{}, "providers", "warnings", "error")
+	requireProtoFields(t, &contracts.AuthAdminContribution{}, "id", "title", "category", "path", "render_mode", "app_context", "permissions", "actions", "metadata")
+	requireProtoFields(t, &contracts.AuthAdminContributionPermission{}, "resource", "action", "permission")
+	requireProtoFields(t, &contracts.AuthAdminContributionOutput{}, "contribution", "error")
 }
 
 func TestTypedPasskeyOutputsDecodeRuntimeKeys(t *testing.T) {

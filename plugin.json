@@ -1,6 +1,6 @@
 {
   "name": "workflow-plugin-auth",
-  "version": "0.2.11",
+  "version": "0.2.12",
   "description": "Passwordless authentication plugin: WebAuthn/passkeys, TOTP, email magic links",
   "author": "GoCodeAlone",
   "license": "MIT",
@@ -22,22 +22,22 @@
     {
       "os": "linux",
       "arch": "amd64",
-      "url": "https://github.com/GoCodeAlone/workflow-plugin-auth/releases/download/v0.2.11/workflow-plugin-auth_0.2.11_linux_amd64.tar.gz"
+      "url": "https://github.com/GoCodeAlone/workflow-plugin-auth/releases/download/v0.2.12/workflow-plugin-auth_0.2.12_linux_amd64.tar.gz"
     },
     {
       "os": "linux",
       "arch": "arm64",
-      "url": "https://github.com/GoCodeAlone/workflow-plugin-auth/releases/download/v0.2.11/workflow-plugin-auth_0.2.11_linux_arm64.tar.gz"
+      "url": "https://github.com/GoCodeAlone/workflow-plugin-auth/releases/download/v0.2.12/workflow-plugin-auth_0.2.12_linux_arm64.tar.gz"
     },
     {
       "os": "darwin",
       "arch": "amd64",
-      "url": "https://github.com/GoCodeAlone/workflow-plugin-auth/releases/download/v0.2.11/workflow-plugin-auth_0.2.11_darwin_amd64.tar.gz"
+      "url": "https://github.com/GoCodeAlone/workflow-plugin-auth/releases/download/v0.2.12/workflow-plugin-auth_0.2.12_darwin_amd64.tar.gz"
     },
     {
       "os": "darwin",
       "arch": "arm64",
-      "url": "https://github.com/GoCodeAlone/workflow-plugin-auth/releases/download/v0.2.11/workflow-plugin-auth_0.2.11_darwin_arm64.tar.gz"
+      "url": "https://github.com/GoCodeAlone/workflow-plugin-auth/releases/download/v0.2.12/workflow-plugin-auth_0.2.12_darwin_arm64.tar.gz"
     }
   ],
   "moduleTypes": [
@@ -64,6 +64,7 @@
     "step.auth_methods_response",
     "step.auth_policy_audit",
     "step.auth_provider_catalog",
+    "step.auth_admin_contribution_describe",
     "step.auth_admin_config_describe",
     "step.auth_admin_config_validate",
     "step.auth_oauth_provider_config",
@@ -99,6 +100,7 @@
       "step.auth_methods_response",
       "step.auth_policy_audit",
       "step.auth_provider_catalog",
+      "step.auth_admin_contribution_describe",
       "step.auth_admin_config_describe",
       "step.auth_admin_config_validate",
       "step.auth_oauth_provider_config",

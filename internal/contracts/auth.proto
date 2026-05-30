@@ -428,6 +428,45 @@ message AuthAdminDiagnostic {
   string message = 3;
 }
 
+message AuthAdminContributionConfig {
+  string id = 1;
+  string title = 2;
+  string category = 3;
+  string path = 4;
+  string render_mode = 5;
+  string app_context = 6;
+  repeated AuthAdminContributionPermission permissions = 7;
+  repeated string actions = 8;
+  google.protobuf.Struct metadata = 9;
+}
+
+message AuthAdminContributionInput {
+  AuthAdminContribution contribution = 1;
+}
+
+message AuthAdminContributionPermission {
+  string resource = 1;
+  string action = 2;
+  string permission = 3;
+}
+
+message AuthAdminContribution {
+  string id = 1;
+  string title = 2;
+  string category = 3;
+  string path = 4;
+  string render_mode = 5;
+  string app_context = 6;
+  repeated AuthAdminContributionPermission permissions = 7;
+  repeated string actions = 8;
+  google.protobuf.Struct metadata = 9;
+}
+
+message AuthAdminContributionOutput {
+  AuthAdminContribution contribution = 1;
+  string error = 100;
+}
+
 message AuthAdminDescribeOutput {
   repeated AuthAdminControlGroup groups = 1;
   google.protobuf.Struct effective_config = 2;
@@ -448,7 +487,7 @@ message AuthAdminValidateInput {
 }
 
 message AuthAdminValidateOutput {
-  bool valid = 1;
+  optional bool valid = 1;
   google.protobuf.Struct accepted_config = 2;
   google.protobuf.Struct methods_policy = 3;
   repeated AuthAdminDiagnostic errors = 4;

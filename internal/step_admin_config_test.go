@@ -111,6 +111,56 @@ func TestAuthAdminConfigDescribeExposesRealConfigControls(t *testing.T) {
 	}
 }
 
+func TestAuthAdminContributionDescribeExposesManagementTool(t *testing.T) {
+	step := newAuthAdminContributionDescribeStep("admin", map[string]any{
+		"app_context": "admin",
+	})
+
+	result, err := step.Execute(context.Background(), nil, nil, nil, nil, nil)
+	if err != nil {
+		t.Fatalf("describe admin contribution: %v", err)
+	}
+
+	contribution, ok := result.Output["contribution"].(map[string]any)
+	if !ok {
+		t.Fatalf("contribution has type %T, want map[string]any", result.Output["contribution"])
+	}
+	for key, want := range map[string]any{
+		"id":          "auth-config",
+		"title":       "Authentication",
+		"category":    "security",
+		"path":        "/api/admin/auth/config",
+		"render_mode": "config-form",
+		"app_context": "admin",
+	} {
+		if got := contribution[key]; got != want {
+			t.Fatalf("contribution[%s] = %v, want %v", key, got, want)
+		}
+	}
+	actions, ok := contribution["actions"].([]string)
+	if !ok {
+		t.Fatalf("actions has type %T, want []string", contribution["actions"])
+	}
+	for _, action := range []string{"read", "update"} {
+		if !slices.Contains(actions, action) {
+			t.Fatalf("actions missing %q: %v", action, actions)
+		}
+	}
+	permissions, ok := contribution["permissions"].([]map[string]any)
+	if !ok {
+		t.Fatalf("permissions has type %T, want []map[string]any", contribution["permissions"])
+	}
+	requireContributionPermission(t, permissions, "auth.config", "read", "admin:auth.config:read")
+	requireContributionPermission(t, permissions, "auth.config", "update", "admin:auth.config:update")
+	metadata, ok := contribution["metadata"].(map[string]any)
+	if !ok {
+		t.Fatalf("metadata has type %T, want map[string]any", contribution["metadata"])
+	}
+	if metadata["describe_path"] != "/api/admin/auth/config" || metadata["validate_path"] != "/api/admin/auth/config/validate" {
+		t.Fatalf("unexpected metadata: %#v", metadata)
+	}
+}
+
 func TestAuthAdminConfigValidateRejectsUnsafePasswordProduction(t *testing.T) {
 	step := newAuthAdminConfigValidateStep("admin", nil)
 
@@ -119,6 +169,25 @@ func TestAuthAdminConfigValidateRejectsUnsafePasswordProduction(t *testing.T) {
 		"desired_config": map[string]any{
 			"environment":           "production",
 			"password_auth_enabled": true,
+		},
+	}, nil, nil)
+	if err != nil {
+		t.Fatalf("validate admin config: %v", err)
+	}
+
+	assertBool(t, result.Output, "valid", false)
+	requireAdminDiagnostic(t, result.Output, "password_auth_enabled", "password auth cannot be enabled in production")
+}
+
+func TestAuthAdminConfigValidateReadsHTTPBodyDesiredConfig(t *testing.T) {
+	step := newAuthAdminConfigValidateStep("admin", map[string]any{"require_primary_method": true})
+
+	result, err := step.Execute(context.Background(), nil, nil, map[string]any{
+		"body": map[string]any{
+			"desired_config": map[string]any{
+				"environment":           "production",
+				"password_auth_enabled": true,
+			},
 		},
 	}, nil, nil)
 	if err != nil {
@@ -245,6 +314,16 @@ func requireAdminControl(t *testing.T, output map[string]any, key string, want a
 	if strings.TrimSpace(control["help_text"].(string)) == "" {
 		t.Fatalf("%s help_text is empty", key)
 	}
+}
+
+func requireContributionPermission(t *testing.T, permissions []map[string]any, resource, action, permission string) {
+	t.Helper()
+	for _, candidate := range permissions {
+		if candidate["resource"] == resource && candidate["action"] == action && candidate["permission"] == permission {
+			return
+		}
+	}
+	t.Fatalf("permissions missing %s/%s/%s: %#v", resource, action, permission, permissions)
 }
 
 func findAdminControl(t *testing.T, output map[string]any, key string) map[string]any {
