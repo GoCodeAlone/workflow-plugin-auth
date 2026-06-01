@@ -201,21 +201,21 @@ func TestIntegration_PluginManifestAndStepTypes(t *testing.T) {
 	if want := os.Getenv("PLUGIN_MANIFEST_EXPECT_VERSION"); want != "" && manifest.Version != want {
 		t.Fatalf("plugin.json version = %q, want release version %q", manifest.Version, want)
 	}
-		if manifest.Version == "0.0.0" {
-			for _, download := range manifest.Downloads {
-				if strings.Contains(download.URL, "/releases/download/v0.0.0/") ||
-					strings.Contains(download.URL, "workflow-plugin-auth_0.0.0_") {
-					t.Fatalf("download URL %q must not publish the dev sentinel", download.URL)
-				}
-			}
-		} else {
-			for _, download := range manifest.Downloads {
-				if !strings.Contains(download.URL, "/releases/download/v"+manifest.Version+"/") ||
-					!strings.Contains(download.URL, "workflow-plugin-auth_"+manifest.Version+"_") {
-					t.Fatalf("download URL %q does not match plugin.json version %q", download.URL, manifest.Version)
-				}
+	if manifest.Version == "0.0.0" {
+		for _, download := range manifest.Downloads {
+			if strings.Contains(download.URL, "/releases/download/v0.0.0/") ||
+				strings.Contains(download.URL, "workflow-plugin-auth_0.0.0_") {
+				t.Fatalf("download URL %q must not publish the dev sentinel", download.URL)
 			}
 		}
+	} else {
+		for _, download := range manifest.Downloads {
+			if !strings.Contains(download.URL, "/releases/download/v"+manifest.Version+"/") ||
+				!strings.Contains(download.URL, "workflow-plugin-auth_"+manifest.Version+"_") {
+				t.Fatalf("download URL %q does not match plugin.json version %q", download.URL, manifest.Version)
+			}
+		}
+	}
 	assertStringSetEqual(t, "plugin.json moduleTypes", manifest.ModuleTypes, mp.ModuleTypes())
 	assertStringSetEqual(t, "plugin.json stepTypes", manifest.StepTypes, sp.StepTypes())
 }
