@@ -1,6 +1,6 @@
 {
   "name": "workflow-plugin-auth",
-  "version": "0.2.12",
+  "version": "0.0.0",
   "description": "Passwordless authentication plugin: WebAuthn/passkeys, TOTP, email magic links",
   "author": "GoCodeAlone",
   "license": "MIT",
