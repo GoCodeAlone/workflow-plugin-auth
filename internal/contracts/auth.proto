@@ -668,3 +668,39 @@ message CredentialRevokeOutput {
   string credential_id = 2;
   string error = 100;
 }
+
+// --- Bootstrap redeem (step.auth_bootstrap_redeem) ---
+message BootstrapRedeemConfig {
+  string super_admin_email = 1;
+  string super_admin_role  = 2;   // output label; default "super_admin" applied in Go
+  string code_env          = 3;   // env var NAME; default "AUTH_BOOTSTRAP_CODE" applied in Go
+}
+message BootstrapRedeemInput {
+  string code                 = 1;
+  // existing_admin_count arrives via the dynamic pipeline context, not a typed field,
+  // because db_query/step.set emit it as a JSON number/string; read from `current`.
+  string existing_admin_count = 2; // accepted as string|number at runtime; coerced in Go
+}
+message BootstrapRedeemOutput {
+  bool   redeemed = 1;
+  string email    = 2;
+  string role     = 3;
+  string reason    = 4;  // "" | "bootstrap_closed" | "invalid_code" | "not_configured"
+  string error    = 100;
+}
+
+// --- JWT issue (step.auth_jwt_issue) ---
+message JWTIssueConfig {
+  string secret_env  = 1;  // env var NAME; default "AUTH_JWT_SECRET"
+  string issuer      = 2;  // default "workflow-plugin-auth"
+  int64  ttl_seconds = 3;  // default 3600
+}
+message JWTIssueInput {
+  string                  subject = 1;
+  google.protobuf.Struct  claims  = 2;
+}
+message JWTIssueOutput {
+  string token      = 1;
+  string expires_at = 2;  // RFC3339
+  string error      = 100;
+}
