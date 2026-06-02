@@ -145,8 +145,12 @@ Bootstrap + JWT-issue invariants (design rev 4, ADR-0001/0002):
 | T-AUTH-13 provider catalog contracts | ✅ | `step.auth_provider_catalog`, `AuthProviderDescriptor`, dynamic admin-provider controls |
 | T-AUTH-14 step.auth_bootstrap_redeem (count-gated) | ✅ | `internal/step_bootstrap.go` + `internal/step_bootstrap_test.go` |
 | T-AUTH-15 step.auth_jwt_issue (HS256 mint) | ✅ | `internal/step_jwt_issue.go` + `internal/step_jwt_issue_test.go` |
+| T-AUTH-16 cross-service asymmetric auth (#41) | ✅ by reuse | engine `auth.m2m` (ES256+JWKS) + `sso.oidc` jwksUri verify (workflow-plugin-sso v0.1.8) + provider pattern; demonstrated in workflow-scenarios#102; README "Auth Use Cases & Combinations"; ADR-0003. No bespoke IDP. |
 
 ## §X — References
+
+- **Auth use cases → step/module combinations:** see README "Auth Use Cases & Combinations" (same-app HS256 · admin bootstrap · M2M asymmetric ES256 · external-IDP OIDC · enterprise SSO/SCIM).
+- Cross-service asymmetric auth (#41): `docs/plans/2026-06-02-cross-service-asymmetric-auth-design.md` + ADR-0003; demo workflow-scenarios scenario 102.
 
 - Cross-consumer integration tracked in [gocodealone-multisite SPEC §C13/C14/V17-V21](https://github.com/GoCodeAlone/gocodealone-multisite/blob/main/SPEC.md)
 - Original BMW extraction: [docs/plans/2026-04-26-auth-oauth-extraction-design.md](docs/plans/2026-04-26-auth-oauth-extraction-design.md)

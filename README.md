@@ -178,6 +178,28 @@ Google endpoint overrides must remain HTTPS URLs on the expected Google hosts.
 Insecure local test endpoints require `allow_insecure_test_oauth_endpoints:
 true`.
 
+## Auth Use Cases & Combinations
+
+`workflow-plugin-auth` is a library of stateless auth primitives; complete auth
+flows are composed from these steps plus the engine's built-in `auth.*` modules
+and the provider plugins. Which combination covers which use case:
+
+| Use case | Combination | Demonstrated by |
+|---|---|---|
+| **Same-app session** (symmetric) | `step.auth_jwt_issue` (HS256) → `step.auth_validate` against an `auth.jwt` module sharing the secret | scenario 101 |
+| **First-run admin bootstrap** (durable, passkey/SSO upgrade) | `step.auth_bootstrap_redeem` (count-gated) + `step.auth_jwt_issue` + `step.auth_passkey_*` | scenario 101 |
+| **Passkey / passwordless** | `step.auth_passkey_*` (`auth.credential` module) · `step.auth_totp_*` · `step.auth_magic_link_*` | scenario 101 |
+| **App-to-app M2M, asymmetric (ES256)** — services verify each other with no shared secret | issuer: engine **`auth.m2m`** (`algorithm: ES256`, `/oauth/token`, `/oauth/jwks`) → verifier: **`sso.oidc`** `jwksUri` mode + `step.sso_validate_token` (`workflow-plugin-sso` ≥ v0.1.8) | **scenario 102** |
+| **Human / browser login via external IDP** (Auth0/Okta/Entra/Ory) | OIDC login (`step.auth_oauth_*` or engine `step.oidc_auth_url`/`step.oidc_callback`) → `sso.oidc` (discovery mode) + `step.sso_validate_token`; refresh `step.sso_refresh_token`; exchange `step.sso_token_exchange` | — |
+| **Enterprise SSO / SCIM** | provider plugins (`workflow-plugin-{okta,auth0,entra,ory-kratos,ory-hydra,ory-polis,scalekit}`) advertised via `step.auth_provider_catalog` / `AuthProviderDescriptor` | — |
+| **Credential management** (list, revoke, delete-min-1) | `step.auth_credential_list` / `step.auth_credential_revoke` + consumer `db_query`/`db_exec` | — |
+
+**Asymmetric cross-service note (issue #41):** the engine's `auth.m2m` module is
+the ES256 issuer + JWKS server (no plugin-side IDP is needed or built). A verifying
+app reuses `sso.oidc`'s `jwksUri` verify-only mode to validate tokens from the
+issuer's published JWKS — no shared secret, no OIDC-discovery requirement. External
+IDPs plug in through the same provider pattern. See ADR-0002 / ADR-0003.
+
 ## BMW Migration Map
 
 - `step.bmw.auth_policy` -> `step.auth_methods_policy`
