@@ -33,7 +33,7 @@
 | 2 | chore: registry manifest v0.3.0 (31 steps) | Task 7 | feat/auth-manifest-v0.3.0 (workflow-registry) |
 | 3 | test: scenario 101 auth admin bootstrap stack | Task 8, Task 9, Task 10, Task 11 | feat/scenario-101-auth-admin-bootstrap (workflow-scenarios) |
 
-**Status:** Draft
+**Status:** Locked 2026-06-02T06:28:06Z
 
 ---
 
