@@ -33,7 +33,7 @@
 | 2 | test: scenario 102 cross-service asymmetric auth | Task 4, Task 5, Task 6 | feat/scenario-102-cross-service-asymmetric (workflow-scenarios) |
 | 3 | docs: auth use-case matrix + close #41 | Task 7, Task 8, Task 9 | feat/auth-41-usecase-matrix (workflow-plugin-auth) |
 
-**Status:** Draft
+**Status:** Locked 2026-06-02T11:01:32Z
 
 ---
 

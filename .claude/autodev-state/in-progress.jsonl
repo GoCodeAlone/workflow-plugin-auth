@@ -10,3 +10,9 @@
 {"ts":"2026-06-02T06:25:46Z","ev":"agent","ag":"general-purpose","bg":false,"d":"Adversarial review: plan phase cycle 2"}
 {"ts":"2026-06-02T06:25:53Z","ev":"skill","sk":"autodev:alignment-check","args":"design: docs/plans/2026-06-02-auth-bootstrap-redeem-design.md plan: docs/plans/2"}
 {"ts":"2026-06-02T06:27:43Z","ev":"agent","ag":"general-purpose","bg":false,"d":"Check alignment: design vs plan"}
+{"ts":"2026-06-02T10:33:22Z","ev":"agent","ag":"general-purpose","bg":false,"d":"Adversarial review: auth#41 design"}
+{"ts":"2026-06-02T10:41:24Z","ev":"agent","ag":"general-purpose","bg":false,"d":"Adversarial review: auth#41 design cycle 2"}
+{"ts":"2026-06-02T10:49:28Z","ev":"agent","ag":"general-purpose","bg":false,"d":"Adversarial review: auth#41 plan"}
+{"ts":"2026-06-02T10:56:51Z","ev":"agent","ag":"general-purpose","bg":false,"d":"Adversarial review: auth#41 plan cycle 2"}
+{"ts":"2026-06-02T11:00:32Z","ev":"agent","ag":"general-purpose","bg":false,"d":"Adversarial review: auth#41 plan cycle 3"}
+{"ts":"2026-06-02T11:01:22Z","ev":"agent","ag":"general-purpose","bg":false,"d":"Alignment check auth#41"}
