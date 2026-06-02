@@ -1,10 +1,17 @@
-# Durable First-Run Admin Bootstrap — Design (2026-06-02, rev 3)
+# Durable First-Run Admin Bootstrap — Design (2026-06-02, rev 4)
 
 Issue: GoCodeAlone/workflow-plugin-auth#23. Supersedes the http-facade framing of #23
 (overtaken: gocodealone-multisite never imported the plugin; rolled bespoke
 `cmd/multisite-host/admin_bootstrap.go`). Realises (and extends) the "Phase II"
 earmark in `docs/plans/2026-05-17-admin-bootstrap-and-passkey-upgrade-design.md`.
 
+> **rev 4 (adversarial cycle-3):** cycle-3 verified cycle-2's fixes are real (all named
+> runtime steps have factories) and found 1C+3I on the new `auth_jwt_issue`: reserved-claim
+> override via the `claims` map (C6-1 → V-B8: standard claims always overwrite caller
+> claims), secret floor raised 16→**32** chars to match `auth.jwt.Init` + RFC 8725
+> (I3-1/I7-1), `jti = uuid.NewString()` (I3-2), `golang-jwt`+`uuid` direct-dep promotion as
+> an explicit task (I8-1). Transcript in §Cycle-3.
+>
 > **rev 3 (adversarial cycle-2):** cycle-1 wrongly named `step.m2m_token`/`step.auth_required`
 > as the session layer — both are **schema-only types with NO runtime factory** (verified
 > by grepping every `StepFactories()` in the engine; `mcp list_step_types` lists schema
@@ -87,11 +94,19 @@ output:
   token: string ; expires_at: string(RFC3339) ; error: string (field 100)
 ```
 HS256 sign via `github.com/golang-jwt/jwt/v5` (promoted to direct dep; already in the
-module graph). Emits standard claims `sub,iat,exp,iss,jti` + caller claims. Secret `<16`
-chars OR empty → `{error:"signing secret not configured"}`. **Verified compatible** with
-the engine gate: `JWTAuthModule.Authenticate` (`module/jwt_auth.go:131`) is signature-only
-HS256 (no user-store dependency) + optional blacklist → a token signed with the shared
-secret validates. Minimal by design: no JWKS / refresh / asymmetric (Phase II, ADR-0002).
+module graph). **Claim merge order (cycle-3 C6-1):** write caller `claims` FIRST, then
+overwrite the reserved standard claims `sub` (from `subject`), `iat`/`exp` (from
+`ttl_seconds`), `iss` (from `issuer`), `jti` (`uuid.NewString()`, same source as engine
+`jwt_auth.go:466`) — **standard claims always win**; a caller cannot override them
+(V-B8). Secret empty OR `< 32` chars → `{error:"signing secret not configured"}` —
+**32-char floor** matches `auth.jwt.Init`'s enforced ≥32-byte minimum (`jwt_auth.go:105`)
+and RFC 8725 §3.5 (HS256 key ≥ hash size). **Verified compatible** with the engine gate:
+`JWTAuthModule.Authenticate` (`module/jwt_auth.go:131`) is signature-only HS256 (no
+user-store dependency) + optional blacklist → a token signed with the shared secret
+validates. Minimal by design: no JWKS / refresh / asymmetric (Phase II, ADR-0002).
+`claims` kept as `map<string,any>` (structpb) for general-purpose flexibility; the
+fixed-shape-proto alternative (cycle-3 option) was considered and rejected — the reserved-claim
+guard (V-B8) closes the injection risk without losing expressiveness.
 
 ### Status read — `GET /admin/bootstrap/status` pipeline (cycle-2 I2-3; consumer-owned)
 
@@ -146,7 +161,8 @@ backs db_query/db_exec. Concurrent pre-enrolment redeems are harmless (same prin
 - V-B4: once ≥1 admin **credential** exists, no code value re-opens bootstrap (durable close).
 - V-B5: redeem/issue output + logs never echo the code, env secret, or signing key.
 - V-B6: gate counts CREDENTIAL rows, not user rows (the super-admin user may exist with no credential during the enrolment window).
-- V-B7: `auth_jwt_issue` signs HS256 only when the configured secret is ≥16 chars; else returns an error (no unsigned/empty-secret token).
+- V-B7: `auth_jwt_issue` signs HS256 only when the configured secret is ≥32 chars (matches `auth.jwt.Init` + RFC 8725); else returns an error (no unsigned/weak-secret token).
+- V-B8: `auth_jwt_issue` always sets `sub/iat/exp/iss/jti` itself, overwriting any same-named keys in the caller `claims` map — a caller cannot override the standard claims (anti-injection).
 
 ## Security Review
 
@@ -181,7 +197,9 @@ Each new step requires ALL of (cycle-1 A3-1): (1) proto messages in `internal/co
 `protoc-gen-go v1.36.11`): `protoc --go_out=. --go_opt=paths=source_relative internal/contracts/auth.proto`
 (cycle-2 M2-3); (3) `CreateStep` case; (4) `CreateTypedStep` case (`sdk.NewTypedStepFactory`);
 (5) `stepContract(...)` in `authContractRegistry`; (6) add to `allStepTypes` + `plugin.json`
-stepTypes + capabilities.stepTypes. `go.mod`: promote `golang-jwt/jwt/v5` to direct require.
+stepTypes + capabilities.stepTypes; (7) `go get github.com/golang-jwt/jwt/v5@v5.3.1` +
+`go get github.com/google/uuid` to promote both to direct require + update `go.sum` (cycle-3 I8-1).
+For `auth_jwt_issue`: caller-claims-first then standard-claims-overwrite merge (V-B8); `jti = uuid.NewString()` (cycle-3 I3-2); secret floor 32 chars (cycle-3 I3-1/I7-1).
 
 ## Assumptions (load-bearing; verified)
 
@@ -205,6 +223,17 @@ stepTypes + capabilities.stepTypes. `go.mod`: promote `golang-jwt/jwt/v5` to dir
 - **In:** plugin steps `auth_bootstrap_redeem` + `auth_jwt_issue` + contracts + tests + SPEC/README/manifest → v0.3.0; registry rebuild; new scenario 101 (curl + Playwright + playwright-cli QA).
 - **Out (tracked follow-up):** migrate gocodealone-multisite onto the steps (private host; current solution works). File issue post-merge.
 - **Out (Phase II, ADR-0002):** full IDP — JWKS endpoint, refresh tokens, asymmetric/ES256, `auth.idp` module, key rotation. The minimal HS256 symmetric `auth_jwt_issue` ships now.
+
+## Cycle-3 resolutions (adversarial-design-review --phase=design)
+
+| id | sev | finding | resolution |
+|---|---|---|---|
+| C6-1 | Critical | reserved-claim override via `claims` map (merge order unspecified) | V-B8 + §I: caller claims first, standard claims (`sub/iat/exp/iss/jti`) overwrite — caller cannot override |
+| I3-1 / I7-1 | Important | step secret floor 16 < engine `auth.jwt.Init` 32-byte min | raised to ≥32 chars (V-B7, §I, RFC 8725) |
+| I3-2 | Important | `jti` generation source unspecified | `jti = uuid.NewString()` (engine precedent jwt_auth.go:466) |
+| I8-1 | Important | `golang-jwt/jwt/v5` indirect; promotion passive | §Impl step (7): explicit `go get` for golang-jwt + uuid |
+
+(cycle-3 verified all named runtime steps have real `StepFactories()`; cycle-2 fixes confirmed genuine.)
 
 ## Cycle-2 resolutions (adversarial-design-review --phase=design)
 
