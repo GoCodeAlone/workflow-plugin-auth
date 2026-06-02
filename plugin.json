@@ -72,7 +72,9 @@
     "step.auth_oauth_exchange",
     "step.auth_oauth_userinfo",
     "step.auth_credential_list",
-    "step.auth_credential_revoke"
+    "step.auth_credential_revoke",
+    "step.auth_bootstrap_redeem",
+    "step.auth_jwt_issue"
   ],
   "capabilities": {
     "configProvider": false,
@@ -108,7 +110,9 @@
       "step.auth_oauth_exchange",
       "step.auth_oauth_userinfo",
       "step.auth_credential_list",
-      "step.auth_credential_revoke"
+      "step.auth_credential_revoke",
+      "step.auth_bootstrap_redeem",
+      "step.auth_jwt_issue"
     ],
     "triggerTypes": []
   }

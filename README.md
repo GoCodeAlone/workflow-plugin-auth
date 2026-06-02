@@ -49,6 +49,37 @@ The plugin binary itself is distributed via public GitHub Releases — `GH_TOKEN
 - `step.auth_oauth_userinfo`
 - `step.auth_credential_list`
 - `step.auth_credential_revoke`
+- `step.auth_bootstrap_redeem`
+- `step.auth_jwt_issue`
+
+## First-run Admin Bootstrap
+
+`step.auth_bootstrap_redeem` provides a durable, count-gated first-run admin
+code redemption. Bootstrap is OPEN when zero admin credentials exist and CLOSES
+permanently once any credential (passkey, google, facebook) is enrolled. The
+operator provides a one-time code via the `AUTH_BOOTSTRAP_CODE` environment
+variable (≥16 chars; the step enforces this minimum and returns `not_configured`
+if shorter).
+
+`step.auth_jwt_issue` mints an HS256 bearer token signed with the shared
+`AUTH_JWT_SECRET` (≥32 chars, matching `auth.jwt.Init`). The step enforces V-B8:
+the standard claims `sub`, `iat`, `exp`, `iss`, and `jti` are always written by
+the step itself and cannot be overridden via the caller `claims` map. The minted
+token validates directly against an `auth.jwt` module configured with the same
+secret via `step.auth_validate`.
+
+Typical bootstrap flow:
+1. Fresh deploy → `GET /admin/bootstrap/status` returns `{open: true}`.
+2. Operator redeems the out-of-band code → `POST /admin/bootstrap/redeem` with
+   `{code}` → `step.auth_bootstrap_redeem` + `step.auth_jwt_issue` → `{token}`.
+3. Super-admin uses the bearer token to enrol a passkey or link SSO.
+4. First credential inserted → count ≥ 1 → bootstrap closes permanently.
+5. Re-deploy with same DB → still closed. Empty credential store → re-opens
+   (break-glass).
+
+Environment variables:
+- `AUTH_BOOTSTRAP_CODE` — operator-set one-time code, ≥16 characters.
+- `AUTH_JWT_SECRET` — HS256 signing secret shared with `auth.jwt` module, ≥32 characters.
 
 ## Password Steps
 
