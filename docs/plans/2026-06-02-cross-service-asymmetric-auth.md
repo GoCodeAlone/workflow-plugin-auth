@@ -50,19 +50,27 @@ Repo `/Users/jon/workspace/workflow-plugin-sso`, branch off origin/main. `GOWORK
 **Step 2:** Run `GOWORK=off go test ./internal/ -run JWKSURI -v` → FAIL (JWKSURI field undefined).
 
 **Step 3 — implementation:**
-- `internal/oidc.go` `ProviderConfig`: add `JWKSURI string` field.
+- `internal/oidc.go` `ProviderConfig`: add `JWKSURI string` + `SigningAlgorithms []string` fields.
 - `InitProvider`: branch at the top — when `cfg.JWKSURI != ""`:
   ```go
   keySet := oidc.NewRemoteKeySet(ctx, cfg.JWKSURI)
+  algs := cfg.SigningAlgorithms
+  if len(algs) == 0 {
+      algs = []string{"ES256", "RS256"} // CRITICAL (cycle-2 F1): go-oidc NewVerifier defaults to
+      // RS256-ONLY when SupportedSigningAlgs is empty (verify.go:317) — it would REJECT auth.m2m's
+      // ES256 tokens at runtime. Must include ES256.
+  }
   verifier := oidc.NewVerifier(issuer, keySet, &oidc.Config{
-      ClientID:          cfg.ClientID,
-      SkipClientIDCheck: cfg.ClientID == "",
+      ClientID:             cfg.ClientID,
+      SkipClientIDCheck:    cfg.ClientID == "",
+      SupportedSigningAlgs: algs,
   })
   // verify-only: no discovery, no OAuthCfg.Endpoint (refresh/exchange require discovery path)
   return &OIDCProvider{ProviderName: cfg.Name, Issuer: issuer, Verifier: verifier, OAuthCfg: &oauth2.Config{ClientID: cfg.ClientID, ClientSecret: cfg.ClientSecret, Scopes: scopesOrDefault(cfg.Scopes)}, ClaimPaths: claimMapOrDefault(cfg.ClaimMapping)}, nil
   ```
   Keep the existing `oidc.NewProvider(ctx, issuer)` discovery path for the `else` (JWKSURI=="") case unchanged.
-- `internal/module_oidc.go` provider parse: add `JWKSURI: getString(raw, "jwksUri")` to the `ProviderConfig` built from `raw`.
+- `internal/module_oidc.go` provider parse: add `JWKSURI: getString(raw, "jwksUri")` + `SigningAlgorithms: getStringSlice(raw, "signingAlgorithms")` to the `ProviderConfig` built from `raw`.
+- **Test note (cycle-2 F1):** the RS256 mock test must pass `SupportedSigningAlgs:["RS256"]` (or rely on the ES256+RS256 default which includes RS256) — assert it explicitly so the RS256 pass is not accidental. ES256 is proven end-to-end in scenario 102 (real auth.m2m + default algs include ES256).
 
 **Step 4:** Run `GOWORK=off go test ./internal/ -run JWKSURI -v` → PASS.
 
@@ -122,9 +130,9 @@ Repo `/Users/jon/workspace/workflow-scenarios`, branch off origin/main. **Depend
     healthz: { trigger: {type: http, config: {path: /healthz, method: GET}}, steps: [{name: ok, type: step.json_response, config: {status: 200, body: {status: ok}}}] }
   ```
   (Do NOT use `step.delegate`/`api.command` — M2MAuthModule is an `HTTPHandler` (has `Handle`, not `ServeHTTP`); the `handler:` route binding via `app.GetService(name,&HTTPHandler)` is the correct, scenario-20-proven mount. cycle-2 F2.)
-- **`config/app-b.yaml` (verifier):** `http.server` + `router`; `sso.oidc` module `verifier` with `providers: [{name: app-a, issuer: http://app-a:8080, jwksUri: http://app-a:8080/oauth/jwks, clientId: app-b}]` (**N2: issuer string identical to App A's**). Pipelines:
+- **`config/app-b.yaml` (verifier):** `http.server` + `router`; `sso.oidc` module `verifier` with `providers: [{name: app-a, issuer: http://app-a:8080, jwksUri: http://app-a:8080/oauth/jwks, clientId: app-b, signingAlgorithms: [ES256]}]` (**N2: issuer byte-identical to App A's; cycle-2 F1: signingAlgorithms must list ES256**). Pipelines:
   - `POST /verify`: `step.request_parse` (parse_headers:[Authorization]) → `step.sso_validate_token {provider: app-a, token_source: steps.parse.headers.Authorization}` → `step.json_response` (claims on valid / 401 on invalid).
-  - `POST /proxy/token` (cycle-2 F5, so the browser console + Playwright fetch a token same-origin): `step.http_call` POST `http://app-a:8080/oauth/token` (client_credentials form, App-A client creds) → `step.json_response {access_token}`.
+  - `POST /proxy/token` (cycle-2 F5 — browser same-origin token fetch): `step.http_call` to App A `/oauth/token`. NOTE: auth.m2m's token endpoint uses `r.ParseForm()` (form-encoded), but `step.http_call` `body:` map serializes JSON. Send **form-encoded**: set `headers: {Content-Type: application/x-www-form-urlencoded}` + a pre-encoded `body_from`/raw string `grant_type=client_credentials&client_id=...&client_secret=...` (confirm step.http_call raw-body support at impl time; `pipeline_step_http_call.go`). If form-encoding via step.http_call proves awkward, FALL BACK: drop `/proxy/token` and have the Playwright/playwright-cli test fetch the token from App A's published port (`:18102/oauth/token`) out-of-band and supply it to the console's token input (Task 6). Either path keeps the cross-service verify (the console's job) intact.
   - `GET /healthz` + the verification-console UI route (Task 6).
 - **`docker-compose.yml`:** services `app-a` (`auth-xservice-a:scenario-102`, port `18102`), `app-b` (`auth-xservice-b:scenario-102`, port `18112`), `app-b depends_on app-a healthy`. Image-bake (mirror scenario 101 seed Dockerfile: WORKDIR /home/nonroot, plugins → `./data/plugins`, `-config` flag, no leading `server`).
 - **`seed/seed.sh`:** cross-compile (`GOOS=linux GOARCH=amd64`) the engine server once + the sso plugin (from `../../workflow-plugin-sso`) into `./data/plugins/workflow-plugin-sso/`; bake one image used by both services (different `-config`); `docker compose up`; wait both `/healthz`.
@@ -150,7 +158,7 @@ Assertions (the genuine cross-service proof):
 
 ### Task 6: Browser verification console + Playwright + playwright-cli QA + register
 
-**Files:** `ui/index.html`(+ js) (App B "Verification Console": button fetches an App-A token via App B proxy route or pasted, POSTs `/verify`, renders verified claims vs rejection), `static.fileserver` in `app-b.yaml`; `e2e/tests/scenario-102-cross-service-asymmetric.spec.ts` (Playwright: load console → verify valid token → see claims; verify tampered → see rejection; self-reset if stateful); `test/EXPLORATORY.md` + `test/screenshots/`; `scenarios.json` entry (id 102).
+**Files:** `ui/index.html`(+ js) — App B "Verification Console": a **token textarea** + "Fetch from App A" button (calls App B `/proxy/token`; if that's dropped per F5, the test fills the textarea with a token obtained out-of-band) + "Verify" button (POST `/verify` with the token) → renders verified claims (valid) vs rejection (401). `static.fileserver` in `app-b.yaml`; `e2e/tests/scenario-102-cross-service-asymmetric.spec.ts` (Playwright: obtain an App-A ES256 token via App A's published `/oauth/token` in test setup → fill console → Verify → assert claims shown; then tamper the token → Verify → assert rejection shown; stateless so no DB reset needed); `test/EXPLORATORY.md` + `test/screenshots/`; `scenarios.json` entry (id 102).
 
 - **Playwright** (committed): drives the console; asserts valid→claims, tampered→rejected. Navigate to `http://localhost:18112`.
 - **playwright-cli exploratory QA** (DoD): walk the console (fetch token → verify → claims; tamper → rejected), screenshots → EXPLORATORY.md.
