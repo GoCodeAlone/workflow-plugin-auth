@@ -26,7 +26,10 @@ is OPEN ⟺ zero admin credentials exist. *Rejected:* (a) http.Handler facade ow
 routes/sessions/persistence — fights the stateless engine model, no consumer needs
 it; (b) a new `workflow-plugin-admin-bootstrap` plugin — fragments the auth surface;
 (c) a one-shot **consumed token** — cannot recover from credential loss, whereas the
-count-gate re-opens on an empty store for break-glass recovery. The auth plugin is
+count-gate re-opens on an empty store for break-glass recovery; (d) operator seeds the
+super-admin row directly via SQL at deploy time (BMW PR-2 pattern) — rejected: requires
+DB access at deploy, and has no mechanism to *close* the path after passkey enrolment
+(the count-gate auto-closes). The auth plugin is
 the home because bootstrap is an auth-credential primitive and the 2026-05-17 design
 pre-committed it for v0.3.0.
 
