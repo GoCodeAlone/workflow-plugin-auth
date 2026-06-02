@@ -45,7 +45,7 @@ Repo `/Users/jon/workspace/workflow-plugin-sso`, branch off origin/main. `GOWORK
 
 **Files:** Modify `internal/oidc.go` (`ProviderConfig` + `InitProvider`), `internal/module_oidc.go` (config parse); Test `internal/oidc_jwksuri_test.go`.
 
-**Step 1 — failing test** (`internal/oidc_jwksuri_test.go`): use the existing `mockOIDCServer` (serves `/keys` JWKS + signs ES256/RS256 tokens). Build a provider via `InitProvider(ctx, ProviderConfig{Name:"app-a", Issuer: mock.URL, JWKSURI: mock.URL+"/keys", ClientID:"app-b"})` (note: NO discovery). Assert: `provider.Verifier.Verify(ctx, validToken)` succeeds for a token with `iss=mock.URL`, `aud=app-b`; fails for a token signed by a DIFFERENT key; fails for `aud!=app-b`; fails for `iss!=mock.URL`. (Mirror `oidc_test.go`'s mockOIDCServer token-minting helpers.)
+**Step 1 — failing test** (`internal/oidc_jwksuri_test.go`): use the existing `mockOIDCServer` (it serves `/keys` JWKS + mints **RS256** tokens — that is FINE; `NewRemoteKeySet`+`NewVerifier` are algorithm-agnostic, so this proves the jwksUri *verify mechanism*; ES256 specifically is proven end-to-end in scenario 102 against real `auth.m2m`, cycle-2 F1). Build a provider via `InitProvider(ctx, ProviderConfig{Name:"app-a", Issuer: mock.URL, JWKSURI: mock.URL+"/keys", ClientID:"app-b"})` (note: NO discovery — assert no request hits `/.well-known/openid-configuration`). Assert: `provider.Verifier.Verify(ctx, validToken)` succeeds for a token with `iss=mock.URL`, `aud=app-b`; fails for a token signed by a DIFFERENT key (add a 2nd mock key/server); fails for `aud!=app-b`; fails for `iss!=mock.URL`. (Reuse `oidc_test.go`'s mock token-minting helpers; do NOT extend the mock to ES256 — unneeded.)
 
 **Step 2:** Run `GOWORK=off go test ./internal/ -run JWKSURI -v` → FAIL (JWKSURI field undefined).
 
@@ -85,7 +85,7 @@ GOWORK=off golangci-lint run --new-from-rev=origin/main ./...  # 0 issues
 **Rollback:** revert PR; don't advance tag; discovery path untouched.
 - Pre-tag: `git ls-remote --tags origin | grep -c 'v0.1.7$'` → 0 (latest is v0.1.6).
 - PR → CI green + Copilot clear → admin-merge → `git tag v0.1.7 && git push origin v0.1.7`.
-- Registry manifest: only if the sso manifest tracks version/downloads — bump version→0.1.7 + downloads (no capabilities change). If notify-sync handles it, skip. Verify `gh release view v0.1.7`.
+- Registry manifest (cycle-2 F4): check `.github/workflows/release.yml` for an automatic registry notify-dispatch; if present, the registry sync is automatic → skip manual edit. Else open a tiny workflow-registry PR bumping the sso manifest version→0.1.7 + downloads (no capabilities change). Verify `gh release view v0.1.7` has assets.
 
 ---
 
@@ -97,8 +97,35 @@ Repo `/Users/jon/workspace/workflow-scenarios`, branch off origin/main. **Depend
 
 **Files (under `scenarios/102-cross-service-asymmetric-auth/`):** `scenario.yaml`, `README.md`, `config/app-a.yaml`, `config/app-b.yaml`, `docker-compose.yml`, `seed/seed.sh`.
 
-- **`config/app-a.yaml` (issuer):** `http.server` + `router`; `auth.m2m` module `appissuer` with `algorithm: ES256` + a generated/configured EC private key + `issuer: http://app-a:8080` + a registered M2M client (`client_id`/`client_secret`) carrying **`claims: {aud: app-b}`** (cycle-2 N1 — confirm the auth.m2m `clients` config shape in `workflow/plugins/auth/plugin.go`; `issueToken` passes `client.Claims`). Mount the `auth.m2m` handler so `/oauth/token` + `/oauth/jwks` are reachable (see how `auth.m2m`/`auth.jwt` bind via `workflows.http` handler or route prefix; `auth_m2m.go` endpoints default `/oauth/token`,`/oauth/jwks`). A `GET /healthz` pipeline.
-- **`config/app-b.yaml` (verifier):** `http.server` + `router`; `sso.oidc` module `verifier` with `providers: [{name: app-a, issuer: http://app-a:8080, jwksUri: http://app-a:8080/oauth/jwks, clientId: app-b}]` (**N2: issuer string identical to App A's**). Pipeline `POST /verify`: `step.request_parse` (parse_headers:[Authorization] or body token) → `step.sso_validate_token {provider: app-a, token_source: ...}` → `step.json_response` (claims on valid / 401 on invalid). `GET /healthz` + the verification-console UI route (Task 6).
+- **`config/app-a.yaml` (issuer).** GROUNDED config keys (from `plugins/auth/plugin.go` auth.m2m factory):
+  ```yaml
+  modules:
+    - { name: server, type: http.server, config: { address: ":8080" } }
+    - { name: router, type: http.router, dependsOn: [server] }
+    - name: appissuer
+      type: auth.m2m
+      config:
+        algorithm: ES256          # omit privateKey → module GenerateECDSAKey at init
+        issuer: http://app-a:8080  # MUST byte-match App B's provider issuer (N2)
+        tokenExpiry: 1h
+        clients:
+          - { clientId: app-b-caller, clientSecret: ${APP_A_CLIENT_SECRET}, claims: { aud: app-b } }  # aud flows via client.Claims (N1)
+      dependsOn: [router]
+  workflows:
+    http:
+      server: server
+      router: router
+      routes:                      # mount auth.m2m's HTTPHandler (Handle dispatches by path-suffix); scenario-20 `handler:` pattern
+        - { method: POST, path: /oauth/token, handler: appissuer }
+        - { method: GET,  path: /oauth/jwks,  handler: appissuer }
+  pipelines:
+    healthz: { trigger: {type: http, config: {path: /healthz, method: GET}}, steps: [{name: ok, type: step.json_response, config: {status: 200, body: {status: ok}}}] }
+  ```
+  (Do NOT use `step.delegate`/`api.command` — M2MAuthModule is an `HTTPHandler` (has `Handle`, not `ServeHTTP`); the `handler:` route binding via `app.GetService(name,&HTTPHandler)` is the correct, scenario-20-proven mount. cycle-2 F2.)
+- **`config/app-b.yaml` (verifier):** `http.server` + `router`; `sso.oidc` module `verifier` with `providers: [{name: app-a, issuer: http://app-a:8080, jwksUri: http://app-a:8080/oauth/jwks, clientId: app-b}]` (**N2: issuer string identical to App A's**). Pipelines:
+  - `POST /verify`: `step.request_parse` (parse_headers:[Authorization]) → `step.sso_validate_token {provider: app-a, token_source: steps.parse.headers.Authorization}` → `step.json_response` (claims on valid / 401 on invalid).
+  - `POST /proxy/token` (cycle-2 F5, so the browser console + Playwright fetch a token same-origin): `step.http_call` POST `http://app-a:8080/oauth/token` (client_credentials form, App-A client creds) → `step.json_response {access_token}`.
+  - `GET /healthz` + the verification-console UI route (Task 6).
 - **`docker-compose.yml`:** services `app-a` (`auth-xservice-a:scenario-102`, port `18102`), `app-b` (`auth-xservice-b:scenario-102`, port `18112`), `app-b depends_on app-a healthy`. Image-bake (mirror scenario 101 seed Dockerfile: WORKDIR /home/nonroot, plugins → `./data/plugins`, `-config` flag, no leading `server`).
 - **`seed/seed.sh`:** cross-compile (`GOOS=linux GOARCH=amd64`) the engine server once + the sso plugin (from `../../workflow-plugin-sso`) into `./data/plugins/workflow-plugin-sso/`; bake one image used by both services (different `-config`); `docker compose up`; wait both `/healthz`.
 
@@ -116,7 +143,8 @@ Assertions (the genuine cross-service proof):
 5. **Reject aud-mismatch:** a token with `aud != app-b` → 401 (N3-adjacent).
 6. **Reject wrong-issuer:** a token with `iss != http://app-a:8080` → 401 (**N3**).
 7. **Reject expired/garbage** → 401.
-(Tokens for 4-6 minted via a tiny inline helper or a second auth.m2m with a different key/issuer; or `openssl`/`go run` mint. Keep deterministic.)
+
+**Negative-case tokens (cycle-2 F3, deterministic):** add a tiny Go helper `test/mint-token/main.go` (cross-compiled in `seed/seed.sh` into `./data/mint-token`, or `go run` at test time) that mints an ES256 JWT with flags `-iss -aud -exp -key <pem>`. run.sh uses it to produce: wrong-key (fresh ES256 key), aud-mismatch (`-aud other`), wrong-issuer (`-iss http://evil`), expired (`-exp -1m`) tokens — all deterministic, no second auth.m2m service, no openssl-in-bash. The valid (accept) token comes from App A's real `/oauth/token` (proving the real issuer path).
 **Step — verify:** run seed.sh then run.sh → `Results: N passed, 0 failed`.
 **Commit:** `test(scenario-102): curl smoke — cross-service accept + wrong-key/aud/issuer/expired reject`.
 
