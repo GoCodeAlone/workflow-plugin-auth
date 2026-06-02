@@ -168,7 +168,7 @@ backs db_query/db_exec. Concurrent pre-enrolment redeems are harmless (same prin
 
 - **AuthZ/authn:** code is the sole bootstrap secret; gate is `count==0`. Leaked code INERT once a credential exists (V-B4). Constant-time compare + length guard. Default-deny on ambiguous count.
 - **CSRF:** demo returns the session as a **bearer token in the JSON body** (client sends `Authorization: Bearer`) → no ambient-cookie auth, no CSRF surface. A consumer choosing cookies MUST set `SameSite=Strict` + JSON-only redeem route (documented).
-- **Brute force:** possible only in the pre-first-credential window. Consumer guidance (explicit, cycle-2 M2-2): **put the redeem route behind `step.rate_limit`** (engine step) — e.g. 5/min/IP — and use a ≥24-char code; the window closes permanently on first enrolment (strictly better than multisite's forever-open secret).
+- **Brute force:** possible only in the pre-first-credential window. Consumer guidance (explicit, cycle-2 M2-2): **put the redeem route behind `step.rate_limit`** (engine step) — e.g. 5/min/IP — and use a ≥24-char code (the step enforces a 16-char *minimum*; 24+ is the operator-deployment *recommendation*); the window closes permanently on first enrolment (strictly better than multisite's forever-open secret).
 - **Token storage (cycle-2 I2-5):** demo admin UI keeps the bearer in an in-memory JS variable / `sessionStorage` (the Playwright spec reuses it across steps); **production consumers MUST prefer short-lived tokens + HttpOnly cookies** (documented in the scenario README). `auth_jwt_issue` sets `jti` so `step.token_revoke` can blacklist on logout.
 - **Secrets/logging:** code + signing secret from env; never logged; never in output (V-B5, V-B7). Rotation = change env + restart. Relies on env secrecy at the infra layer.
 - **Least privilege / deps:** minted role exactly `super_admin` (config label); new direct dep `golang-jwt/jwt/v5` (already in graph, BSD-3, widely used). STRICT_PROTO contracts.
@@ -198,7 +198,7 @@ Each new step requires ALL of (cycle-1 A3-1): (1) proto messages in `internal/co
 (cycle-2 M2-3); (3) `CreateStep` case; (4) `CreateTypedStep` case (`sdk.NewTypedStepFactory`);
 (5) `stepContract(...)` in `authContractRegistry`; (6) add to `allStepTypes` + `plugin.json`
 stepTypes + capabilities.stepTypes; (7) `go get github.com/golang-jwt/jwt/v5@v5.3.1` +
-`go get github.com/google/uuid` to promote both to direct require + update `go.sum` (cycle-3 I8-1).
+`go get github.com/google/uuid@v1.6.0` to promote both to direct require + update `go.sum` (cycle-3 I8-1).
 For `auth_jwt_issue`: caller-claims-first then standard-claims-overwrite merge (V-B8); `jti = uuid.NewString()` (cycle-3 I3-2); secret floor 32 chars (cycle-3 I3-1/I7-1).
 
 ## Assumptions (load-bearing; verified)

@@ -3,7 +3,7 @@
 **Status:** Accepted
 **Date:** 2026-06-02
 **Decision-makers:** Jon Langevin (codingsloth@pm.me), autodev pipeline
-**Related:** `docs/plans/2026-06-02-auth-bootstrap-redeem-design.md` (rev 3), ADR-0001, `docs/plans/2026-05-17-admin-bootstrap-and-passkey-upgrade-design.md` (§Phase II), adversarial cycle-2 (C2-1/C2-2/C2-3)
+**Related:** `docs/plans/2026-06-02-auth-bootstrap-redeem-design.md` (rev 4), ADR-0001, `docs/plans/2026-05-17-admin-bootstrap-and-passkey-upgrade-design.md` (§Phase II), adversarial cycle-2 (C2-1/C2-2/C2-3)
 
 ## Context
 
