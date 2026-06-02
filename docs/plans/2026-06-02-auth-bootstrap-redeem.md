@@ -92,9 +92,10 @@ message JWTIssueOutput {
 **Step 2:** Regenerate. No Makefile/buf target; the existing header shows `protoc-gen-go v1.36.11`. Run:
 ```bash
 cd internal/contracts
-protoc --go_out=. --go_opt=paths=source_relative auth.proto
+protoc -I . -I "$(brew --prefix protobuf 2>/dev/null)/include" \
+  --go_out=. --go_opt=paths=source_relative auth.proto
 ```
-If `protoc`/`protoc-gen-go` absent: `go install google.golang.org/protobuf/cmd/protoc-gen-go@v1.36.11` and install protoc (brew install protobuf), then re-run. Verify the new messages appear in `auth.pb.go`.
+The `-I .../include` resolves the well-known `google/protobuf/struct.proto` import (already imported at `auth.proto:7`; F6). If `protoc`/`protoc-gen-go` absent: `go install google.golang.org/protobuf/cmd/protoc-gen-go@v1.36.11` + `brew install protobuf`, then re-run. Verify the new messages appear in `auth.pb.go`.
 Expected: `auth.pb.go` contains `type BootstrapRedeemInput struct` and `type JWTIssueOutput struct`.
 
 **Step 3:** Verify compile: `GOWORK=off go build ./...` → exit 0.
@@ -110,6 +111,14 @@ git commit -m "feat(auth): proto contracts for bootstrap_redeem + jwt_issue step
 **Files:**
 - Create: `internal/step_bootstrap.go`
 - Create: `internal/step_bootstrap_test.go`
+
+> **Test idiom (plan-cycle F5):** call `Execute` directly with the real signature — do NOT use a generic helper. The signature (per `internal/step_credential_test.go`) is `Execute(context.Context, map[string]any, map[string]map[string]any, current, map[string]any, map[string]any) (*sdk.StepResult, error)`. Pattern:
+> ```go
+> res, err := s.Execute(context.Background(), nil, nil, current, nil, nil)
+> if err != nil { t.Fatalf("execute: %v", err) }
+> out := res.Output  // map[string]any
+> ```
+> Replace every `mustExec(t, s, current)` below with this 3-line idiom inline (assign `out := res.Output`).
 
 **Step 1 — failing test** (`internal/step_bootstrap_test.go`):
 
@@ -178,17 +187,9 @@ func TestBootstrapRedeem_CountCoercion(t *testing.T) {
 	}
 }
 
-// mustExec helper (add once; reuse in jwt_issue test if same package):
-func mustExec(t *testing.T, s interface {
-	Execute(ctxArg any, a map[string]any, b map[string]map[string]any, current, d, e map[string]any) (any, error)
-}, current map[string]any) map[string]any {
-	t.Helper()
-	// NOTE: replace `any` ctx/return with the real sdk types per the existing step test pattern
-	// (see internal/step_credential_test.go for the exact Execute signature + StepResult unwrap).
-	panic("implement using sdk.StepResult like step_credential_test.go")
-}
+// Use the inline idiom from the note above (res, err := s.Execute(context.Background(), nil, nil, current, nil, nil); out := res.Output).
+// `mustExec(t, s, current)` in these snippets is shorthand for that 3-line block — expand it inline; do NOT define a generic-interface helper (it will not satisfy the concrete *sdk.StepResult return type).
 ```
-> Implementer: copy the exact `Execute` invocation + `*sdk.StepResult` unwrap idiom from `internal/step_credential_test.go` (it exercises `credentialRevokeStep.Execute(context.Background(), nil, nil, current, nil, nil)` and reads `res.Output`). Replace the placeholder `mustExec` with that idiom.
 
 **Step 2:** Run `GOWORK=off go test ./internal/ -run TestBootstrapRedeem -v` → FAIL (undefined `newBootstrapRedeemStep`).
 
@@ -544,11 +545,11 @@ Expected: release.yml builds v0.3.0 cross-platform; GitHub release Latest. Verif
 
 **Step 1:** Pre-edit existence check: `ls v1/plugins/workflow-plugin-auth/manifest.json` (exists at v0.2.7, 25 steps).
 
-**Step 2:** Set `version` → `0.3.0`; `minEngineVersion` → `0.57.2` (align to plugin.json). Replace `stepTypes` (and any `capabilities.stepTypes`) with the full 31-step list from the merged `plugin.json` (29 current + `step.auth_bootstrap_redeem` + `step.auth_jwt_issue`). Update `downloads` URLs to the `v0.3.0` release assets.
+**Step 2:** Set `version` → `0.3.0`; `minEngineVersion` → `0.57.2` (align to plugin.json). This registry manifest uses **`capabilities.stepTypes`** (there is NO top-level `stepTypes` field — F2). Replace `capabilities.stepTypes` with the full 31-step list (the 29 from the merged `plugin.json` `capabilities.stepTypes` + `step.auth_bootstrap_redeem` + `step.auth_jwt_issue`); also update `capabilities.moduleTypes` if unchanged (still `auth.credential`). Update `downloads` URLs to the `v0.3.0` release assets.
 
 **Step 3:** Update `v1/index.json` auth entry: `version` 0.3.0, `minEngineVersion` 0.57.2.
 
-**Step 4 — verify** (manifest/config-validation class): `python3 -c "import json; m=json.load(open('v1/plugins/workflow-plugin-auth/manifest.json')); assert m['version']=='0.3.0'; assert len(m['stepTypes'])==31; print('ok', len(m['stepTypes']))"`. If the repo has a manifest-lint/CI script, run it. Expected: `ok 31`.
+**Step 4 — verify** (manifest/config-validation class): `python3 -c "import json; m=json.load(open('v1/plugins/workflow-plugin-auth/manifest.json')); assert m['version']=='0.3.0'; st=m['capabilities']['stepTypes']; assert len(st)==31, len(st); assert 'step.auth_bootstrap_redeem' in st and 'step.auth_jwt_issue' in st; print('ok', len(st))"`. If the repo has a manifest-lint/CI script, run it. Expected: `ok 31`.
 
 **Step 5:** Commit + PR + monitor + admin-merge on green.
 ```bash
@@ -583,17 +584,18 @@ git commit -m "chore(auth): manifest v0.3.0 — bootstrap_redeem + jwt_issue (31
 - Routes + pipelines (per design §I consumer wiring):
   - `GET /admin/bootstrap/status` → db_query count_creds → json_response `{open: count==0}`.
   - `POST /admin/bootstrap/redeem` → request_parse → db_query count_creds → set existing_admin_count → `step.auth_bootstrap_redeem` → conditional: redeemed → db_exec INSERT user ON CONFLICT DO NOTHING → `step.auth_jwt_issue` → json_response `{token}`; else 403 `{reason}`. Wrap the route with `step.rate_limit` (5/min/IP).
-  - `POST /admin/credentials/passkey/register/{begin,finish}` → `step.auth_validate {auth_module: jwtauth, token_source: ".headers.Authorization"}` → existing `step.auth_passkey_begin_register`/`finish_register` → db_exec INSERT credential(kind='passkey') on finish.
+  - `POST /admin/credentials/passkey/register/{begin,finish}` → `step.request_parse` named `parse_auth` with `parse_headers: [Authorization]` → `step.auth_validate {auth_module: jwtauth, token_source: steps.parse_auth.headers.Authorization}` (F1: NOT a leading-dot path — leading-dot resolves to nil and 401s always) → existing `step.auth_passkey_begin_register`/`finish_register` → db_exec INSERT credential(kind='passkey') on finish.
+  > **Template: copy the auth-gate wiring verbatim from `scenarios/90-admin-tailnet-demo/config/app.yaml`** (it uses `auth.jwt` + a `parse_auth` request_parse + `step.auth_validate token_source: steps.parse_auth.headers.Authorization` on every protected route — the exact pattern this scenario needs). Every protected route below uses the same `parse_auth`→`auth_validate` prefix.
   - `POST /admin/login/passkey/{begin,finish}` → `step.auth_passkey_begin_login`/`finish_login` (lookup credential by db_query) → `step.auth_jwt_issue` → `{token}`.
-  - `POST /admin/logout` → `step.auth_validate` → `step.token_revoke`.
+  - `POST /admin/logout` → `parse_auth` → `step.auth_validate` → `step.token_revoke`.
   - `GET /healthz` → json_response 200.
-> Validate against the engine: `wfctl validate config/app.yaml` MUST pass (entry-point module `http.server` present). Cross-check step/module type names against `scenarios/20-auth-service` + `92-infra-admin-demo`.
+> Cross-check every step/module type name against `scenarios/90-admin-tailnet-demo/config/app.yaml` (auth gate) + `20-auth-service` (auth.jwt) + `92-infra-admin-demo` (db).
 
-**Step 3:** `docker-compose.yml` — services: `postgres` (`postgres:16-alpine`, env POSTGRES_*, healthcheck), `workflow-server` (built from `../../..//workflow` + plugin binary mounted into `plugin_dir`, env `AUTH_BOOTSTRAP_CODE`, `AUTH_JWT_SECRET`, `DATABASE_URL`, depends_on postgres healthy), port `18101:8080`. Mirror scenario 92's compose structure.
+**Step 3:** `docker-compose.yml` — **image-bake pattern (F3/option), copy scenario 92's structure exactly**: services `postgres` (`postgres:16-alpine`, env POSTGRES_*, healthcheck) + `app` (`image: auth-admin:scenario-101` built by seed.sh, env `AUTH_BOOTSTRAP_CODE`/`AUTH_JWT_SECRET`/`DATABASE_URL`, `depends_on: postgres: condition: service_healthy`), port `18101:8080`. Engine reads `plugin_dir: /data/plugins` (baked into the image, NOT volume-mounted).
 
-**Step 4:** `seed/seed.sh` — (a) `docker compose up -d postgres`; wait healthy; (b) create tables `users(email PK, role)` + `credentials(id, user_email, kind, public_key, device_name, created_at, last_used_at)`; (c) build the auth plugin binary from `../../workflow-plugin-auth` into `$WFCTL_PLUGIN_DIR/workflow-plugin-auth/workflow-plugin-auth` + copy `plugin.json` sidecar (plugin-loader layout); (d) `docker compose up -d workflow-server`; wait `/healthz` 200.
+**Step 4:** `seed/seed.sh` — **mirror `scenarios/92-infra-admin-demo/seed/seed.sh` exactly** (image-bake), with these deltas: (a) `docker compose up -d postgres`; wait healthy; (b) create tables `users(email PK, role)` + `credentials(id, user_email, kind, public_key, device_name, created_at, last_used_at)` (psql against the postgres service); (c) **cross-compile** the engine server AND the auth plugin for the container (F3): `(cd $WORKFLOW_REPO && GOWORK=off GOOS=linux GOARCH=amd64 go build -o $BUILD_DIR/server ./cmd/server)` and `(cd ../../workflow-plugin-auth && GOWORK=off GOOS=linux GOARCH=amd64 go build -o $BUILD_DIR/plugins/workflow-plugin-auth/workflow-plugin-auth ./cmd/workflow-plugin-auth)` + `cp ../../workflow-plugin-auth/plugin.json $BUILD_DIR/plugins/workflow-plugin-auth/plugin.json`; (d) Dockerfile `COPY server /usr/local/bin/server` + `COPY plugins/ /data/plugins/`; `docker build -t auth-admin:scenario-101 $BUILD_DIR`; (e) `docker compose up -d`; wait `/healthz` 200.
 
-**Step 5 — verify:** `bash -n seed/seed.sh` (syntax); `wfctl validate config/app.yaml` → pass.
+**Step 5 — verify:** `bash -n seed/seed.sh` (syntax); `wfctl validate --plugin-manifest ../../workflow-plugin-auth/plugin.json config/app.yaml` → pass (F4: the `--plugin-manifest` flag resolves the plugin-provided `auth.credential` + `step.auth_*` types; entry-point `http.server` present).
 
 **Step 6:** Commit.
 ```bash

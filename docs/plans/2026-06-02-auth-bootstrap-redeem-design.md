@@ -26,6 +26,8 @@ earmark in `docs/plans/2026-05-17-admin-bootstrap-and-passkey-upgrade-design.md`
 > **rev 2 (cycle-1):** resolved 3C+9I (count-gate→credential count, db_query int coercion,
 > CSRF-by-bearer, registry backfill, min_code_length dropped, scenario id=101). See §Cycle-1.
 
+> **Backport (2026-06-02, plan-cycle F1):** the gate `token_source` is `steps.parse_auth.headers.Authorization` (a prior `step.request_parse` with `parse_headers:[Authorization]` named `parse_auth`), NOT a leading-dot path — `resolveBodyFrom` resolves a leading dot to nil → always-401. Precedent: `scenarios/90-admin-tailnet-demo`. Manifest/scope unchanged.
+
 ## §G — Goal
 
 Reusable, durable first-run admin login: fresh deploy → operator redeems an
@@ -141,7 +143,8 @@ POST /admin/bootstrap/redeem  (JSON {code}; bearer-token response → no cookie,
     false → step.json_response 403 {reason}
 
 Protected routes — POST /admin/credentials/passkey/register/{begin,finish}, /admin/logout:
-  step.auth_validate {auth_module: jwtauth, token_source: ".headers.Authorization"}     # REAL gate; 401 if absent/invalid
+  step.request_parse(parse_headers:[Authorization]) named `parse_auth`
+  step.auth_validate {auth_module: jwtauth, token_source: steps.parse_auth.headers.Authorization}  # REAL gate; 401 if absent/invalid
   → existing step.auth_passkey_* ; FINISH writes credential row → count→1 → bootstrap closes
   logout: step.token_revoke (real)
 
