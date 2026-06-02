@@ -29,9 +29,9 @@
 
 | PR # | Title | Tasks | Branch |
 |------|-------|-------|--------|
-| 1 | feat: bootstrap-redeem + jwt-issue steps (v0.3.0) | Task 1, 2, 3, 4, 5, 6 | feat/auth-bootstrap-redeem-2026-06-02 |
+| 1 | feat: bootstrap-redeem + jwt-issue steps (v0.3.0) | Task 1, Task 2, Task 3, Task 4, Task 5, Task 6 | feat/auth-bootstrap-redeem-2026-06-02 |
 | 2 | chore: registry manifest v0.3.0 (31 steps) | Task 7 | feat/auth-manifest-v0.3.0 (workflow-registry) |
-| 3 | test: scenario 101 auth admin bootstrap stack | Task 8, 9, 10, 11 | feat/scenario-101-auth-admin-bootstrap (workflow-scenarios) |
+| 3 | test: scenario 101 auth admin bootstrap stack | Task 8, Task 9, Task 10, Task 11 | feat/scenario-101-auth-admin-bootstrap (workflow-scenarios) |
 
 **Status:** Draft
 
