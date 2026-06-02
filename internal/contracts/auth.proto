@@ -677,9 +677,11 @@ message BootstrapRedeemConfig {
 }
 message BootstrapRedeemInput {
   string code                 = 1;
-  // existing_admin_count arrives via the dynamic pipeline context, not a typed field,
-  // because db_query/step.set emit it as a JSON number/string; read from `current`.
-  string existing_admin_count = 2; // accepted as string|number at runtime; coerced in Go
+  // existing_admin_count is declared here as a string for the typed contract, but the
+  // step reads it from the dynamic pipeline `current` context either way: it is usually
+  // supplied via db_query/step.set (emitted as a JSON number or string) and coerced to a
+  // non-negative int in Go (int/int64/float64/numeric-string all accepted).
+  string existing_admin_count = 2;
 }
 message BootstrapRedeemOutput {
   bool   redeemed = 1;

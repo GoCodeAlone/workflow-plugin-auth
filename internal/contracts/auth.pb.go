@@ -6261,9 +6261,11 @@ func (x *BootstrapRedeemConfig) GetCodeEnv() string {
 type BootstrapRedeemInput struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	Code  string                 `protobuf:"bytes,1,opt,name=code,proto3" json:"code,omitempty"`
-	// existing_admin_count arrives via the dynamic pipeline context, not a typed field,
-	// because db_query/step.set emit it as a JSON number/string; read from `current`.
-	ExistingAdminCount string `protobuf:"bytes,2,opt,name=existing_admin_count,json=existingAdminCount,proto3" json:"existing_admin_count,omitempty"` // accepted as string|number at runtime; coerced in Go
+	// existing_admin_count is declared here as a string for the typed contract, but the
+	// step reads it from the dynamic pipeline `current` context either way: it is usually
+	// supplied via db_query/step.set (emitted as a JSON number or string) and coerced to a
+	// non-negative int in Go (int/int64/float64/numeric-string all accepted).
+	ExistingAdminCount string `protobuf:"bytes,2,opt,name=existing_admin_count,json=existingAdminCount,proto3" json:"existing_admin_count,omitempty"`
 	unknownFields      protoimpl.UnknownFields
 	sizeCache          protoimpl.SizeCache
 }

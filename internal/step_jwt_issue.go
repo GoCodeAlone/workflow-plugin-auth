@@ -2,6 +2,7 @@ package internal
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"strings"
 	"time"
@@ -40,7 +41,9 @@ func newJWTIssueStep(name string, config map[string]any) *jwtIssueStep {
 func (s *jwtIssueStep) Execute(_ context.Context, _ map[string]any, _ map[string]map[string]any, current, _, _ map[string]any) (*sdk.StepResult, error) {
 	secret := strings.TrimSpace(os.Getenv(s.secretEnv))
 	if len(secret) < jwtMinSecretLength {
-		return &sdk.StepResult{Output: map[string]any{"error": "signing secret not configured"}}, nil
+		return &sdk.StepResult{Output: map[string]any{
+			"error": fmt.Sprintf("signing secret in env %s not configured (need >=%d chars)", s.secretEnv, jwtMinSecretLength),
+		}}, nil
 	}
 	subject, _ := current["subject"].(string)
 	if strings.TrimSpace(subject) == "" {

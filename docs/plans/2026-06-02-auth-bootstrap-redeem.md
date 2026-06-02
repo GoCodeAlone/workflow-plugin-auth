@@ -91,9 +91,10 @@ message JWTIssueOutput {
 
 **Step 2:** Regenerate. No Makefile/buf target; the existing header shows `protoc-gen-go v1.36.11`. Run:
 ```bash
-cd internal/contracts
+# Run from REPO ROOT (not internal/contracts/) so the generated descriptor var stays
+# `File_internal_contracts_auth_proto` (the name plugin.go references).
 protoc -I . -I "$(brew --prefix protobuf 2>/dev/null)/include" \
-  --go_out=. --go_opt=paths=source_relative auth.proto
+  --go_out=. --go_opt=paths=source_relative internal/contracts/auth.proto
 ```
 The `-I .../include` resolves the well-known `google/protobuf/struct.proto` import (already imported at `auth.proto:7`; F6). If `protoc`/`protoc-gen-go` absent: `go install google.golang.org/protobuf/cmd/protoc-gen-go@v1.36.11` + `brew install protobuf`, then re-run. Verify the new messages appear in `auth.pb.go`.
 Expected: `auth.pb.go` contains `type BootstrapRedeemInput struct` and `type JWTIssueOutput struct`.
