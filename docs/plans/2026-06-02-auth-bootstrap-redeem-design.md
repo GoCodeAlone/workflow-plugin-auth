@@ -1,28 +1,33 @@
-# Durable First-Run Admin Bootstrap — Design (2026-06-02, rev 2)
+# Durable First-Run Admin Bootstrap — Design (2026-06-02, rev 3)
 
 Issue: GoCodeAlone/workflow-plugin-auth#23. Supersedes the http-facade framing of #23
 (overtaken: gocodealone-multisite never imported the plugin; rolled bespoke
-`cmd/multisite-host/admin_bootstrap.go`). Realises the "Phase II — reusable plugin
-extraction" earmarked in `docs/plans/2026-05-17-admin-bootstrap-and-passkey-upgrade-design.md`
-(trigger = "second consumer materialises"; now fired).
+`cmd/multisite-host/admin_bootstrap.go`). Realises (and extends) the "Phase II"
+earmark in `docs/plans/2026-05-17-admin-bootstrap-and-passkey-upgrade-design.md`.
 
-> **rev 2 (adversarial cycle-1):** resolved 3 Critical + 9 Important. Session-mint
-> path named to REAL engine steps (`step.m2m_token` mint + `step.auth_required`/
-> `step.auth_validate` gate; bearer-token-in-body, not a cookie) — closes A2-1/A13-1/A9-1.
-> Count-gate refined to **credential** count + idempotent user-seed — closes A6-1.
-> db_query scalar coercion, registry backfill 0.2.7→0.3.0, virtual-authenticator
-> launch-arg spike, CSRF-by-bearer, `min_code_length` dropped, scenario id=101,
-> proto+CreateTypedStep wiring enumerated. Full transcript in §Cycle-1 resolutions.
+> **rev 3 (adversarial cycle-2):** cycle-1 wrongly named `step.m2m_token`/`step.auth_required`
+> as the session layer — both are **schema-only types with NO runtime factory** (verified
+> by grepping every `StepFactories()` in the engine; `mcp list_step_types` lists schema
+> types, not runtime steps). The only real runtime steps are `step.auth_validate` (gate) +
+> `step.token_revoke` (logout); minting exists only inside `auth.jwt`/`auth.m2m` HTTP
+> handlers, never as a pipeline step. **Resolution:** ship a minimal **`step.auth_jwt_issue`**
+> (HS256 mint) alongside `step.auth_bootstrap_redeem` so the flow is 100% real runtime.
+> Also: specify the `GET /admin/bootstrap/status` pipeline, fix the gate wiring
+> (`step.auth_validate` needs `auth_module`+`token_source`), document token-expiry /
+> passkey-FINISH-fail / token-storage, registry now 31 steps. Transcript in §Cycle-2.
+>
+> **rev 2 (cycle-1):** resolved 3C+9I (count-gate→credential count, db_query int coercion,
+> CSRF-by-bearer, registry backfill, min_code_length dropped, scenario id=101). See §Cycle-1.
 
 ## §G — Goal
 
 Reusable, durable first-run admin login: fresh deploy → operator redeems an
-out-of-band seeded code → super-admin session → enrols **passkey** (or links
-**SSO**) as PRIMARY credential → bootstrap path **auto-closes**. Durable across
-restarts/redeploys; re-opens only when the credential store is empty (break-glass
-recovery). Replaces the multisite anti-pattern (permanent reusable shared secret →
-stateless JWT, no upgrade path, no persistence). Prove end-to-end in a
-workflow-scenarios admin stack.
+out-of-band seeded code → super-admin session → enrols **passkey** (or links **SSO**)
+as PRIMARY credential → bootstrap path **auto-closes**. Durable across
+restarts/redeploys; re-opens only when the credential store is empty (break-glass).
+Replaces the multisite anti-pattern (permanent reusable shared secret → stateless JWT,
+no upgrade path, no persistence — incl. its bespoke `auth.Service.GenerateToken` mint).
+Prove end-to-end in a workflow-scenarios admin stack.
 
 ## §C — Constraints / Global Design Guidance
 
@@ -31,192 +36,200 @@ durable constraints captured here from SPEC.md + prior design docs + user Q&A.
 
 | guidance (source) | design response |
 |---|---|
-| Engine-mediated step model; plugin is STATELESS, persistence is consumer-pipeline-owned (`step_credential.go`, `step_magic_link.go`) | New step holds NO state; takes `existing_admin_count` as INPUT (consumer supplies via `db_query`); never opens a DB/socket. |
-| General-purpose, serves N consumers; per-consumer config not code deletion (SPEC C1) | Code source + super-admin identity + role label are config/env per consumer; no consumer hard-coded. |
-| Strict gRPC proto contracts; manifest aligned to runtime (`wfctl plugin verify-capabilities`, SPEC C5) | Add typed `BootstrapRedeem{Config,Input,Output}` proto + STRICT_PROTO contract; wire BOTH `CreateStep` + `CreateTypedStep` + `authContractRegistry` (§Impl notes). |
-| Prior design earmarked `auth.bootstrap` for v0.3.0 (2026-05-17 §Phase II) | Ship as a step in workflow-plugin-auth (NOT a new plugin, NOT an http facade). |
-| Secrets never in YAML; env-sourced (magic-link `configStrOrEnv` precedent) | Code read from env (`AUTH_BOOTSTRAP_CODE` default; name overridable). YAML carries only the env-var NAME + super-admin identity. |
-| Session minting is consumer-owned; engine provides the primitives (verified `mcp list_step_types`; `plugins/auth/plugin.go`) | Demo mints a bearer session JWT via `step.m2m_token` and gates routes via `step.auth_required`/`step.auth_validate` against an `auth.m2m`/`auth.jwt` provider sharing the HS256 secret. Plugin ships no JWT issuer (Phase II). |
+| Engine-mediated step model; plugin is STATELESS; persistence consumer-owned (`step_credential.go`, `step_magic_link.go`) | Both new steps hold NO state. `bootstrap_redeem` takes `existing_admin_count` as INPUT; `auth_jwt_issue` is a pure crypto transform (subject+claims → signed token). Neither opens a DB/socket. |
+| General-purpose, N consumers; per-consumer config not code deletion (SPEC C1) | Code, super-admin identity, role label, signing-secret env-name are all config/env; no consumer hard-coded. |
+| Strict gRPC proto contracts; manifest = runtime (`verify-capabilities`, SPEC C5) | Both steps get typed proto + STRICT_PROTO contract; wire `CreateStep`+`CreateTypedStep`+`authContractRegistry`+`allStepTypes`+`plugin.json` (§Impl notes). |
+| Prior design earmarked bootstrap + JWT-issue for Phase II (2026-05-17 §Phase II) | Ship the MINIMAL slice now (count-gated redeem + HS256 symmetric issue); full IDP (JWKS, refresh, asymmetric, `auth.idp` module) stays Phase II. See ADR-0002. |
+| Secrets never in YAML; env-sourced (`configStrOrEnv` precedent) | Bootstrap code from `AUTH_BOOTSTRAP_CODE`; signing secret from `AUTH_JWT_SECRET` (names overridable). YAML carries only env-var NAMES + identity. |
+| Session minting was bespoke per-consumer (BMW `step.bmw.generate_token`, multisite `auth.Service.GenerateToken`) | `step.auth_jwt_issue` is the portable replacement, validated by the engine's existing `step.auth_validate` against an `auth.jwt` module sharing the secret. |
 
-### Home-repo determination (user asked: aligned step vs new plugin)
+### Home-repo determination
 
-**Decision: a step in workflow-plugin-auth.** See `decisions/0001-bootstrap-redeem-as-stateless-count-gated-step.md`.
-Bootstrap = "establish first auth identity + first credential" = an auth-credential
-primitive. Composes with existing `step.auth_passkey_*` / `step.auth_oauth_*` /
-`step.auth_credential_*`. The repo's own 2026-05-17 design pre-committed this.
-*Rejected:* dedicated `workflow-plugin-admin-bootstrap` (fragments the auth surface);
-http.Handler facade owning routes/sessions/persistence (the literal #23 ask — fights
-the stateless model, no consumer needs it); operator DB-seed via SQL (needs deploy-time
-DB access + no auto-close mechanism — see ADR-0001).
+**A step in workflow-plugin-auth** (see ADR-0001). Bootstrap + session-issue are
+auth-credential primitives composing with existing passkey/oauth/credential steps. The
+2026-05-17 design pre-committed both. *Rejected:* new `workflow-plugin-admin-bootstrap`
+plugin; http.Handler facade owning routes/sessions/persistence; operator SQL-seed (ADR-0001 alt-d).
 
 ## §I — Interface
 
-### New step `step.auth_bootstrap_redeem`
+### New step 1 — `step.auth_bootstrap_redeem`
 
 ```
 config:
-  super_admin_email:  string                       # identity minted on first redeem
-  super_admin_role:   string (= "super_admin")     # OUTPUT LABEL only, not a gate; role vocab is consumer-specific
-  code_env:           string (= "AUTH_BOOTSTRAP_CODE")   # env var NAME holding the code
+  super_admin_email: string                          # identity minted on first redeem
+  super_admin_role:  string (= "super_admin")        # OUTPUT LABEL only, not a gate
+  code_env:          string (= "AUTH_BOOTSTRAP_CODE") # env var NAME holding the code
 input:
-  code:                 string                      # operator-submitted (from request body)
-  existing_admin_count: int|int64|float64|numeric-string   # consumer supplies via db_query → step.set; coerced to int
+  code:                 string
+  existing_admin_count: int|int64|float64|numeric-string   # via db_query → step.set; coerced to int
 output:
-  redeemed:  bool
-  email:     string                                 # set iff redeemed
-  role:      string                                 # set iff redeemed
-  reason:    string                                 # "" | "bootstrap_closed" | "invalid_code" | "not_configured"
-  error:     string (field 100)                     # hard/internal errors only
+  redeemed: bool ; email: string ; role: string
+  reason:   string  # "" | "bootstrap_closed" | "invalid_code" | "not_configured"
+  error:    string (field 100)
 ```
+Logic (stateless, fail-safe-closed): (1) envCode empty OR `len<16` → `not_configured`.
+(2) count not coercible to int OR not exactly `0` → `bootstrap_closed` (**default-deny**;
+coercion accepts int/int64/float64/numeric-string). (3) count`==0` + `constantTimeEqual`
+→ `redeemed:true`. (4) count`==0` + mismatch → `invalid_code`. `bootstrapMinCodeLength=16`
+baked constant (cycle-1 A5-2). `super_admin_role` is an output label (cycle-1 A5-1).
 
-`min_code_length` config knob dropped (cycle-1 A5-2 footgun); baked constant
-`bootstrapMinCodeLength = 16`. `super_admin_role` kept (A5-1): an **output label** the
-consumer writes to its own user row, NOT a gate (the gate is `existing_admin_count`).
-
-**Logic (stateless, fail-safe-closed):**
-1. envCode empty OR `len(envCode) < 16` → `{redeemed:false, reason:"not_configured"}`.
-2. `existing_admin_count` not coercible to int, OR not exactly `0` (missing / non-numeric / negative / >0) → `{redeemed:false, reason:"bootstrap_closed"}`. **Default-deny.** Coercion accepts `int`/`int64`/`float64` (the JSON-number wire type from `db_query`/`step.set`) / numeric `string`; else deny.
-3. count `==0` AND `constantTimeEqual(code, envCode)` → `{redeemed:true, email, role}`.
-4. count `==0` AND mismatch → `{redeemed:false, reason:"invalid_code"}`.
-
-`constantTimeEqual` = length-guard + `subtle.ConstantTimeCompare` (mirrors multisite `admin_bootstrap.go:213`).
-
-### Core invariant (the design's headline)
-
-> **Bootstrap is OPEN ⟺ zero admin CREDENTIALS exist.**
-
-Gate counts **credential rows** (kind ∈ {passkey,google,facebook}), NOT user rows. So:
-fresh DB → 0 credentials → open; redeem creates the super-admin USER row but no
-credential → still open (operator needs the session to enrol); enrol passkey/SSO →
-1 credential → **closed**; redeploy w/ same DB → stays closed; empty store → re-opens
-(break-glass). Beats multisite's never-closing secret AND a one-shot token (which
-can't recover from credential loss).
-
-### Consumer wiring (demonstrated in the scenario, NOT shipped in the plugin)
+### New step 2 — `step.auth_jwt_issue` (the minting primitive; cycle-2 C2-1 fix)
 
 ```
-POST /admin/bootstrap/redeem  (JSON body {code}; bearer-token response → no cookie, no CSRF surface):
-  step.request_parse (parse_body)                              → .body.code
-  step.db_query count_creds (mode: single)
-      SELECT count(*) AS n FROM credentials WHERE kind IN ('passkey','google','facebook')
-                                                               → .row.n
+config:
+  secret_env:  string (= "AUTH_JWT_SECRET")   # env var NAME holding the HS256 secret
+  issuer:      string (= "workflow-plugin-auth")
+  ttl_seconds: int    (= 3600)                # generous bootstrap-session TTL (cycle-2 I2-4)
+input:
+  subject: string                              # → "sub" claim
+  claims:  map<string,any>                     # extra claims, e.g. {roles:["super_admin"], email:...}
+output:
+  token: string ; expires_at: string(RFC3339) ; error: string (field 100)
+```
+HS256 sign via `github.com/golang-jwt/jwt/v5` (promoted to direct dep; already in the
+module graph). Emits standard claims `sub,iat,exp,iss,jti` + caller claims. Secret `<16`
+chars OR empty → `{error:"signing secret not configured"}`. **Verified compatible** with
+the engine gate: `JWTAuthModule.Authenticate` (`module/jwt_auth.go:131`) is signature-only
+HS256 (no user-store dependency) + optional blacklist → a token signed with the shared
+secret validates. Minimal by design: no JWKS / refresh / asymmetric (Phase II, ADR-0002).
+
+### Status read — `GET /admin/bootstrap/status` pipeline (cycle-2 I2-3; consumer-owned)
+
+```
+step.db_query count_creds (mode: single): SELECT count(*) AS n FROM credentials WHERE kind IN ('passkey','google','facebook')  → .row.n
+step.json_response 200 { open: {{ eq (.steps.count_creds.row.n) 0 }} , credential_count: .row.n }
+```
+Lets the login UI render the bootstrap form (open) vs passkey/SSO buttons (closed). Pure
+consumer wiring (no plugin primitive — honours V-B3).
+
+### Core invariant (headline)
+
+> **Bootstrap is OPEN ⟺ zero admin CREDENTIALS exist** (kind ∈ {passkey,google,facebook}).
+
+Counts credential rows, NOT users. Fresh DB → open; redeem creates the super-admin USER
+(no credential) → still open (operator needs the session to enrol); enrol passkey/SSO →
+1 credential → **closed**; redeploy same DB → stays closed; empty store → re-opens (break-glass).
+
+### Consumer wiring (demonstrated in the scenario; verified against real runtime steps)
+
+```
+POST /admin/bootstrap/redeem  (JSON {code}; bearer-token response → no cookie, no CSRF surface):
+  step.request_parse(parse_body)                                          → .body.code
+  step.db_query count_creds(mode:single) SELECT count(*) AS n ...         → .row.n
   step.set existing_admin_count: "{{ .steps.count_creds.row.n }}"
-  step.auth_bootstrap_redeem {code: .body.code, existing_admin_count}
+  step.auth_bootstrap_redeem {code:.body.code, existing_admin_count}
   step.conditional .redeemed:
     true:
       step.db_exec INSERT users(email,role) VALUES(...) ON CONFLICT(email) DO NOTHING   # idempotent seed
-      step.m2m_token (generate) claims {sub: email, roles:[role]}  → .token             # signed w/ shared HS256 secret
+      step.auth_jwt_issue {subject:.email, claims:{roles:[.role], email:.email}}        → .token  (HS256, AUTH_JWT_SECRET)
       step.json_response 200 {token, redirect:"/admin/credentials/passkey/register/begin"}
     false → step.json_response 403 {reason}
 
-Authenticated routes (e.g. POST /admin/credentials/passkey/register/{begin,finish}):
-  step.auth_required  (validates Bearer JWT against auth.m2m/auth.jwt provider; 401 if absent/invalid)
-  → existing step.auth_passkey_* ; passkey FINISH writes the credential row → count→1 → bootstrap closes.
+Protected routes — POST /admin/credentials/passkey/register/{begin,finish}, /admin/logout:
+  step.auth_validate {auth_module: jwtauth, token_source: ".headers.Authorization"}     # REAL gate; 401 if absent/invalid
+  → existing step.auth_passkey_* ; FINISH writes credential row → count→1 → bootstrap closes
+  logout: step.token_revoke (real)
+
+Passkey login — POST /admin/login/passkey/{begin,finish}:
+  step.auth_passkey_begin_login / finish_login (validate) → step.auth_jwt_issue → {token}
 ```
-SSO-as-primary is the same shape via `step.auth_oauth_*` then a credential INSERT.
-Concurrent pre-enrolment redeems are harmless: same principal, `ON CONFLICT DO NOTHING`
-converges to one super-admin row; the window closes the instant the first credential lands.
+Modules: `auth.jwt` (name `jwtauth`, `secret` from `AUTH_JWT_SECRET`, `tokenExpiry:1h`) is
+the AuthProvider the gate validates against; `database.workflow` (`{driver:postgres,dsn}`)
+backs db_query/db_exec. Concurrent pre-enrolment redeems are harmless (same principal,
+`ON CONFLICT DO NOTHING`; window closes on first credential).
 
 ## §V — Invariants (backport to SPEC.md)
 
-- V-B1: redeem succeeds only when `existing_admin_count == 0`; any other/uncoercible value → denied (default-deny).
-- V-B2: code compared constant-time; configured code `< 16` chars → `not_configured` (never matches).
-- V-B3: plugin step writes no state; never opens a DB/socket; identity persistence + session minting are consumer-owned.
+- V-B1: redeem succeeds only when `existing_admin_count == 0`; any other/uncoercible value → denied.
+- V-B2: code constant-time compared; configured code `<16` chars → `not_configured`.
+- V-B3: plugin steps write no state, open no DB/socket; persistence + routing are consumer-owned.
 - V-B4: once ≥1 admin **credential** exists, no code value re-opens bootstrap (durable close).
-- V-B5: redeem output/logs never echo the configured code or env value.
-- V-B6: the gate counts CREDENTIAL rows, not user rows — the super-admin user may exist with no credential while bootstrap is still open (the enrolment window).
+- V-B5: redeem/issue output + logs never echo the code, env secret, or signing key.
+- V-B6: gate counts CREDENTIAL rows, not user rows (the super-admin user may exist with no credential during the enrolment window).
+- V-B7: `auth_jwt_issue` signs HS256 only when the configured secret is ≥16 chars; else returns an error (no unsigned/empty-secret token).
 
 ## Security Review
 
-- **AuthZ/authn:** code is the sole secret; gate is the `count==0` precondition. Leaked code is INERT once a credential exists (V-B4). Constant-time compare + length guard. Default-deny on ambiguous/uncoercible count.
-- **CSRF:** demo returns the session as a **bearer token in the JSON body** (client sends `Authorization: Bearer`), so there is no ambient-cookie auth and no CSRF surface on the redeem route. A consumer that prefers a cookie MUST set `SameSite=Strict` + JSON-only `Content-Type` on the redeem route (documented).
-- **Brute force:** only possible in the pre-first-credential window. Mitigations: ≥16-char code (constant-enforced), constant-time compare, consumer SHOULD rate-limit the redeem route (documented). Window is short and closes permanently on first enrolment — strictly better than multisite's forever-open secret.
-- **Secrets/logging:** code from env only; `os.Getenv` at request time (rotation = change env + restart); never logged; never in output (V-B5). Security relies on the env var being secret at the infra level (distroless containers, no metadata-endpoint `/proc` exposure).
-- **Concurrent redeem:** §I — idempotent user-seed + credential-count gate make it harmless.
-- **Least privilege / deps:** minted role exactly `super_admin` (config label); no new external deps (stdlib `crypto/subtle`); STRICT_PROTO contract like every sibling step.
+- **AuthZ/authn:** code is the sole bootstrap secret; gate is `count==0`. Leaked code INERT once a credential exists (V-B4). Constant-time compare + length guard. Default-deny on ambiguous count.
+- **CSRF:** demo returns the session as a **bearer token in the JSON body** (client sends `Authorization: Bearer`) → no ambient-cookie auth, no CSRF surface. A consumer choosing cookies MUST set `SameSite=Strict` + JSON-only redeem route (documented).
+- **Brute force:** possible only in the pre-first-credential window. Consumer guidance (explicit, cycle-2 M2-2): **put the redeem route behind `step.rate_limit`** (engine step) — e.g. 5/min/IP — and use a ≥24-char code; the window closes permanently on first enrolment (strictly better than multisite's forever-open secret).
+- **Token storage (cycle-2 I2-5):** demo admin UI keeps the bearer in an in-memory JS variable / `sessionStorage` (the Playwright spec reuses it across steps); **production consumers MUST prefer short-lived tokens + HttpOnly cookies** (documented in the scenario README). `auth_jwt_issue` sets `jti` so `step.token_revoke` can blacklist on logout.
+- **Secrets/logging:** code + signing secret from env; never logged; never in output (V-B5, V-B7). Rotation = change env + restart. Relies on env secrecy at the infra layer.
+- **Least privilege / deps:** minted role exactly `super_admin` (config label); new direct dep `golang-jwt/jwt/v5` (already in graph, BSD-3, widely used). STRICT_PROTO contracts.
 
 ## Infrastructure Impact
 
-- **Plugin:** additive step + proto message + manifest entries. New tag **v0.3.0** (minor: additive step). `minEngineVersion` unchanged (0.57.2; same SDK surface). `version`/`downloads` stay version-discipline placeholders (release workflow templates them). Pre-tag check: `git ls-remote --tags origin | grep v0.3.0` must be empty (A8-2).
-- **Registry:** manifest is **stale at v0.2.7 (25 steps)**; current `plugin.json` has 29. The registry PR MUST rebuild to **v0.3.0 with all 30** (29 current + bootstrap) so `verify-capabilities` matches runtime (A8-1). Update `manifest.json` + `v1/index.json`; confirm `minEngineVersion` consistent with `plugin.json` (0.57.2).
-- **Scenario:** new isolated docker-compose stack (engine + plugin gRPC subprocess + `postgres:16-alpine`); engine uses a `database.workflow` module (`{driver: postgres, dsn: ...}`) bound by `step.db_query`/`step.db_exec`; own scenario port `:18101`; no shared-state impact, no cloud.
-- **Migrations:** none in the plugin. Scenario seed creates scenario-local `users` + `credentials` tables.
-- **Deploy/rollback:** §Rollback. No prod approval (public plugin + test scenario).
+- **Plugin:** 2 additive steps + 2 proto message-sets + manifest entries. New tag **v0.3.0** (minor: additive). `minEngineVersion` unchanged (0.57.2). `version`/`downloads` stay discipline placeholders. Pre-tag: `git ls-remote --tags origin | grep v0.3.0` empty (A8-2).
+- **Registry:** manifest stale at v0.2.7 (25 steps); current `plugin.json` 29. Rebuild to **v0.3.0 with all 31** (29 + bootstrap_redeem + auth_jwt_issue); update `manifest.json` + `v1/index.json`; align `minEngineVersion` to 0.57.2 (A8-1).
+- **Scenario:** isolated docker-compose (engine + plugin gRPC subprocess + `postgres:16-alpine` + `auth.jwt` module); engine port `:18101`; no shared state, no cloud.
+- **Migrations:** none in plugin. Scenario seed creates scenario-local `users` + `credentials` tables.
+- **Rollback:** §Rollback. No prod approval.
 
 ## Multi-Component Validation
 
-Real boundaries, no mock-only proof: **engine ↔ plugin (gRPC) ↔ Postgres (`database.workflow`) ↔ HTTP**.
-Scenario `101-auth-admin-bootstrap` boots the real workflow server + real plugin binary +
-real Postgres via docker-compose, then asserts the live flow:
+Real boundaries: **engine ↔ plugin (gRPC) ↔ Postgres (`database.workflow`) ↔ HTTP**, all
+steps verified to have runtime factories. Scenario `101-auth-admin-bootstrap`:
 
-- **curl smoke (deterministic, always-pass core):**
-  - fresh DB → `GET /admin/bootstrap/status` → `open:true` (count==0).
-  - `POST /admin/bootstrap/redeem` wrong code → 403 `invalid_code`.
-  - correct code → 200 + **bearer token in body**; super-admin user row created.
-  - authenticated (Bearer) `POST /admin/credentials/passkey/register/begin` → 200 challenge; no/invalid Bearer → 401 (proves `step.auth_required` gate, server-side).
-  - after a credential row exists → `GET /admin/bootstrap/status` → `open:false`; re-redeem correct code → **403 `bootstrap_closed`** (V-B4 regression guard).
-- **Playwright test (committed spec):** CDP **virtual authenticator** enrols a passkey post-bootstrap, logs out, logs back in via passkey (proves "set primary → subsequent login"). Requires `chromium.launch(args:['--enable-blink-features=WebAuthenticationTesting'])` — added to the scenario's Playwright project config; pre-impl spike confirms headless support, else fall back to asserting at the passkey-begin challenge level + documenting the limitation (A2-2).
-- **playwright-cli exploratory QA (DoD, per user):** sequence = run `seed.sh` (stack up) → `playwright-cli` headless isolated session at `http://127.0.0.1:18101` walks bootstrap form → enrol → logout → passkey login → confirm bootstrap form gone, capturing screenshots → `docker compose down`. Findings recorded in `scenarios/101-auth-admin-bootstrap/test/EXPLORATORY.md` (A12-1 sequencing).
+- **curl smoke (deterministic core):** fresh DB → `GET /admin/bootstrap/status` `open:true`; redeem wrong code → 403 `invalid_code`; correct code → 200 + bearer token (super-admin row created); authenticated `POST .../passkey/register/begin` → 200 challenge, no/invalid Bearer → **401** (proves `step.auth_validate` server-side gate); after credential exists → status `open:false` + re-redeem → **403 `bootstrap_closed`** (V-B4 guard).
+- **Playwright test (committed):** CDP **virtual authenticator** enrols a passkey post-bootstrap, logs out (`token_revoke`), logs back in via passkey. Needs `chromium.launch(args:['--enable-blink-features=WebAuthenticationTesting'])`; pre-impl spike confirms headless support else fall back to begin-challenge assertion + documented limitation (A2-2).
+- **playwright-cli exploratory QA (DoD):** seq = `seed.sh` up → `playwright-cli` headless isolated session at `http://127.0.0.1:18101`: bootstrap form → enrol → logout → passkey login → confirm bootstrap form gone; screenshots → `test/EXPLORATORY.md` → `docker compose down`.
 
-## §Implementation notes (carry into plan; cycle-1 A3-1)
+## §Implementation notes (carry into plan)
 
-Wiring `step.auth_bootstrap_redeem` end-to-end requires ALL of:
-1. add `BootstrapRedeemConfig`/`BootstrapRedeemInput`/`BootstrapRedeemOutput` to `internal/contracts/auth.proto`;
-2. regenerate `auth.pb.go` (resolve regen: no Makefile target — check for `buf.gen.yaml`/script or invoke `protoc` matching the existing header);
-3. add case to `CreateStep` (map mode);
-4. add case to `CreateTypedStep` (`sdk.NewTypedStepFactory`, typed mode);
-5. add `stepContract("step.auth_bootstrap_redeem", "BootstrapRedeemConfig","BootstrapRedeemInput","BootstrapRedeemOutput")` to `authContractRegistry`;
-6. add to `allStepTypes` (`internal/plugin.go`) + `plugin.json` stepTypes + capabilities.stepTypes.
-Missing any one → `verify-capabilities` STRICT_PROTO mismatch at runtime (C5).
+Each new step requires ALL of (cycle-1 A3-1): (1) proto messages in `internal/contracts/auth.proto`;
+(2) regen `auth.pb.go` via **bare `protoc`** (no Makefile target, no `buf.gen.yaml`; header shows
+`protoc-gen-go v1.36.11`): `protoc --go_out=. --go_opt=paths=source_relative internal/contracts/auth.proto`
+(cycle-2 M2-3); (3) `CreateStep` case; (4) `CreateTypedStep` case (`sdk.NewTypedStepFactory`);
+(5) `stepContract(...)` in `authContractRegistry`; (6) add to `allStepTypes` + `plugin.json`
+stepTypes + capabilities.stepTypes. `go.mod`: promote `golang-jwt/jwt/v5` to direct require.
 
-## Assumptions (load-bearing)
+## Assumptions (load-bearing; verified)
 
-1. Engine steps `step.request_parse`, `step.db_query`, `step.db_exec`, `step.conditional`/`step.set`, `step.json_response`, `step.m2m_token`, `step.auth_required`/`step.auth_validate`, and modules `database.workflow` + `auth.m2m`/`auth.jwt` exist in the pinned engine — **verified** via `mcp list_step_types` (164 steps) + `plugins/auth/plugin.go` + `plugins/storage/plugin.go`.
-2. Consumer can `SELECT count(*)` of admin credentials and pass it (coerced) as the step input — proven by the demo.
-3. CDP virtual-authenticator passkey ceremony works headless with `--enable-blink-features=WebAuthenticationTesting` (scenario 92 runs Playwright but NOT a virtual authenticator — unproven here → pre-impl spike + fallback, A2-2).
-4. Plugin runs as a gRPC subprocess under the engine in docker-compose (scenario 92 precedent). *If false:* in-process registration fallback.
-5. `AUTH_BOOTSTRAP_CODE` delivered out-of-band by the operator. Step not responsible for delivery.
-6. `step.m2m_token` mint + `step.auth_required` validate share the HS256 secret via co-configured `auth.m2m`/`auth.jwt` modules — to be confirmed by a plan-phase wiring spike before the scenario locks.
+1. Engine steps `step.request_parse`, `step.db_query`, `step.db_exec`, `step.conditional`/`step.set`, `step.json_response`, `step.auth_validate`, `step.token_revoke`, `step.rate_limit` and modules `database.workflow` + `auth.jwt` have **runtime factories** — VERIFIED by grepping `StepFactories()`/`ModuleFactories()` (not just `mcp list_step_types`, which lists schema-only types like `step.m2m_token`/`step.auth_required` that DON'T execute — the cycle-1 trap).
+2. `auth.jwt.Authenticate` is signature-only HS256 (`module/jwt_auth.go:131`) → an `auth_jwt_issue`-minted token (same `AUTH_JWT_SECRET`) validates without a user-store entry — VERIFIED.
+3. Consumer can `SELECT count(*)` of admin credentials and pass it coerced as input — proven by the demo.
+4. CDP virtual authenticator works headless with the launch flag — UNPROVEN here (scenario 92 runs Playwright but no virtual authenticator) → pre-impl spike + begin-challenge fallback (A2-2).
+5. Plugin runs as a gRPC subprocess under the engine in docker-compose (scenario 92 precedent). *If false:* in-process registration fallback.
+6. `AUTH_BOOTSTRAP_CODE` + `AUTH_JWT_SECRET` delivered out-of-band by the operator.
 
 ## Rollback (runtime-affecting change classes)
 
 | Change | Class | Rollback |
 |---|---|---|
-| plugin: new step + proto + manifest | additive code + new release tag | revert PR; do not advance v0.3.0 tag; consumers on v0.2.12 unaffected (step absent). |
-| registry: manifest v0.2.7→v0.3.0 (30 steps) | manifest data | revert manifest PR; `verify-capabilities` reverts to prior set. |
-| scenario: new docker-compose stack | isolated test asset | revert PR; remove from `scenarios.json`; no other scenario touched. |
+| plugin: 2 steps + proto + manifest | additive code + new tag | revert PR; don't advance v0.3.0; consumers on v0.2.12 unaffected (steps absent). |
+| registry: v0.2.7→v0.3.0 (31 steps) | manifest data | revert manifest PR; `verify-capabilities` reverts. |
+| scenario: docker-compose stack | isolated test asset | revert PR; remove from `scenarios.json`. |
 
-## Scope (this run) / Non-goals
+## Scope / Non-goals
 
-- **In:** plugin step + contract + tests + SPEC/README/manifest → v0.3.0; registry capabilities rebuild; new workflow-scenarios admin stack (curl + Playwright + playwright-cli exploratory QA).
-- **Out (tracked follow-up):** migrate gocodealone-multisite `admin_bootstrap.go` onto the step (private host; current solution works). File issue post-merge.
-- **Out (Phase II):** plugin-side JWT issuer (`auth.idp` / `step.auth_jwt_issue`); SSO demonstrated via existing oauth-step pattern, passkey is the concrete primary in the demo.
+- **In:** plugin steps `auth_bootstrap_redeem` + `auth_jwt_issue` + contracts + tests + SPEC/README/manifest → v0.3.0; registry rebuild; new scenario 101 (curl + Playwright + playwright-cli QA).
+- **Out (tracked follow-up):** migrate gocodealone-multisite onto the steps (private host; current solution works). File issue post-merge.
+- **Out (Phase II, ADR-0002):** full IDP — JWKS endpoint, refresh tokens, asymmetric/ES256, `auth.idp` module, key rotation. The minimal HS256 symmetric `auth_jwt_issue` ships now.
 
-## Cycle-1 resolutions (adversarial-design-review --phase=design)
+## Cycle-2 resolutions (adversarial-design-review --phase=design)
 
 | id | sev | finding | resolution |
 |---|---|---|---|
-| A2-1 / A13-1 | Critical | no pipeline step mints a session | named REAL steps: `step.m2m_token` mint + `step.auth_required`/`auth_validate` gate; bearer-in-body |
-| A6-1 | Critical | count-gate TOCTOU; `ON CONFLICT` insufficient | gate on **credential** count (not users); user-seed idempotent by email; pre-enrolment concurrent redeems harmless (same principal); close on first credential |
-| A3-1 | Important | CreateTypedStep + contractRegistry wiring not enumerated | §Implementation notes lists all 6 wiring points |
-| A4-1 | Important | no docker-compose+Postgres precedent; DB module unnamed | engine module `database.workflow` `{driver:postgres,dsn}` named |
-| A6-2 | Important | restart mid-redeem | documented: session lost, bootstrap stays open (count still 0) → redeem again; no data loss |
-| A6-3 / A13-3 | Important | `db_query` scalar → float64 not int32 | step coerces int/int64/float64/numeric-string; `mode:single` + `.row.n` + `step.set`; unit test for float64(0) |
-| A7-1 | Important | CSRF on redeem route | bearer-token-in-body (no ambient cookie); cookie path documents SameSite=Strict |
-| A8-1 | Important | registry manifest stale (0.2.7/25 steps) | rebuild to v0.3.0 with all 30 steps + index.json |
-| A9-1 | Important | e2e boundary incomplete w/o session step | resolved by A2-1; smoke proves gate server-side |
-| A13-2 | Important | registry manifest pre-edit existence check | confirmed exists at v0.2.7; plan notes current version |
-| A2-2 | Important | virtual authenticator headless unproven | launch-arg + pre-impl spike + begin-challenge fallback |
-| A5-1 | Minor | `super_admin_role` knob | kept as output label (not a gate); documented |
-| A5-2 | Minor | `min_code_length` knob | dropped; baked constant 16 |
-| A7-2 | Minor | env-secret exposure | acknowledged in §Security |
-| A8-2 | Minor | tag pre-existence check | `git ls-remote --tags` in plan |
-| A11-1 | Minor | operator-DB-seed alternative | added to ADR-0001 rejected list |
-| A12-1 | Minor | playwright-cli sequencing | seed-first sequence documented |
-| A4-2 | Minor | scenario id placeholder | fixed to 101 |
+| C2-1 / C2-3 | Critical | `step.m2m_token` has no runtime factory → minting fictional | ship real `step.auth_jwt_issue` (HS256); verified `auth.jwt.Authenticate` accepts it |
+| C2-2 | Critical | `step.auth_required` has no runtime factory | use real `step.auth_validate` (gate) + `step.token_revoke` (logout) |
+| I2-1 | Important | minting path unresolved | `auth_jwt_issue` is the in-plugin mint; no reliance on unexported `issueToken` |
+| I2-2 | Important | gate wiring wrong (name + missing config) | wiring uses `step.auth_validate {auth_module, token_source}` |
+| I2-3 | Important | `GET /admin/bootstrap/status` unspecified | added §I pipeline (db_query count → json_response) |
+| I2-4 | Important | m2m token expiry vs enrolment | `auth.jwt tokenExpiry:1h` + `auth_jwt_issue ttl_seconds:3600`; documented re-redeem |
+| I2-5 | Important | bearer token storage unspecified | demo in-memory/sessionStorage; prod HttpOnly-cookie guidance; `jti`+`token_revoke` |
+| M2-1 | Minor | passkey FINISH fail leaves bootstrap open | documented (correct: count still 0 → re-redeem; no retry logic needed) |
+| M2-2 | Minor | rate-limit was self-referential | explicit `step.rate_limit` guidance sentence in §Security |
+| M2-3 | Minor | proto regen tool | bare `protoc` + version pinned in §Impl notes |
+
+## Cycle-1 resolutions (summary)
+
+count-gate→**credential** count + idempotent user-seed (A6-1); db_query int coercion (A6-3/A13-3);
+CSRF-by-bearer (A7-1); registry backfill (A8-1); `min_code_length` dropped (A5-2); `super_admin_role`
+kept as output label (A5-1); scenario id=101 (A4-2); restart-mid-redeem documented (A6-2); tag pre-check (A8-2);
+operator-DB-seed added to ADR-0001 (A11-1); playwright-cli seed-first sequencing (A12-1).
 
 ## Top doubts (self-challenge, accepted)
 
 - D1 count-gate trusts consumer wiring → fail-safe-closed default + demo proves wiring.
 - D2 passkey ceremony in CI needs virtual authenticator (fragile) → deterministic curl smoke independently proves bootstrap+close+gating.
-- D3 no plugin session issuer → demo uses engine `step.m2m_token`/`auth.m2m` (consumer-owns-session pattern); plugin issuer stays Phase II.
+- D3 `auth_jwt_issue` is HS256-only → sufficient for the demo + symmetric consumers; asymmetric/JWKS/refresh deferred to Phase II (ADR-0002), not silently dropped.
