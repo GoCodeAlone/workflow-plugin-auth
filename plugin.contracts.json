@@ -238,6 +238,22 @@
       "config": "workflow.plugins.auth.v1.EmptyConfig",
       "input": "workflow.plugins.auth.v1.CredentialRevokeInput",
       "output": "workflow.plugins.auth.v1.CredentialRevokeOutput"
+    },
+    {
+      "kind": "step",
+      "type": "step.auth_bootstrap_redeem",
+      "mode": "strict",
+      "config": "workflow.plugins.auth.v1.BootstrapRedeemConfig",
+      "input": "workflow.plugins.auth.v1.BootstrapRedeemInput",
+      "output": "workflow.plugins.auth.v1.BootstrapRedeemOutput"
+    },
+    {
+      "kind": "step",
+      "type": "step.auth_jwt_issue",
+      "mode": "strict",
+      "config": "workflow.plugins.auth.v1.JWTIssueConfig",
+      "input": "workflow.plugins.auth.v1.JWTIssueInput",
+      "output": "workflow.plugins.auth.v1.JWTIssueOutput"
     }
   ]
 }

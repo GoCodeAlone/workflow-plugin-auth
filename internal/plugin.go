@@ -46,6 +46,8 @@ var allStepTypes = []string{
 	"step.auth_oauth_userinfo",
 	"step.auth_credential_list",
 	"step.auth_credential_revoke",
+	"step.auth_bootstrap_redeem",
+	"step.auth_jwt_issue",
 }
 
 type authPlugin struct{}
@@ -162,6 +164,10 @@ func (p *authPlugin) CreateStep(typeName, name string, config map[string]any) (s
 		return newCredentialListStep(name, config), nil
 	case "step.auth_credential_revoke":
 		return newCredentialRevokeStep(name, config), nil
+	case "step.auth_bootstrap_redeem":
+		return newBootstrapRedeemStep(name, config), nil
+	case "step.auth_jwt_issue":
+		return newJWTIssueStep(name, config), nil
 	default:
 		return nil, fmt.Errorf("unknown step type: %s", typeName)
 	}
@@ -279,6 +285,14 @@ func (p *authPlugin) CreateTypedStep(typeName, name string, config *anypb.Any) (
 		return sdk.NewTypedStepFactory(typeName, &contracts.EmptyConfig{}, &contracts.CredentialRevokeInput{}, typedLegacyStep[*contracts.EmptyConfig, *contracts.CredentialRevokeInput, *contracts.CredentialRevokeOutput](func(name string, config map[string]any) sdk.StepInstance {
 			return newCredentialRevokeStep(name, config)
 		}, &contracts.CredentialRevokeOutput{})).CreateTypedStep(typeName, name, config)
+	case "step.auth_bootstrap_redeem":
+		return sdk.NewTypedStepFactory(typeName, &contracts.BootstrapRedeemConfig{}, &contracts.BootstrapRedeemInput{}, typedLegacyStep[*contracts.BootstrapRedeemConfig, *contracts.BootstrapRedeemInput, *contracts.BootstrapRedeemOutput](func(name string, config map[string]any) sdk.StepInstance {
+			return newBootstrapRedeemStep(name, config)
+		}, &contracts.BootstrapRedeemOutput{})).CreateTypedStep(typeName, name, config)
+	case "step.auth_jwt_issue":
+		return sdk.NewTypedStepFactory(typeName, &contracts.JWTIssueConfig{}, &contracts.JWTIssueInput{}, typedLegacyStep[*contracts.JWTIssueConfig, *contracts.JWTIssueInput, *contracts.JWTIssueOutput](func(name string, config map[string]any) sdk.StepInstance {
+			return newJWTIssueStep(name, config)
+		}, &contracts.JWTIssueOutput{})).CreateTypedStep(typeName, name, config)
 	default:
 		return nil, fmt.Errorf("unknown typed step type: %s", typeName)
 	}
@@ -326,6 +340,8 @@ var authContractRegistry = &pb.ContractRegistry{
 		stepContract("step.auth_oauth_userinfo", "OAuthProviderConfig", "OAuthProviderInput", "OAuthUserinfoOutput"),
 		stepContract("step.auth_credential_list", "EmptyConfig", "CredentialListInput", "CredentialListOutput"),
 		stepContract("step.auth_credential_revoke", "EmptyConfig", "CredentialRevokeInput", "CredentialRevokeOutput"),
+		stepContract("step.auth_bootstrap_redeem", "BootstrapRedeemConfig", "BootstrapRedeemInput", "BootstrapRedeemOutput"),
+		stepContract("step.auth_jwt_issue", "JWTIssueConfig", "JWTIssueInput", "JWTIssueOutput"),
 	},
 }
 

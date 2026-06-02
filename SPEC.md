@@ -89,6 +89,10 @@ Policy:
 Misc:
 - `step.auth_normalize_phone`
 
+Bootstrap + session mint:
+- `step.auth_bootstrap_redeem` — count-gated first-run admin code redemption (OPEN ⟺ zero credentials)
+- `step.auth_jwt_issue` — HS256 session mint (sub/iat/exp/iss/jti always overwrite caller claims, V-B8)
+
 ### Config (module `auth.credential`)
 
 - `disable_password_auth: bool` (default `false`) — see C2
@@ -112,6 +116,16 @@ Misc:
 - V11: Provider-specific admin controls MUST be sourced from `AuthProviderDescriptor` values when descriptors are supplied; vendor-specific Google/Facebook controls are compatibility fallback only.
 - V12: Provider descriptors MUST NOT advertise a capability as supported unless the owning provider plugin has a real runtime or management implementation and tests for it; missing `supported` is treated as false.
 
+Bootstrap + JWT-issue invariants (design rev 4, ADR-0001/0002):
+- V-B1: redeem succeeds only when `existing_admin_count == 0`; any other/uncoercible value → denied.
+- V-B2: code constant-time compared; configured code `<16` chars → `not_configured`.
+- V-B3: plugin steps write no state, open no DB/socket; persistence + routing are consumer-owned.
+- V-B4: once ≥1 admin credential exists, no code value re-opens bootstrap (durable close).
+- V-B5: redeem/issue output + logs never echo the code, env secret, or signing key.
+- V-B6: gate counts CREDENTIAL rows, not user rows (the super-admin user may exist with no credential during the enrolment window).
+- V-B7: `auth_jwt_issue` signs HS256 only when the configured secret is ≥32 chars (matches `auth.jwt.Init` + RFC 8725); else returns an error (no unsigned/weak-secret token).
+- V-B8: `auth_jwt_issue` always sets `sub/iat/exp/iss/jti` itself, overwriting any same-named keys in the caller `claims` map — a caller cannot override the standard claims (anti-injection).
+
 ## §T — Tasks (status as of 2026-05-25)
 
 | Task | Status | Evidence |
@@ -123,12 +137,14 @@ Misc:
 | T-AUTH-5 Facebook OAuth | ❌ | filed as #32 |
 | T-AUTH-6 credential-link + delete-min-1 guard | ⚠️ verify | per V1 + V4 |
 | T-AUTH-7 identity unification (find_or_create) | ⚠️ verify | per V3 |
-| T-AUTH-8 bootstrap-code redeem | ❌ | filed as #23 |
+| T-AUTH-8 bootstrap-code redeem | ✅ | superseded by T-AUTH-14 (`step.auth_bootstrap_redeem` shipped, #23) |
 | T-AUTH-9 test matrix | ⚠️ partial | 16 test files |
 | T-AUTH-10 SPEC.md backport | ✅ (this doc) | filed as #33 |
 | T-AUTH-11 registry manifest update | ✅ | workflow-registry#149 merged |
 | T-AUTH-12 admin config contracts | ✅ | `step.auth_admin_config_describe`, `step.auth_admin_config_validate`, strict proto contracts |
 | T-AUTH-13 provider catalog contracts | ✅ | `step.auth_provider_catalog`, `AuthProviderDescriptor`, dynamic admin-provider controls |
+| T-AUTH-14 step.auth_bootstrap_redeem (count-gated) | ✅ | `internal/step_bootstrap.go` + `internal/step_bootstrap_test.go` |
+| T-AUTH-15 step.auth_jwt_issue (HS256 mint) | ✅ | `internal/step_jwt_issue.go` + `internal/step_jwt_issue_test.go` |
 
 ## §X — References
 
