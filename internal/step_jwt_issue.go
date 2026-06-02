@@ -43,6 +43,12 @@ func (s *jwtIssueStep) Execute(_ context.Context, _ map[string]any, _ map[string
 		return &sdk.StepResult{Output: map[string]any{"error": "signing secret not configured"}}, nil
 	}
 	subject, _ := current["subject"].(string)
+	if strings.TrimSpace(subject) == "" {
+		// Never mint an identity-less (sub="") token — a misconfigured pipeline
+		// would otherwise produce an anonymous principal that signature-only
+		// validation (auth.jwt.Authenticate) accepts.
+		return &sdk.StepResult{Output: map[string]any{"error": "subject is required"}}, nil
+	}
 
 	claims := jwt.MapClaims{}
 	// caller claims FIRST...

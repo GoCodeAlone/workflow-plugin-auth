@@ -3,6 +3,7 @@ package internal
 import (
 	"context"
 	"crypto/subtle"
+	"math"
 	"os"
 	"strconv"
 	"strings"
@@ -66,6 +67,11 @@ func coerceCount(v any) (int, bool) {
 	case int64:
 		return int(n), true
 	case float64:
+		// Reject non-integer floats: int(0.9)==0 would otherwise open bootstrap
+		// (V-B1 requires the count be EXACTLY 0). Default-deny on fractional input.
+		if n != math.Trunc(n) {
+			return 0, false
+		}
 		return int(n), true
 	case string:
 		i, err := strconv.Atoi(strings.TrimSpace(n))

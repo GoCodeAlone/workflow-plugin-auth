@@ -54,6 +54,20 @@ func TestJWTIssue_RejectsShortSecret(t *testing.T) {
 	}
 }
 
+func TestJWTIssue_RejectsEmptySubject(t *testing.T) {
+	t.Setenv("AUTH_JWT_SECRET", "this-is-a-32-byte-minimum-secret-xx")
+	s := newJWTIssueStep("t", nil)
+	for _, subj := range []any{"", "   ", nil} {
+		out := mustExecJWT(t, s, map[string]any{"subject": subj})
+		if tok, _ := out["token"].(string); tok != "" {
+			t.Fatalf("subject %q minted a token; want none (no anonymous sub)", subj)
+		}
+		if out["error"] == "" || out["error"] == nil {
+			t.Fatalf("subject %q: expected error, got none", subj)
+		}
+	}
+}
+
 func TestJWTIssue_CarriesCallerClaims(t *testing.T) {
 	secret := "this-is-a-32-byte-minimum-secret-xx"
 	t.Setenv("AUTH_JWT_SECRET", secret)

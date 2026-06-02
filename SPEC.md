@@ -137,7 +137,7 @@ Bootstrap + JWT-issue invariants (design rev 4, ADR-0001/0002):
 | T-AUTH-5 Facebook OAuth | ❌ | filed as #32 |
 | T-AUTH-6 credential-link + delete-min-1 guard | ⚠️ verify | per V1 + V4 |
 | T-AUTH-7 identity unification (find_or_create) | ⚠️ verify | per V3 |
-| T-AUTH-8 bootstrap-code redeem | ❌ | filed as #23 |
+| T-AUTH-8 bootstrap-code redeem | ✅ | superseded by T-AUTH-14 (`step.auth_bootstrap_redeem` shipped, #23) |
 | T-AUTH-9 test matrix | ⚠️ partial | 16 test files |
 | T-AUTH-10 SPEC.md backport | ✅ (this doc) | filed as #33 |
 | T-AUTH-11 registry manifest update | ✅ | workflow-registry#149 merged |

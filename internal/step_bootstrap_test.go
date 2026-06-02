@@ -94,3 +94,20 @@ func TestBootstrapRedeem_CountCoercion(t *testing.T) {
 		}
 	}
 }
+
+// Non-zero / fractional / uncoercible counts must NEVER open bootstrap (V-B1 "exactly 0").
+func TestBootstrapRedeem_CountClosedOrDenied(t *testing.T) {
+	t.Setenv("AUTH_BOOTSTRAP_CODE", "super-secret-bootstrap-code-001")
+	s := newBootstrapRedeemStep("t", map[string]any{"super_admin_email": "a@b.com"})
+	for _, c := range []any{1, int64(2), float64(1), float64(0.9), float64(-0.5), int(-1), "1", "notanumber", nil, []any{}} {
+		current := map[string]any{"code": "super-secret-bootstrap-code-001", "existing_admin_count": c}
+		res, err := s.Execute(context.Background(), nil, nil, current, nil, nil)
+		if err != nil {
+			t.Fatalf("execute: %v", err)
+		}
+		out := res.Output
+		if out["redeemed"] != false || out["reason"] != "bootstrap_closed" {
+			t.Fatalf("count %T(%v) must NOT open bootstrap; got redeemed=%v reason=%v", c, c, out["redeemed"], out["reason"])
+		}
+	}
+}
