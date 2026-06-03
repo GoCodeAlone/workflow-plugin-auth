@@ -27,7 +27,13 @@ func typedAuthAdminConfigDescribe(ctx context.Context, req sdk.TypedStepRequest[
 	if err != nil {
 		return nil, err
 	}
-	current := mergeMaps(req.Current, input, authAdminConfigFromStepOutputs(req.StepOutputs))
+	current := mergeMaps(
+		authAdminConfigFromStepOutputs(req.StepOutputs),
+		authAdminNestedConfig(req.Current, "config"),
+		req.Current,
+		authAdminNestedConfig(input, "config"),
+		input,
+	)
 	step := newAuthAdminConfigDescribeStep("typed", config)
 	result, err := step.Execute(ctx, req.TriggerData, req.StepOutputs, current, req.Metadata, runtimeConfigFromMetadata(req.Metadata))
 	if err != nil {

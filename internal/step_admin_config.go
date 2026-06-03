@@ -392,8 +392,20 @@ func sanitizeAuthAdminConfig(source map[string]any) map[string]any {
 
 func authAdminConfigFromStepOutputs(outputs map[string]map[string]any) map[string]any {
 	config := map[string]any{}
-	for _, output := range outputs {
-		for key, value := range output {
+	stepNames := make([]string, 0, len(outputs))
+	for name := range outputs {
+		stepNames = append(stepNames, name)
+	}
+	sort.Strings(stepNames)
+	for _, stepName := range stepNames {
+		output := outputs[stepName]
+		keys := make([]string, 0, len(output))
+		for key := range output {
+			keys = append(keys, key)
+		}
+		sort.Strings(keys)
+		for _, key := range keys {
+			value := output[key]
 			if authAdminConfigKey(key) && !authAdminSecretKey(key) {
 				config[key] = value
 			}

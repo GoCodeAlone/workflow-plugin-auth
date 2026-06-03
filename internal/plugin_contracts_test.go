@@ -188,7 +188,14 @@ func TestTypedAuthAdminConfigValidateReadsHTTPTriggerBody(t *testing.T) {
 func TestTypedAuthAdminConfigDescribePreservesEffectiveConfig(t *testing.T) {
 	result, err := typedAuthAdminConfigDescribe(context.Background(), sdk.TypedStepRequest[*contracts.EmptyConfig, *contracts.AuthAdminDescribeInput]{
 		Config: &contracts.EmptyConfig{},
-		Input:  &contracts.AuthAdminDescribeInput{},
+		Current: map[string]any{
+			"totp_auth_enabled": false,
+		},
+		Input: &contracts.AuthAdminDescribeInput{
+			Config: &contracts.AuthAdminConfig{
+				WebauthnOrigin: "http://explicit.localhost:8080",
+			},
+		},
 		StepOutputs: map[string]map[string]any{
 			"parse_auth_header": {
 				"headers": map[string]any{"Authorization": "Bearer token"},
@@ -208,11 +215,38 @@ func TestTypedAuthAdminConfigDescribePreservesEffectiveConfig(t *testing.T) {
 	if effective["webauthn_rp_id"] != "localhost:8080" {
 		t.Fatalf("effective_config webauthn_rp_id = %#v, want localhost:8080; full config %#v", effective["webauthn_rp_id"], effective)
 	}
-	if effective["totp_auth_enabled"] != true {
-		t.Fatalf("effective_config totp_auth_enabled = %#v, want true; full config %#v", effective["totp_auth_enabled"], effective)
+	if effective["totp_auth_enabled"] != false {
+		t.Fatalf("effective_config totp_auth_enabled = %#v, want explicit current override; full config %#v", effective["totp_auth_enabled"], effective)
+	}
+	if effective["webauthn_origin"] != "http://explicit.localhost:8080" {
+		t.Fatalf("effective_config webauthn_origin = %#v, want explicit input override; full config %#v", effective["webauthn_origin"], effective)
 	}
 	if _, exists := effective["headers"]; exists {
 		t.Fatalf("effective_config leaked request headers: %#v", effective)
+	}
+}
+
+func TestAuthAdminConfigFromStepOutputsIsDeterministic(t *testing.T) {
+	recovered := authAdminConfigFromStepOutputs(map[string]map[string]any{
+		"z_config": {
+			"webauthn_rp_id": "z.example.test",
+		},
+		"a_config": {
+			"webauthn_rp_id": "a.example.test",
+		},
+		"m_config": {
+			"jwt_secret":      "do-not-leak",
+			"not_auth_config": "ignore",
+		},
+	})
+	if recovered["webauthn_rp_id"] != "z.example.test" {
+		t.Fatalf("recovered webauthn_rp_id = %#v, want deterministic sorted-step last value; full config %#v", recovered["webauthn_rp_id"], recovered)
+	}
+	if _, exists := recovered["jwt_secret"]; exists {
+		t.Fatalf("recovered config leaked secret: %#v", recovered)
+	}
+	if _, exists := recovered["not_auth_config"]; exists {
+		t.Fatalf("recovered config included non-auth key: %#v", recovered)
 	}
 }
 
