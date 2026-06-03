@@ -67,7 +67,8 @@ func (s *authPolicyAuditStep) Execute(_ context.Context, _ map[string]any, _ map
 }
 
 func buildAuthMethodsPolicy(source map[string]any) map[string]any {
-	passkeyEnabled := policyPresent(source, "webauthn_rp_id") && policyPresent(source, "webauthn_origin")
+	passkeyConfigured := policyPresent(source, "webauthn_rp_id") && policyPresent(source, "webauthn_origin")
+	passkeyEnabled := passkeyConfigured && !policyAnyStrictFalse(source, "passkey_auth_enabled", "passkey_enabled")
 	emailCodeEnabled := policyPresent(source, "smtp_host") && policyPresent(source, "smtp_from")
 	smsCodeEnabled := smsPolicyReady(source)
 
@@ -390,6 +391,31 @@ func policyStrictTrue(source map[string]any, key string) bool {
 func policyAnyStrictTrue(source map[string]any, keys ...string) bool {
 	for _, key := range keys {
 		if policyStrictTrue(source, key) {
+			return true
+		}
+	}
+	return false
+}
+
+func policyStrictFalse(source map[string]any, key string) bool {
+	value, ok := source[key]
+	if !ok || value == nil {
+		return false
+	}
+	switch v := value.(type) {
+	case bool:
+		return !v
+	case string:
+		text := strings.TrimSpace(v)
+		return text != "" && !strings.Contains(text, "{{") && strings.EqualFold(text, "false")
+	default:
+		return false
+	}
+}
+
+func policyAnyStrictFalse(source map[string]any, keys ...string) bool {
+	for _, key := range keys {
+		if policyStrictFalse(source, key) {
 			return true
 		}
 	}

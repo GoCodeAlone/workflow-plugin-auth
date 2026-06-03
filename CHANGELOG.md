@@ -4,6 +4,9 @@
 ### Added
 - README verified-status banner per workflow#714 (multi-repo QoL sweep).
 - CONTRIBUTING.md, examples/minimal/config.yaml, and GitHub issue/PR templates.
+- Admin auth config now exposes a `passkey_auth_enabled` toggle, and auth
+  methods policy honors `passkey_auth_enabled=false` without requiring apps to
+  clear WebAuthn relying party configuration.
 
 ## v0.2.10 (2026-05-27)
 

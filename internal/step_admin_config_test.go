@@ -10,6 +10,7 @@ import (
 func TestAuthAdminConfigDescribeExposesRealConfigControls(t *testing.T) {
 	step := newAuthAdminConfigDescribeStep("admin", map[string]any{
 		"environment":                  "development",
+		"passkey_auth_enabled":         true,
 		"password_auth_enabled":        true,
 		"webauthn_rp_id":               "app.example.test",
 		"webauthn_origin":              "https://app.example.test",
@@ -32,6 +33,15 @@ func TestAuthAdminConfigDescribeExposesRealConfigControls(t *testing.T) {
 		Label:      "Passkey relying party ID",
 		InputType:  "text",
 		ConfigKey:  "webauthn_rp_id",
+		Secret:     false,
+		Configured: true,
+		Enabled:    true,
+	})
+	requireAdminControl(t, result.Output, "passkey_auth_enabled", adminControlWant{
+		GroupKey:   "primary_methods",
+		Label:      "Passkey login",
+		InputType:  "toggle",
+		ConfigKey:  "passkey_auth_enabled",
 		Secret:     false,
 		Configured: true,
 		Enabled:    true,
@@ -216,6 +226,23 @@ func TestAuthAdminConfigValidateRejectsZeroPrimaryMethods(t *testing.T) {
 
 	assertBool(t, result.Output, "valid", false)
 	requireAdminDiagnostic(t, result.Output, "primary_methods", "at least one primary authentication method must be configured")
+}
+
+func TestAuthAdminConfigValidateAllowsMissingPasskeyConfigWhenDisabled(t *testing.T) {
+	step := newAuthAdminConfigValidateStep("admin", nil)
+
+	result, err := step.Execute(context.Background(), nil, nil, map[string]any{
+		"desired_config": map[string]any{
+			"passkey_auth_enabled": false,
+			"webauthn_rp_id":       "",
+			"webauthn_origin":      "",
+		},
+	}, nil, nil)
+	if err != nil {
+		t.Fatalf("validate admin config: %v", err)
+	}
+
+	assertBool(t, result.Output, "valid", true)
 }
 
 func TestAuthAdminConfigValidateAcceptsPasskeyPatchAndRedactsSecrets(t *testing.T) {

@@ -78,6 +78,7 @@ func buildAuthAdminGroups(source map[string]any) []map[string]any {
 			"label":       "Primary methods",
 			"description": "Login methods that can establish a user session.",
 			"controls": []map[string]any{
+				authAdminControl(source, "passkey_auth_enabled", "Passkey login", "toggle", "Allows users to sign in or register with a passkey.", "Requires relying party ID and origin to be configured.", false, ""),
 				authAdminControl(source, "webauthn_rp_id", "Passkey relying party ID", "text", "Domain used by browsers to scope passkey credentials.", "Use the effective application host, for example app.example.com.", true, ""),
 				authAdminControl(source, "webauthn_origin", "Passkey origin", "url", "Origin that WebAuthn challenges must be created for.", "Use the full HTTPS origin, for example https://app.example.com.", true, ""),
 				authAdminControl(source, "password_auth_enabled", "Password login", "toggle", "Allows users to sign in with a password outside production.", "Production policy blocks password login even when this is enabled.", false, passwordAdminDisabledReason(source)),
@@ -227,6 +228,9 @@ func authAdminWarnings(source, policy map[string]any) []map[string]any {
 
 func validatePasskeyAdminConfig(source map[string]any) []map[string]any {
 	var errors []map[string]any
+	if policyAnyStrictFalse(source, "passkey_auth_enabled", "passkey_enabled") {
+		return errors
+	}
 	rpID := policyString(source, "webauthn_rp_id")
 	origin := policyString(source, "webauthn_origin")
 	if rpID == "" && origin == "" {
