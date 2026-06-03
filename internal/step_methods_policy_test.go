@@ -41,13 +41,32 @@ func TestAuthMethodsPolicy(t *testing.T) {
 	})
 
 	t.Run("passkey can be disabled without clearing relying party config", func(t *testing.T) {
-		output := executeMethodsPolicy(t, map[string]any{
-			"passkey_auth_enabled": false,
-			"webauthn_rp_id":       "example.com",
-			"webauthn_origin":      "https://example.com",
-		})
-		assertBool(t, output, "passkey_enabled", false)
-		assertInt(t, output, "primary_method_count", 0)
+		for _, tc := range []struct {
+			name string
+			key  string
+			value any
+			want bool
+		}{
+			{name: "auth key bool false", key: "passkey_auth_enabled", value: false, want: false},
+			{name: "auth key string false", key: "passkey_auth_enabled", value: "false", want: false},
+			{name: "alias key bool false", key: "passkey_enabled", value: false, want: false},
+			{name: "alias key string false", key: "passkey_enabled", value: "false", want: false},
+			{name: "templated false is ignored", key: "passkey_auth_enabled", value: "{{ config \"passkey_auth_enabled\" }}", want: true},
+		} {
+			t.Run(tc.name, func(t *testing.T) {
+				output := executeMethodsPolicy(t, map[string]any{
+					tc.key:             tc.value,
+					"webauthn_rp_id":  "example.com",
+					"webauthn_origin": "https://example.com",
+				})
+				assertBool(t, output, "passkey_enabled", tc.want)
+				if tc.want {
+					assertInt(t, output, "primary_method_count", 1)
+				} else {
+					assertInt(t, output, "primary_method_count", 0)
+				}
+			})
+		}
 	})
 
 	t.Run("email code requires smtp host and sender", func(t *testing.T) {

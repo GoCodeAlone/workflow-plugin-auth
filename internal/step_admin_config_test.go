@@ -228,6 +228,23 @@ func TestAuthAdminConfigValidateRejectsZeroPrimaryMethods(t *testing.T) {
 	requireAdminDiagnostic(t, result.Output, "primary_methods", "at least one primary authentication method must be configured")
 }
 
+func TestAuthAdminConfigValidateAllowsMissingPasskeyConfigWhenDisabled(t *testing.T) {
+	step := newAuthAdminConfigValidateStep("admin", nil)
+
+	result, err := step.Execute(context.Background(), nil, nil, map[string]any{
+		"desired_config": map[string]any{
+			"passkey_auth_enabled": false,
+			"webauthn_rp_id":       "",
+			"webauthn_origin":      "",
+		},
+	}, nil, nil)
+	if err != nil {
+		t.Fatalf("validate admin config: %v", err)
+	}
+
+	assertBool(t, result.Output, "valid", true)
+}
+
 func TestAuthAdminConfigValidateAcceptsPasskeyPatchAndRedactsSecrets(t *testing.T) {
 	step := newAuthAdminConfigValidateStep("admin", nil)
 
