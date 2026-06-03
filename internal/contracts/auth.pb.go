@@ -336,7 +336,7 @@ type PasskeyFinishRegisterOutput struct {
 	CredentialId  string                 `protobuf:"bytes,2,opt,name=credential_id,json=credentialId,proto3" json:"credential_id,omitempty"`
 	PublicKey     string                 `protobuf:"bytes,3,opt,name=public_key,json=publicKey,proto3" json:"public_key,omitempty"`
 	Aaguid        string                 `protobuf:"bytes,4,opt,name=aaguid,proto3" json:"aaguid,omitempty"`
-	SignCount     uint32                 `protobuf:"varint,5,opt,name=sign_count,json=signCount,proto3" json:"sign_count,omitempty"`
+	SignCount     *uint32                `protobuf:"varint,5,opt,name=sign_count,json=signCount,proto3,oneof" json:"sign_count,omitempty"`
 	Credential    string                 `protobuf:"bytes,6,opt,name=credential,proto3" json:"credential,omitempty"`
 	Error         string                 `protobuf:"bytes,100,opt,name=error,proto3" json:"error,omitempty"`
 	unknownFields protoimpl.UnknownFields
@@ -402,8 +402,8 @@ func (x *PasskeyFinishRegisterOutput) GetAaguid() string {
 }
 
 func (x *PasskeyFinishRegisterOutput) GetSignCount() uint32 {
-	if x != nil {
-		return x.SignCount
+	if x != nil && x.SignCount != nil {
+		return *x.SignCount
 	}
 	return 0
 }
@@ -614,7 +614,7 @@ type PasskeyFinishLoginOutput struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Valid         bool                   `protobuf:"varint,1,opt,name=valid,proto3" json:"valid,omitempty"`
 	CredentialId  string                 `protobuf:"bytes,2,opt,name=credential_id,json=credentialId,proto3" json:"credential_id,omitempty"`
-	SignCount     uint32                 `protobuf:"varint,3,opt,name=sign_count,json=signCount,proto3" json:"sign_count,omitempty"`
+	SignCount     *uint32                `protobuf:"varint,3,opt,name=sign_count,json=signCount,proto3,oneof" json:"sign_count,omitempty"`
 	Error         string                 `protobuf:"bytes,100,opt,name=error,proto3" json:"error,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -665,8 +665,8 @@ func (x *PasskeyFinishLoginOutput) GetCredentialId() string {
 }
 
 func (x *PasskeyFinishLoginOutput) GetSignCount() uint32 {
-	if x != nil {
-		return x.SignCount
+	if x != nil && x.SignCount != nil {
+		return *x.SignCount
 	}
 	return 0
 }
@@ -6636,19 +6636,20 @@ const file_internal_contracts_auth_proto_rawDesc = "" +
 	"\x05email\x18\x02 \x01(\tR\x05email\x12!\n" +
 	"\fdisplay_name\x18\x03 \x01(\tR\vdisplayName\x12 \n" +
 	"\vattestation\x18\x04 \x01(\tR\vattestation\x12!\n" +
-	"\fsession_data\x18\x05 \x01(\tR\vsessionData\"\xe4\x01\n" +
+	"\fsession_data\x18\x05 \x01(\tR\vsessionData\"\xf8\x01\n" +
 	"\x1bPasskeyFinishRegisterOutput\x12\x14\n" +
 	"\x05valid\x18\x01 \x01(\bR\x05valid\x12#\n" +
 	"\rcredential_id\x18\x02 \x01(\tR\fcredentialId\x12\x1d\n" +
 	"\n" +
 	"public_key\x18\x03 \x01(\tR\tpublicKey\x12\x16\n" +
-	"\x06aaguid\x18\x04 \x01(\tR\x06aaguid\x12\x1d\n" +
+	"\x06aaguid\x18\x04 \x01(\tR\x06aaguid\x12\"\n" +
 	"\n" +
-	"sign_count\x18\x05 \x01(\rR\tsignCount\x12\x1e\n" +
+	"sign_count\x18\x05 \x01(\rH\x00R\tsignCount\x88\x01\x01\x12\x1e\n" +
 	"\n" +
 	"credential\x18\x06 \x01(\tR\n" +
 	"credential\x12\x14\n" +
-	"\x05error\x18d \x01(\tR\x05error\"S\n" +
+	"\x05error\x18d \x01(\tR\x05errorB\r\n" +
+	"\v_sign_count\"S\n" +
 	"\x16PasskeyBeginLoginInput\x12\x17\n" +
 	"\auser_id\x18\x01 \x01(\tR\x06userId\x12 \n" +
 	"\vcredentials\x18\x02 \x01(\tR\vcredentials\"l\n" +
@@ -6661,13 +6662,14 @@ const file_internal_contracts_auth_proto_rawDesc = "" +
 	"\x05email\x18\x02 \x01(\tR\x05email\x12!\n" +
 	"\fsession_data\x18\x03 \x01(\tR\vsessionData\x12 \n" +
 	"\vcredentials\x18\x04 \x01(\tR\vcredentials\x12\x1c\n" +
-	"\tassertion\x18\x05 \x01(\tR\tassertion\"\x8a\x01\n" +
+	"\tassertion\x18\x05 \x01(\tR\tassertion\"\x9e\x01\n" +
 	"\x18PasskeyFinishLoginOutput\x12\x14\n" +
 	"\x05valid\x18\x01 \x01(\bR\x05valid\x12#\n" +
-	"\rcredential_id\x18\x02 \x01(\tR\fcredentialId\x12\x1d\n" +
+	"\rcredential_id\x18\x02 \x01(\tR\fcredentialId\x12\"\n" +
 	"\n" +
-	"sign_count\x18\x03 \x01(\rR\tsignCount\x12\x14\n" +
-	"\x05error\x18d \x01(\tR\x05error\"\r\n" +
+	"sign_count\x18\x03 \x01(\rH\x00R\tsignCount\x88\x01\x01\x12\x14\n" +
+	"\x05error\x18d \x01(\tR\x05errorB\r\n" +
+	"\v_sign_count\"\r\n" +
 	"\vEmptyConfig\"G\n" +
 	"\x17TOTPGenerateSecretInput\x12\x14\n" +
 	"\x05email\x18\x01 \x01(\tR\x05email\x12\x16\n" +
@@ -7401,6 +7403,8 @@ func file_internal_contracts_auth_proto_init() {
 	if File_internal_contracts_auth_proto != nil {
 		return
 	}
+	file_internal_contracts_auth_proto_msgTypes[5].OneofWrappers = []any{}
+	file_internal_contracts_auth_proto_msgTypes[9].OneofWrappers = []any{}
 	file_internal_contracts_auth_proto_msgTypes[34].OneofWrappers = []any{}
 	file_internal_contracts_auth_proto_msgTypes[35].OneofWrappers = []any{}
 	file_internal_contracts_auth_proto_msgTypes[43].OneofWrappers = []any{}

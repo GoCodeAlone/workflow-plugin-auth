@@ -12,6 +12,7 @@ import (
 	"github.com/GoCodeAlone/workflow-plugin-auth/internal/contracts"
 	pb "github.com/GoCodeAlone/workflow/plugin/external/proto"
 	sdk "github.com/GoCodeAlone/workflow/plugin/external/sdk"
+	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
 	"google.golang.org/protobuf/types/known/anypb"
@@ -292,6 +293,43 @@ func TestTypedPasskeyOutputsDecodeRuntimeKeys(t *testing.T) {
 	}
 	if !finishLogin.GetValid() || finishLogin.GetSignCount() != 8 {
 		t.Fatalf("finish login output = %+v", finishLogin)
+	}
+}
+
+func TestTypedPasskeySignCountZeroPreservesPresence(t *testing.T) {
+	finishRegister, err := mapToProto(map[string]any{
+		"valid":         true,
+		"credential_id": "credential-id",
+		"public_key":    "public-key",
+		"aaguid":        "aaguid",
+		"sign_count":    0,
+		"credential":    `{"id":"credential-id"}`,
+	}, &contracts.PasskeyFinishRegisterOutput{})
+	if err != nil {
+		t.Fatalf("decode finish register output: %v", err)
+	}
+	data, err := protojson.MarshalOptions{UseProtoNames: true}.Marshal(finishRegister)
+	if err != nil {
+		t.Fatalf("marshal finish register output: %v", err)
+	}
+	if !strings.Contains(string(data), `"sign_count":0`) {
+		t.Fatalf("zero sign_count must be present in typed finish register output, got %s", data)
+	}
+
+	finishLogin, err := mapToProto(map[string]any{
+		"valid":         true,
+		"credential_id": "credential-id",
+		"sign_count":    0,
+	}, &contracts.PasskeyFinishLoginOutput{})
+	if err != nil {
+		t.Fatalf("decode finish login output: %v", err)
+	}
+	data, err = protojson.MarshalOptions{UseProtoNames: true}.Marshal(finishLogin)
+	if err != nil {
+		t.Fatalf("marshal finish login output: %v", err)
+	}
+	if !strings.Contains(string(data), `"sign_count":0`) {
+		t.Fatalf("zero sign_count must be present in typed finish login output, got %s", data)
 	}
 }
 
