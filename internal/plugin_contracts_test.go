@@ -185,6 +185,37 @@ func TestTypedAuthAdminConfigValidateReadsHTTPTriggerBody(t *testing.T) {
 	t.Fatalf("missing password production diagnostic: %v", result.Output.GetErrors())
 }
 
+func TestTypedAuthAdminConfigDescribePreservesEffectiveConfig(t *testing.T) {
+	result, err := typedAuthAdminConfigDescribe(context.Background(), sdk.TypedStepRequest[*contracts.EmptyConfig, *contracts.AuthAdminDescribeInput]{
+		Config: &contracts.EmptyConfig{},
+		Input:  &contracts.AuthAdminDescribeInput{},
+		StepOutputs: map[string]map[string]any{
+			"parse_auth_header": {
+				"headers": map[string]any{"Authorization": "Bearer token"},
+			},
+			"set_auth_config_input": {
+				"passkey_auth_enabled": true,
+				"totp_auth_enabled":    true,
+				"webauthn_rp_id":       "localhost:8080",
+				"webauthn_origin":      "http://localhost:8080",
+			},
+		},
+	})
+	if err != nil {
+		t.Fatalf("typed auth admin describe: %v", err)
+	}
+	effective := result.Output.GetEffectiveConfig().AsMap()
+	if effective["webauthn_rp_id"] != "localhost:8080" {
+		t.Fatalf("effective_config webauthn_rp_id = %#v, want localhost:8080; full config %#v", effective["webauthn_rp_id"], effective)
+	}
+	if effective["totp_auth_enabled"] != true {
+		t.Fatalf("effective_config totp_auth_enabled = %#v, want true; full config %#v", effective["totp_auth_enabled"], effective)
+	}
+	if _, exists := effective["headers"]; exists {
+		t.Fatalf("effective_config leaked request headers: %#v", effective)
+	}
+}
+
 func TestTypedPolicyGateUsesMetadataRuntimeConfig(t *testing.T) {
 	result, err := typedPolicyGate(context.Background(), sdk.TypedStepRequest[*contracts.AuthPolicyGateConfig, *contracts.AuthPolicyGateInput]{
 		Config: &contracts.AuthPolicyGateConfig{

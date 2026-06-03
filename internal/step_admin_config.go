@@ -382,12 +382,60 @@ func sanitizeAuthAdminConfig(source map[string]any) map[string]any {
 		if authAdminSecretKey(key) {
 			continue
 		}
-		if key == "desired_config" || key == "config" || key == "require_primary_method" {
+		if !authAdminConfigKey(key) {
 			continue
 		}
 		sanitized[key] = value
 	}
 	return sanitized
+}
+
+func authAdminConfigFromStepOutputs(outputs map[string]map[string]any) map[string]any {
+	config := map[string]any{}
+	for _, output := range outputs {
+		for key, value := range output {
+			if authAdminConfigKey(key) && !authAdminSecretKey(key) {
+				config[key] = value
+			}
+		}
+	}
+	return config
+}
+
+func authAdminConfigKey(key string) bool {
+	key = strings.ToLower(strings.TrimSpace(key))
+	switch key {
+	case "environment",
+		"passkey_auth_enabled",
+		"passkey_enabled",
+		"password_auth_enabled",
+		"password_enabled",
+		"totp_auth_enabled",
+		"totp_enabled",
+		"webauthn_rp_id",
+		"webauthn_origin",
+		"smtp_host",
+		"smtp_from",
+		"auth_routes_enabled",
+		"routes_enabled",
+		"oauth_routes_enabled",
+		"oauth_provider",
+		"oauth_providers",
+		"sms_enabled",
+		"sms_auth_enabled",
+		"twilio_verify_service_sid",
+		"twilio_account_sid",
+		"twilio_auth_token",
+		"twilio_api_key_sid",
+		"twilio_api_key_secret",
+		"jwt_secret",
+		"allow_insecure_test_oauth_endpoints":
+		return true
+	default:
+		return strings.HasSuffix(key, "_oauth_client_id") ||
+			strings.HasSuffix(key, "_oauth_client_secret") ||
+			strings.HasSuffix(key, "_oauth_redirect_url")
+	}
 }
 
 func authAdminSecretFields(source map[string]any) []string {
