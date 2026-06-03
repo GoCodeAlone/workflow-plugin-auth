@@ -42,7 +42,7 @@ message PasskeyFinishRegisterOutput {
   string credential_id = 2;
   string public_key = 3;
   string aaguid = 4;
-  uint32 sign_count = 5;
+  optional uint32 sign_count = 5;
   string credential = 6;
   string error = 100;
 }
@@ -69,7 +69,7 @@ message PasskeyFinishLoginInput {
 message PasskeyFinishLoginOutput {
   bool valid = 1;
   string credential_id = 2;
-  uint32 sign_count = 3;
+  optional uint32 sign_count = 3;
   string error = 100;
 }
 
