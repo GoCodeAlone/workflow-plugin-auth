@@ -2199,6 +2199,8 @@ type AuthMethodsPolicyConfig struct {
 	InstagramOauthClientSecret string                 `protobuf:"bytes,29,opt,name=instagram_oauth_client_secret,json=instagramOauthClientSecret,proto3" json:"instagram_oauth_client_secret,omitempty"`
 	XOauthClientId             string                 `protobuf:"bytes,30,opt,name=x_oauth_client_id,json=xOauthClientId,proto3" json:"x_oauth_client_id,omitempty"`
 	XOauthClientSecret         string                 `protobuf:"bytes,31,opt,name=x_oauth_client_secret,json=xOauthClientSecret,proto3" json:"x_oauth_client_secret,omitempty"`
+	PasskeyAuthEnabled         *bool                  `protobuf:"varint,32,opt,name=passkey_auth_enabled,json=passkeyAuthEnabled,proto3,oneof" json:"passkey_auth_enabled,omitempty"`
+	PasskeyEnabled             *bool                  `protobuf:"varint,33,opt,name=passkey_enabled,json=passkeyEnabled,proto3,oneof" json:"passkey_enabled,omitempty"`
 	unknownFields              protoimpl.UnknownFields
 	sizeCache                  protoimpl.SizeCache
 }
@@ -2450,6 +2452,20 @@ func (x *AuthMethodsPolicyConfig) GetXOauthClientSecret() string {
 	return ""
 }
 
+func (x *AuthMethodsPolicyConfig) GetPasskeyAuthEnabled() bool {
+	if x != nil && x.PasskeyAuthEnabled != nil {
+		return *x.PasskeyAuthEnabled
+	}
+	return false
+}
+
+func (x *AuthMethodsPolicyConfig) GetPasskeyEnabled() bool {
+	if x != nil && x.PasskeyEnabled != nil {
+		return *x.PasskeyEnabled
+	}
+	return false
+}
+
 type AuthMethodsPolicyInput struct {
 	state                      protoimpl.MessageState `protogen:"open.v1"`
 	Environment                string                 `protobuf:"bytes,1,opt,name=environment,proto3" json:"environment,omitempty"`
@@ -2483,6 +2499,8 @@ type AuthMethodsPolicyInput struct {
 	InstagramOauthClientSecret string                 `protobuf:"bytes,29,opt,name=instagram_oauth_client_secret,json=instagramOauthClientSecret,proto3" json:"instagram_oauth_client_secret,omitempty"`
 	XOauthClientId             string                 `protobuf:"bytes,30,opt,name=x_oauth_client_id,json=xOauthClientId,proto3" json:"x_oauth_client_id,omitempty"`
 	XOauthClientSecret         string                 `protobuf:"bytes,31,opt,name=x_oauth_client_secret,json=xOauthClientSecret,proto3" json:"x_oauth_client_secret,omitempty"`
+	PasskeyAuthEnabled         *bool                  `protobuf:"varint,32,opt,name=passkey_auth_enabled,json=passkeyAuthEnabled,proto3,oneof" json:"passkey_auth_enabled,omitempty"`
+	PasskeyEnabled             *bool                  `protobuf:"varint,33,opt,name=passkey_enabled,json=passkeyEnabled,proto3,oneof" json:"passkey_enabled,omitempty"`
 	unknownFields              protoimpl.UnknownFields
 	sizeCache                  protoimpl.SizeCache
 }
@@ -2732,6 +2750,20 @@ func (x *AuthMethodsPolicyInput) GetXOauthClientSecret() string {
 		return x.XOauthClientSecret
 	}
 	return ""
+}
+
+func (x *AuthMethodsPolicyInput) GetPasskeyAuthEnabled() bool {
+	if x != nil && x.PasskeyAuthEnabled != nil {
+		return *x.PasskeyAuthEnabled
+	}
+	return false
+}
+
+func (x *AuthMethodsPolicyInput) GetPasskeyEnabled() bool {
+	if x != nil && x.PasskeyEnabled != nil {
+		return *x.PasskeyEnabled
+	}
+	return false
 }
 
 type AuthMethodsPolicyOutput struct {
@@ -3349,6 +3381,8 @@ type AuthAdminConfig struct {
 	XOauthClientSecret              string                    `protobuf:"bytes,31,opt,name=x_oauth_client_secret,json=xOauthClientSecret,proto3" json:"x_oauth_client_secret,omitempty"`
 	AllowInsecureTestOauthEndpoints *bool                     `protobuf:"varint,32,opt,name=allow_insecure_test_oauth_endpoints,json=allowInsecureTestOauthEndpoints,proto3,oneof" json:"allow_insecure_test_oauth_endpoints,omitempty"`
 	Providers                       []*AuthProviderDescriptor `protobuf:"bytes,33,rep,name=providers,proto3" json:"providers,omitempty"`
+	PasskeyAuthEnabled              *bool                     `protobuf:"varint,34,opt,name=passkey_auth_enabled,json=passkeyAuthEnabled,proto3,oneof" json:"passkey_auth_enabled,omitempty"`
+	PasskeyEnabled                  *bool                     `protobuf:"varint,35,opt,name=passkey_enabled,json=passkeyEnabled,proto3,oneof" json:"passkey_enabled,omitempty"`
 	unknownFields                   protoimpl.UnknownFields
 	sizeCache                       protoimpl.SizeCache
 }
@@ -3612,6 +3646,20 @@ func (x *AuthAdminConfig) GetProviders() []*AuthProviderDescriptor {
 		return x.Providers
 	}
 	return nil
+}
+
+func (x *AuthAdminConfig) GetPasskeyAuthEnabled() bool {
+	if x != nil && x.PasskeyAuthEnabled != nil {
+		return *x.PasskeyAuthEnabled
+	}
+	return false
+}
+
+func (x *AuthAdminConfig) GetPasskeyEnabled() bool {
+	if x != nil && x.PasskeyEnabled != nil {
+		return *x.PasskeyEnabled
+	}
+	return false
 }
 
 type AuthAdminDescribeInput struct {
@@ -6731,7 +6779,7 @@ const file_internal_contracts_auth_proto_rawDesc = "" +
 	"\x05phone\x18\x04 \x01(\tR\x05phone\x12\x1f\n" +
 	"\vphone_valid\x18\x05 \x01(\bR\n" +
 	"phoneValid\x12\x14\n" +
-	"\x05error\x18d \x01(\tR\x05error\"\xa0\r\n" +
+	"\x05error\x18d \x01(\tR\x05error\"\xb2\x0e\n" +
 	"\x17AuthMethodsPolicyConfig\x12 \n" +
 	"\venvironment\x18\x01 \x01(\tR\venvironment\x127\n" +
 	"\x15password_auth_enabled\x18\x02 \x01(\bH\x00R\x13passwordAuthEnabled\x88\x01\x01\x12.\n" +
@@ -6766,7 +6814,10 @@ const file_internal_contracts_auth_proto_rawDesc = "" +
 	"\x19instagram_oauth_client_id\x18\x1c \x01(\tR\x16instagramOauthClientId\x12A\n" +
 	"\x1dinstagram_oauth_client_secret\x18\x1d \x01(\tR\x1ainstagramOauthClientSecret\x12)\n" +
 	"\x11x_oauth_client_id\x18\x1e \x01(\tR\x0exOauthClientId\x121\n" +
-	"\x15x_oauth_client_secret\x18\x1f \x01(\tR\x12xOauthClientSecretB\x18\n" +
+	"\x15x_oauth_client_secret\x18\x1f \x01(\tR\x12xOauthClientSecret\x125\n" +
+	"\x14passkey_auth_enabled\x18  \x01(\bH\tR\x12passkeyAuthEnabled\x88\x01\x01\x12,\n" +
+	"\x0fpasskey_enabled\x18! \x01(\bH\n" +
+	"R\x0epasskeyEnabled\x88\x01\x01B\x18\n" +
 	"\x16_password_auth_enabledB\x13\n" +
 	"\x11_password_enabledB\x14\n" +
 	"\x12_totp_auth_enabledB\x0f\n" +
@@ -6775,7 +6826,9 @@ const file_internal_contracts_auth_proto_rawDesc = "" +
 	"\x0f_routes_enabledB\x17\n" +
 	"\x15_oauth_routes_enabledB\x0e\n" +
 	"\f_sms_enabledB\x13\n" +
-	"\x11_sms_auth_enabled\"\x9f\r\n" +
+	"\x11_sms_auth_enabledB\x17\n" +
+	"\x15_passkey_auth_enabledB\x12\n" +
+	"\x10_passkey_enabled\"\xb1\x0e\n" +
 	"\x16AuthMethodsPolicyInput\x12 \n" +
 	"\venvironment\x18\x01 \x01(\tR\venvironment\x127\n" +
 	"\x15password_auth_enabled\x18\x02 \x01(\bH\x00R\x13passwordAuthEnabled\x88\x01\x01\x12.\n" +
@@ -6810,7 +6863,10 @@ const file_internal_contracts_auth_proto_rawDesc = "" +
 	"\x19instagram_oauth_client_id\x18\x1c \x01(\tR\x16instagramOauthClientId\x12A\n" +
 	"\x1dinstagram_oauth_client_secret\x18\x1d \x01(\tR\x1ainstagramOauthClientSecret\x12)\n" +
 	"\x11x_oauth_client_id\x18\x1e \x01(\tR\x0exOauthClientId\x121\n" +
-	"\x15x_oauth_client_secret\x18\x1f \x01(\tR\x12xOauthClientSecretB\x18\n" +
+	"\x15x_oauth_client_secret\x18\x1f \x01(\tR\x12xOauthClientSecret\x125\n" +
+	"\x14passkey_auth_enabled\x18  \x01(\bH\tR\x12passkeyAuthEnabled\x88\x01\x01\x12,\n" +
+	"\x0fpasskey_enabled\x18! \x01(\bH\n" +
+	"R\x0epasskeyEnabled\x88\x01\x01B\x18\n" +
 	"\x16_password_auth_enabledB\x13\n" +
 	"\x11_password_enabledB\x14\n" +
 	"\x12_totp_auth_enabledB\x0f\n" +
@@ -6819,7 +6875,9 @@ const file_internal_contracts_auth_proto_rawDesc = "" +
 	"\x0f_routes_enabledB\x17\n" +
 	"\x15_oauth_routes_enabledB\x0e\n" +
 	"\f_sms_enabledB\x13\n" +
-	"\x11_sms_auth_enabled\"\x8d\x03\n" +
+	"\x11_sms_auth_enabledB\x17\n" +
+	"\x15_passkey_auth_enabledB\x12\n" +
+	"\x10_passkey_enabled\"\x8d\x03\n" +
 	"\x17AuthMethodsPolicyOutput\x12'\n" +
 	"\x0fpasskey_enabled\x18\x01 \x01(\bR\x0epasskeyEnabled\x12,\n" +
 	"\x12email_code_enabled\x18\x02 \x01(\bR\x10emailCodeEnabled\x12(\n" +
@@ -6874,7 +6932,7 @@ const file_internal_contracts_auth_proto_rawDesc = "" +
 	"\n" +
 	"violations\x18\x02 \x03(\tR\n" +
 	"violations\x12\x14\n" +
-	"\x05error\x18d \x01(\tR\x05error\"\xf2\x0e\n" +
+	"\x05error\x18d \x01(\tR\x05error\"\x84\x10\n" +
 	"\x0fAuthAdminConfig\x12 \n" +
 	"\venvironment\x18\x01 \x01(\tR\venvironment\x127\n" +
 	"\x15password_auth_enabled\x18\x02 \x01(\bH\x00R\x13passwordAuthEnabled\x88\x01\x01\x12.\n" +
@@ -6911,7 +6969,10 @@ const file_internal_contracts_auth_proto_rawDesc = "" +
 	"\x11x_oauth_client_id\x18\x1e \x01(\tR\x0exOauthClientId\x121\n" +
 	"\x15x_oauth_client_secret\x18\x1f \x01(\tR\x12xOauthClientSecret\x12Q\n" +
 	"#allow_insecure_test_oauth_endpoints\x18  \x01(\bH\tR\x1fallowInsecureTestOauthEndpoints\x88\x01\x01\x12N\n" +
-	"\tproviders\x18! \x03(\v20.workflow.plugins.auth.v1.AuthProviderDescriptorR\tprovidersB\x18\n" +
+	"\tproviders\x18! \x03(\v20.workflow.plugins.auth.v1.AuthProviderDescriptorR\tproviders\x125\n" +
+	"\x14passkey_auth_enabled\x18\" \x01(\bH\n" +
+	"R\x12passkeyAuthEnabled\x88\x01\x01\x12,\n" +
+	"\x0fpasskey_enabled\x18# \x01(\bH\vR\x0epasskeyEnabled\x88\x01\x01B\x18\n" +
 	"\x16_password_auth_enabledB\x13\n" +
 	"\x11_password_enabledB\x14\n" +
 	"\x12_totp_auth_enabledB\x0f\n" +
@@ -6921,7 +6982,9 @@ const file_internal_contracts_auth_proto_rawDesc = "" +
 	"\x15_oauth_routes_enabledB\x0e\n" +
 	"\f_sms_enabledB\x13\n" +
 	"\x11_sms_auth_enabledB&\n" +
-	"$_allow_insecure_test_oauth_endpoints\"\xab\x01\n" +
+	"$_allow_insecure_test_oauth_endpointsB\x17\n" +
+	"\x15_passkey_auth_enabledB\x12\n" +
+	"\x10_passkey_enabled\"\xab\x01\n" +
 	"\x16AuthAdminDescribeInput\x12A\n" +
 	"\x06config\x18\x01 \x01(\v2).workflow.plugins.auth.v1.AuthAdminConfigR\x06config\x12N\n" +
 	"\tproviders\x18\x02 \x03(\v20.workflow.plugins.auth.v1.AuthProviderDescriptorR\tproviders\"f\n" +

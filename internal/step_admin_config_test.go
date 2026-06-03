@@ -10,6 +10,7 @@ import (
 func TestAuthAdminConfigDescribeExposesRealConfigControls(t *testing.T) {
 	step := newAuthAdminConfigDescribeStep("admin", map[string]any{
 		"environment":                  "development",
+		"passkey_auth_enabled":         true,
 		"password_auth_enabled":        true,
 		"webauthn_rp_id":               "app.example.test",
 		"webauthn_origin":              "https://app.example.test",
@@ -32,6 +33,15 @@ func TestAuthAdminConfigDescribeExposesRealConfigControls(t *testing.T) {
 		Label:      "Passkey relying party ID",
 		InputType:  "text",
 		ConfigKey:  "webauthn_rp_id",
+		Secret:     false,
+		Configured: true,
+		Enabled:    true,
+	})
+	requireAdminControl(t, result.Output, "passkey_auth_enabled", adminControlWant{
+		GroupKey:   "primary_methods",
+		Label:      "Passkey login",
+		InputType:  "toggle",
+		ConfigKey:  "passkey_auth_enabled",
 		Secret:     false,
 		Configured: true,
 		Enabled:    true,

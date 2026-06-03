@@ -254,6 +254,8 @@ message AuthMethodsPolicyConfig {
   string instagram_oauth_client_secret = 29;
   string x_oauth_client_id = 30;
   string x_oauth_client_secret = 31;
+  optional bool passkey_auth_enabled = 32;
+  optional bool passkey_enabled = 33;
 }
 
 message AuthMethodsPolicyInput {
@@ -288,6 +290,8 @@ message AuthMethodsPolicyInput {
   string instagram_oauth_client_secret = 29;
   string x_oauth_client_id = 30;
   string x_oauth_client_secret = 31;
+  optional bool passkey_auth_enabled = 32;
+  optional bool passkey_enabled = 33;
 }
 
 message AuthMethodsPolicyOutput {
@@ -386,6 +390,8 @@ message AuthAdminConfig {
   string x_oauth_client_secret = 31;
   optional bool allow_insecure_test_oauth_endpoints = 32;
   repeated AuthProviderDescriptor providers = 33;
+  optional bool passkey_auth_enabled = 34;
+  optional bool passkey_enabled = 35;
 }
 
 message AuthAdminDescribeInput {

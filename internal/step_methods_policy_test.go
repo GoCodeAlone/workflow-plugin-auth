@@ -40,6 +40,16 @@ func TestAuthMethodsPolicy(t *testing.T) {
 		assertBool(t, ready, "passkey_enabled", true)
 	})
 
+	t.Run("passkey can be disabled without clearing relying party config", func(t *testing.T) {
+		output := executeMethodsPolicy(t, map[string]any{
+			"passkey_auth_enabled": false,
+			"webauthn_rp_id":       "example.com",
+			"webauthn_origin":      "https://example.com",
+		})
+		assertBool(t, output, "passkey_enabled", false)
+		assertInt(t, output, "primary_method_count", 0)
+	})
+
 	t.Run("email code requires smtp host and sender", func(t *testing.T) {
 		missingSender := executeMethodsPolicy(t, map[string]any{
 			"smtp_host": "smtp.example.com",
@@ -547,6 +557,17 @@ func assertBool(t *testing.T, output map[string]any, key string, want bool) {
 	got, ok := output[key].(bool)
 	if !ok {
 		t.Fatalf("%s has type %T, want bool", key, output[key])
+	}
+	if got != want {
+		t.Fatalf("%s = %v, want %v", key, got, want)
+	}
+}
+
+func assertInt(t *testing.T, output map[string]any, key string, want int) {
+	t.Helper()
+	got, ok := output[key].(int)
+	if !ok {
+		t.Fatalf("%s has type %T, want int", key, output[key])
 	}
 	if got != want {
 		t.Fatalf("%s = %v, want %v", key, got, want)
