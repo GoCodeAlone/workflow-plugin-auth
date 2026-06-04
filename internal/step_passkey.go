@@ -7,10 +7,126 @@ import (
 	"fmt"
 	"strings"
 
+	sdk "github.com/GoCodeAlone/workflow/plugin/external/sdk"
 	"github.com/go-webauthn/webauthn/protocol"
 	"github.com/go-webauthn/webauthn/webauthn"
-	sdk "github.com/GoCodeAlone/workflow/plugin/external/sdk"
 )
+
+type passkeyCredentialJSON struct {
+	ID              string                            `json:"id"`
+	PublicKey       string                            `json:"publicKey"`
+	AttestationType string                            `json:"attestationType"`
+	Transport       []protocol.AuthenticatorTransport `json:"transport"`
+	Flags           webauthn.CredentialFlags          `json:"flags"`
+	Authenticator   passkeyAuthenticatorJSON          `json:"authenticator"`
+	Attestation     passkeyAttestationJSON            `json:"attestation"`
+}
+
+type passkeyAuthenticatorJSON struct {
+	AAGUID       string                           `json:"AAGUID"`
+	SignCount    uint32                           `json:"signCount"`
+	CloneWarning bool                             `json:"cloneWarning"`
+	Attachment   protocol.AuthenticatorAttachment `json:"attachment"`
+}
+
+type passkeyAttestationJSON struct {
+	ClientDataJSON     string `json:"clientDataJSON"`
+	ClientDataHash     string `json:"clientDataHash"`
+	AuthenticatorData  string `json:"authenticatorData"`
+	PublicKeyAlgorithm int64  `json:"publicKeyAlgorithm"`
+	Object             string `json:"object"`
+}
+
+func parsePasskeyCredentials(credentialsJSON string) ([]webauthn.Credential, error) {
+	var rawCredentials []passkeyCredentialJSON
+	if err := json.Unmarshal([]byte(credentialsJSON), &rawCredentials); err != nil {
+		return nil, err
+	}
+
+	credentials := make([]webauthn.Credential, 0, len(rawCredentials))
+	for i, raw := range rawCredentials {
+		id, err := decodePasskeyBytes(raw.ID)
+		if err != nil {
+			return nil, fmt.Errorf("credential %d id: %w", i, err)
+		}
+		if len(id) == 0 {
+			return nil, fmt.Errorf("credential %d id: empty", i)
+		}
+
+		publicKey, err := decodeOptionalPasskeyBytes(raw.PublicKey)
+		if err != nil {
+			return nil, fmt.Errorf("credential %d publicKey: %w", i, err)
+		}
+		aaguid, err := decodeOptionalPasskeyBytes(raw.Authenticator.AAGUID)
+		if err != nil {
+			return nil, fmt.Errorf("credential %d authenticator.AAGUID: %w", i, err)
+		}
+		clientDataJSON, err := decodeOptionalPasskeyBytes(raw.Attestation.ClientDataJSON)
+		if err != nil {
+			return nil, fmt.Errorf("credential %d attestation.clientDataJSON: %w", i, err)
+		}
+		clientDataHash, err := decodeOptionalPasskeyBytes(raw.Attestation.ClientDataHash)
+		if err != nil {
+			return nil, fmt.Errorf("credential %d attestation.clientDataHash: %w", i, err)
+		}
+		authenticatorData, err := decodeOptionalPasskeyBytes(raw.Attestation.AuthenticatorData)
+		if err != nil {
+			return nil, fmt.Errorf("credential %d attestation.authenticatorData: %w", i, err)
+		}
+		object, err := decodeOptionalPasskeyBytes(raw.Attestation.Object)
+		if err != nil {
+			return nil, fmt.Errorf("credential %d attestation.object: %w", i, err)
+		}
+
+		credentials = append(credentials, webauthn.Credential{
+			ID:              id,
+			PublicKey:       publicKey,
+			AttestationType: raw.AttestationType,
+			Transport:       raw.Transport,
+			Flags:           raw.Flags,
+			Authenticator: webauthn.Authenticator{
+				AAGUID:       aaguid,
+				SignCount:    raw.Authenticator.SignCount,
+				CloneWarning: raw.Authenticator.CloneWarning,
+				Attachment:   raw.Authenticator.Attachment,
+			},
+			Attestation: webauthn.CredentialAttestation{
+				ClientDataJSON:     clientDataJSON,
+				ClientDataHash:     clientDataHash,
+				AuthenticatorData:  authenticatorData,
+				PublicKeyAlgorithm: raw.Attestation.PublicKeyAlgorithm,
+				Object:             object,
+			},
+		})
+	}
+
+	return credentials, nil
+}
+
+func decodeOptionalPasskeyBytes(value string) ([]byte, error) {
+	if value == "" {
+		return nil, nil
+	}
+	return decodePasskeyBytes(value)
+}
+
+func decodePasskeyBytes(value string) ([]byte, error) {
+	encodings := []*base64.Encoding{
+		base64.StdEncoding,
+		base64.RawStdEncoding,
+		base64.URLEncoding,
+		base64.RawURLEncoding,
+	}
+	var lastErr error
+	for _, encoding := range encodings {
+		decoded, err := encoding.DecodeString(value)
+		if err == nil {
+			return decoded, nil
+		}
+		lastErr = err
+	}
+	return nil, lastErr
+}
 
 // --- BEGIN REGISTER ---
 
@@ -143,8 +259,10 @@ func (s *passkeyBeginLoginStep) Execute(_ context.Context, _ map[string]any, _ m
 
 	var user *pipelineUser
 	if userID != "" && credentialsJSON != "" {
-		var creds []webauthn.Credential
-		json.Unmarshal([]byte(credentialsJSON), &creds)
+		creds, err := parsePasskeyCredentials(credentialsJSON)
+		if err != nil {
+			return nil, fmt.Errorf("parse credentials: %w", err)
+		}
 		user = &pipelineUser{
 			id:          []byte(userID),
 			credentials: creds,
@@ -213,7 +331,11 @@ func (s *passkeyFinishLoginStep) Execute(_ context.Context, _ map[string]any, _ 
 
 	var creds []webauthn.Credential
 	if credentialsJSON != "" {
-		json.Unmarshal([]byte(credentialsJSON), &creds)
+		var err error
+		creds, err = parsePasskeyCredentials(credentialsJSON)
+		if err != nil {
+			return &sdk.StepResult{Output: map[string]any{"valid": false, "error": fmt.Sprintf("parse credentials: %v", err)}}, nil
+		}
 	}
 
 	user := &pipelineUser{
