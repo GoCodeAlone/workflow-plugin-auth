@@ -348,7 +348,10 @@ func (s *passkeyFinishLoginStep) Execute(_ context.Context, _ map[string]any, _ 
 	if err != nil {
 		return &sdk.StepResult{Output: map[string]any{"valid": false, "error": fmt.Sprintf("validate login: %v", err)}}, nil
 	}
-	credJSON, _ := json.Marshal(updatedCred)
+	credJSON, err := json.Marshal(updatedCred)
+	if err != nil {
+		return &sdk.StepResult{Output: map[string]any{"valid": false, "error": fmt.Sprintf("encode credential: %v", err)}}, nil
+	}
 
 	return &sdk.StepResult{
 		Output: map[string]any{
