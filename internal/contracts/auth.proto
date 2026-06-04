@@ -70,6 +70,7 @@ message PasskeyFinishLoginOutput {
   bool valid = 1;
   string credential_id = 2;
   optional uint32 sign_count = 3;
+  string credential = 4;
   string error = 100;
 }
 

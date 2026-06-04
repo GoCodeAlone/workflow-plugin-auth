@@ -295,7 +295,7 @@ func TestPasskeyAndTOTPContractsUseRuntimeMapKeys(t *testing.T) {
 	requireProtoFields(t, &contracts.PasskeyBeginLoginInput{}, "user_id", "credentials")
 	requireProtoFields(t, &contracts.PasskeyBeginLoginOutput{}, "options", "session_data", "error")
 	requireProtoFields(t, &contracts.PasskeyFinishLoginInput{}, "user_id", "email", "credentials", "session_data", "assertion")
-	requireProtoFields(t, &contracts.PasskeyFinishLoginOutput{}, "valid", "credential_id", "sign_count", "error")
+	requireProtoFields(t, &contracts.PasskeyFinishLoginOutput{}, "valid", "credential_id", "sign_count", "credential", "error")
 
 	requireProtoFields(t, &contracts.TOTPGenerateSecretInput{}, "email", "issuer")
 	requireProtoFields(t, &contracts.TOTPGenerateSecretOutput{}, "secret", "provisioning_uri", "issuer", "account", "error")
@@ -352,11 +352,12 @@ func TestTypedPasskeyOutputsDecodeRuntimeKeys(t *testing.T) {
 		"valid":         true,
 		"credential_id": "credential-id",
 		"sign_count":    8,
+		"credential":    `{"id":"credential-id","flags":{"backupEligible":true}}`,
 	}, &contracts.PasskeyFinishLoginOutput{})
 	if err != nil {
 		t.Fatalf("decode finish login output: %v", err)
 	}
-	if !finishLogin.GetValid() || finishLogin.GetSignCount() != 8 {
+	if !finishLogin.GetValid() || finishLogin.GetSignCount() != 8 || finishLogin.GetCredential() == "" {
 		t.Fatalf("finish login output = %+v", finishLogin)
 	}
 }
