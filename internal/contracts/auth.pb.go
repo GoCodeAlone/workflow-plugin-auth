@@ -615,6 +615,7 @@ type PasskeyFinishLoginOutput struct {
 	Valid         bool                   `protobuf:"varint,1,opt,name=valid,proto3" json:"valid,omitempty"`
 	CredentialId  string                 `protobuf:"bytes,2,opt,name=credential_id,json=credentialId,proto3" json:"credential_id,omitempty"`
 	SignCount     *uint32                `protobuf:"varint,3,opt,name=sign_count,json=signCount,proto3,oneof" json:"sign_count,omitempty"`
+	Credential    string                 `protobuf:"bytes,4,opt,name=credential,proto3" json:"credential,omitempty"`
 	Error         string                 `protobuf:"bytes,100,opt,name=error,proto3" json:"error,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -669,6 +670,13 @@ func (x *PasskeyFinishLoginOutput) GetSignCount() uint32 {
 		return *x.SignCount
 	}
 	return 0
+}
+
+func (x *PasskeyFinishLoginOutput) GetCredential() string {
+	if x != nil {
+		return x.Credential
+	}
+	return ""
 }
 
 func (x *PasskeyFinishLoginOutput) GetError() string {
@@ -6662,12 +6670,15 @@ const file_internal_contracts_auth_proto_rawDesc = "" +
 	"\x05email\x18\x02 \x01(\tR\x05email\x12!\n" +
 	"\fsession_data\x18\x03 \x01(\tR\vsessionData\x12 \n" +
 	"\vcredentials\x18\x04 \x01(\tR\vcredentials\x12\x1c\n" +
-	"\tassertion\x18\x05 \x01(\tR\tassertion\"\x9e\x01\n" +
+	"\tassertion\x18\x05 \x01(\tR\tassertion\"\xbe\x01\n" +
 	"\x18PasskeyFinishLoginOutput\x12\x14\n" +
 	"\x05valid\x18\x01 \x01(\bR\x05valid\x12#\n" +
 	"\rcredential_id\x18\x02 \x01(\tR\fcredentialId\x12\"\n" +
 	"\n" +
-	"sign_count\x18\x03 \x01(\rH\x00R\tsignCount\x88\x01\x01\x12\x14\n" +
+	"sign_count\x18\x03 \x01(\rH\x00R\tsignCount\x88\x01\x01\x12\x1e\n" +
+	"\n" +
+	"credential\x18\x04 \x01(\tR\n" +
+	"credential\x12\x14\n" +
 	"\x05error\x18d \x01(\tR\x05errorB\r\n" +
 	"\v_sign_count\"\r\n" +
 	"\vEmptyConfig\"G\n" +
