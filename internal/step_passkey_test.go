@@ -6,6 +6,8 @@ import (
 	"encoding/base64"
 	"strings"
 	"testing"
+
+	"github.com/go-webauthn/webauthn/protocol"
 )
 
 func TestPasskeyBeginRegisterStep_MissingModule(t *testing.T) {
@@ -132,5 +134,73 @@ func TestParsePasskeyCredentials_RejectsInvalidCredentialID(t *testing.T) {
 	}
 	if !strings.Contains(err.Error(), "credential 0 id") {
 		t.Fatalf("error = %q, want credential id context", err.Error())
+	}
+}
+
+func TestParsePasskeyCredentialsForAssertion_BackfillsMissingBackupFlags(t *testing.T) {
+	credentialID := []byte("credential-id")
+	credentialsJSON := `[{` +
+		`"id":"` + base64.StdEncoding.EncodeToString(credentialID) + `",` +
+		`"publicKey":"` + base64.StdEncoding.EncodeToString([]byte("public-key")) + `",` +
+		`"authenticator":{"signCount":7}` +
+		`}]`
+
+	credentials, err := parsePasskeyCredentialsForAssertion(credentialsJSON, assertionWithFlags(credentialID, protocol.FlagUserPresent|protocol.FlagUserVerified|protocol.FlagBackupEligible|protocol.FlagBackupState))
+	if err != nil {
+		t.Fatalf("parsePasskeyCredentialsForAssertion returned error: %v", err)
+	}
+	if len(credentials) != 1 {
+		t.Fatalf("len(credentials) = %d, want 1", len(credentials))
+	}
+	if !credentials[0].Flags.BackupEligible || !credentials[0].Flags.BackupState || !credentials[0].Flags.UserPresent || !credentials[0].Flags.UserVerified {
+		t.Fatalf("flags were not backfilled from assertion: %+v", credentials[0].Flags)
+	}
+}
+
+func TestParsePasskeyCredentialsForAssertion_DoesNotOverrideExplicitBackupEligibleFalse(t *testing.T) {
+	credentialID := []byte("credential-id")
+	credentialsJSON := `[{` +
+		`"id":"` + base64.StdEncoding.EncodeToString(credentialID) + `",` +
+		`"publicKey":"` + base64.StdEncoding.EncodeToString([]byte("public-key")) + `",` +
+		`"flags":{"backupEligible":false,"backupState":false},` +
+		`"authenticator":{"signCount":7}` +
+		`}]`
+
+	credentials, err := parsePasskeyCredentialsForAssertion(credentialsJSON, assertionWithFlags(credentialID, protocol.FlagBackupEligible|protocol.FlagBackupState))
+	if err != nil {
+		t.Fatalf("parsePasskeyCredentialsForAssertion returned error: %v", err)
+	}
+	if credentials[0].Flags.BackupEligible || credentials[0].Flags.BackupState {
+		t.Fatalf("explicit backup flags were overwritten: %+v", credentials[0].Flags)
+	}
+}
+
+func TestParsePasskeyCredentialsForAssertion_DoesNotBackfillNonMatchingCredential(t *testing.T) {
+	credentialID := []byte("credential-id")
+	credentialsJSON := `[{` +
+		`"id":"` + base64.StdEncoding.EncodeToString(credentialID) + `",` +
+		`"publicKey":"` + base64.StdEncoding.EncodeToString([]byte("public-key")) + `",` +
+		`"authenticator":{"signCount":7}` +
+		`}]`
+
+	credentials, err := parsePasskeyCredentialsForAssertion(credentialsJSON, assertionWithFlags([]byte("other-credential"), protocol.FlagBackupEligible|protocol.FlagBackupState))
+	if err != nil {
+		t.Fatalf("parsePasskeyCredentialsForAssertion returned error: %v", err)
+	}
+	if credentials[0].Flags.BackupEligible || credentials[0].Flags.BackupState {
+		t.Fatalf("non-matching credential flags were backfilled: %+v", credentials[0].Flags)
+	}
+}
+
+func assertionWithFlags(rawID []byte, flags protocol.AuthenticatorFlags) *protocol.ParsedCredentialAssertionData {
+	return &protocol.ParsedCredentialAssertionData{
+		ParsedPublicKeyCredential: protocol.ParsedPublicKeyCredential{
+			RawID: rawID,
+		},
+		Response: protocol.ParsedAssertionResponse{
+			AuthenticatorData: protocol.AuthenticatorData{
+				Flags: flags,
+			},
+		},
 	}
 }

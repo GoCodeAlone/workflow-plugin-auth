@@ -1,6 +1,7 @@
 package internal
 
 import (
+	"bytes"
 	"context"
 	"encoding/base64"
 	"encoding/json"
@@ -17,9 +18,16 @@ type passkeyCredentialJSON struct {
 	PublicKey       string                            `json:"publicKey"`
 	AttestationType string                            `json:"attestationType"`
 	Transport       []protocol.AuthenticatorTransport `json:"transport"`
-	Flags           webauthn.CredentialFlags          `json:"flags"`
+	Flags           *passkeyCredentialFlagsJSON       `json:"flags"`
 	Authenticator   passkeyAuthenticatorJSON          `json:"authenticator"`
 	Attestation     passkeyAttestationJSON            `json:"attestation"`
+}
+
+type passkeyCredentialFlagsJSON struct {
+	UserPresent    *bool `json:"userPresent"`
+	UserVerified   *bool `json:"userVerified"`
+	BackupEligible *bool `json:"backupEligible"`
+	BackupState    *bool `json:"backupState"`
 }
 
 type passkeyAuthenticatorJSON struct {
@@ -38,6 +46,10 @@ type passkeyAttestationJSON struct {
 }
 
 func parsePasskeyCredentials(credentialsJSON string) ([]webauthn.Credential, error) {
+	return parsePasskeyCredentialsForAssertion(credentialsJSON, nil)
+}
+
+func parsePasskeyCredentialsForAssertion(credentialsJSON string, assertion *protocol.ParsedCredentialAssertionData) ([]webauthn.Credential, error) {
 	var rawCredentials []passkeyCredentialJSON
 	if err := json.Unmarshal([]byte(credentialsJSON), &rawCredentials); err != nil {
 		return nil, err
@@ -83,7 +95,7 @@ func parsePasskeyCredentials(credentialsJSON string) ([]webauthn.Credential, err
 			PublicKey:       publicKey,
 			AttestationType: raw.AttestationType,
 			Transport:       raw.Transport,
-			Flags:           raw.Flags,
+			Flags:           passkeyFlags(raw.Flags, id, assertion),
 			Authenticator: webauthn.Authenticator{
 				AAGUID:       aaguid,
 				SignCount:    raw.Authenticator.SignCount,
@@ -101,6 +113,32 @@ func parsePasskeyCredentials(credentialsJSON string) ([]webauthn.Credential, err
 	}
 
 	return credentials, nil
+}
+
+func passkeyFlags(raw *passkeyCredentialFlagsJSON, credentialID []byte, assertion *protocol.ParsedCredentialAssertionData) webauthn.CredentialFlags {
+	flags := webauthn.CredentialFlags{}
+	if raw != nil {
+		flags.UserPresent = boolValue(raw.UserPresent)
+		flags.UserVerified = boolValue(raw.UserVerified)
+		flags.BackupEligible = boolValue(raw.BackupEligible)
+		flags.BackupState = boolValue(raw.BackupState)
+	}
+	if raw != nil && raw.BackupEligible != nil {
+		return flags
+	}
+	if assertion == nil || !bytes.Equal(credentialID, assertion.RawID) {
+		return flags
+	}
+	authFlags := assertion.Response.AuthenticatorData.Flags
+	flags.UserPresent = authFlags.HasUserPresent()
+	flags.UserVerified = authFlags.HasUserVerified()
+	flags.BackupEligible = authFlags.HasBackupEligible()
+	flags.BackupState = authFlags.HasBackupState()
+	return flags
+}
+
+func boolValue(value *bool) bool {
+	return value != nil && *value
 }
 
 func decodeOptionalPasskeyBytes(value string) ([]byte, error) {
@@ -332,7 +370,7 @@ func (s *passkeyFinishLoginStep) Execute(_ context.Context, _ map[string]any, _ 
 	var creds []webauthn.Credential
 	if credentialsJSON != "" {
 		var err error
-		creds, err = parsePasskeyCredentials(credentialsJSON)
+		creds, err = parsePasskeyCredentialsForAssertion(credentialsJSON, parsedAssertion)
 		if err != nil {
 			return &sdk.StepResult{Output: map[string]any{"valid": false, "error": fmt.Sprintf("parse credentials: %v", err)}}, nil
 		}
