@@ -148,6 +148,14 @@ admin invite flows. They normalize and frame the values that the consuming app
 persists. The plugin does not own app SQL, tenant storage, or secret delivery in
 this phase.
 
+Invite issue/redeem/revoke steps are intentionally persistence-neutral. They
+normalize email addresses, enforce optional role and tenant allowlists, reject
+wrong-email redemption, reject already-used or expired invites, and compare the
+provided invite token against a stored SHA-256 token hash without echoing either
+value in outputs. The consuming app is responsible for generating the token,
+storing the hash, marking use/revocation atomically, and delivering the invite
+link.
+
 `step.auth_admin_config_describe` exposes a strict proto contract for admin
 portals to render authentication settings. It returns grouped controls with
 labels, help text, input types, config keys, disabled reasons, and write-only

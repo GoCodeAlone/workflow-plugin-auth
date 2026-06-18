@@ -2,7 +2,11 @@ package internal
 
 import (
 	"context"
+	"crypto/sha256"
+	"crypto/subtle"
+	"encoding/hex"
 	"strings"
+	"time"
 
 	sdk "github.com/GoCodeAlone/workflow/plugin/external/sdk"
 )
@@ -146,16 +150,25 @@ func (s *authAdminInviteIssueStep) Execute(_ context.Context, _ map[string]any, 
 	if role == "" {
 		role = "tenant_editor"
 	}
+	tenantIDs := policyStringSlice(current, "tenant_ids")
 	out := map[string]any{
 		"accepted":   email != "",
 		"email":      email,
 		"role":       role,
-		"tenant_ids": policyStringSlice(current, "tenant_ids"),
+		"tenant_ids": tenantIDs,
 		"invited_by": policyString(current, "invited_by"),
 		"expires_at": policyString(current, "expires_at"),
 	}
-	if email == "" {
+	switch {
+	case email == "":
 		out["error"] = "missing_email"
+		out["accepted"] = false
+	case !identityValueAllowed(role, policyStringSlice(s.config, "allowed_roles")):
+		out["error"] = "invalid_role"
+		out["accepted"] = false
+	case !identityValuesAllowed(tenantIDs, policyStringSlice(s.config, "allowed_tenant_ids")):
+		out["error"] = "invalid_tenant"
+		out["accepted"] = false
 	}
 	return &sdk.StepResult{Output: out}, nil
 }
@@ -171,19 +184,20 @@ func newAuthAdminInviteRedeemStep(name string, config map[string]any) *authAdmin
 
 func (s *authAdminInviteRedeemStep) Execute(_ context.Context, _ map[string]any, _ map[string]map[string]any, current, _, _ map[string]any) (*sdk.StepResult, error) {
 	email := normalizeIdentityEmail(policyString(current, "email"))
-	out := map[string]any{
-		"accepted":   email != "" && policyString(current, "used_at") == "",
-		"email":      email,
-		"role":       policyString(current, "role"),
-		"tenant_ids": policyStringSlice(current, "tenant_ids"),
+	targetEmail := normalizeIdentityEmail(policyString(current, "target_email"))
+	if targetEmail == "" {
+		targetEmail = normalizeIdentityEmail(policyString(current, "invite_email"))
 	}
-	switch {
-	case email == "":
-		out["reason"] = "missing_email"
-	case policyString(current, "used_at") != "":
-		out["reason"] = "already_used"
-	default:
-		out["reason"] = "accepted"
+	role := policyString(current, "role")
+	tenantIDs := policyStringSlice(current, "tenant_ids")
+	reason := authAdminInviteRedeemReason(current, email, targetEmail, role, tenantIDs, s.config)
+	accepted := reason == "accepted"
+	out := map[string]any{
+		"accepted":   accepted,
+		"email":      email,
+		"role":       role,
+		"tenant_ids": tenantIDs,
+		"reason":     reason,
 	}
 	return &sdk.StepResult{Output: out}, nil
 }
@@ -217,4 +231,79 @@ func (s *authAdminInviteRevokeStep) Execute(_ context.Context, _ map[string]any,
 
 func normalizeIdentityEmail(email string) string {
 	return strings.ToLower(strings.TrimSpace(email))
+}
+
+func authAdminInviteRedeemReason(current map[string]any, email, targetEmail, role string, tenantIDs []string, config map[string]any) string {
+	switch {
+	case email == "":
+		return "missing_email"
+	case targetEmail != "" && email != targetEmail:
+		return "wrong_email"
+	case policyString(current, "used_at") != "":
+		return "already_used"
+	case inviteExpired(policyString(current, "expires_at")):
+		return "expired"
+	case !inviteTokenHashValid(policyString(current, "token"), policyString(current, "token_hash")):
+		return "invalid_token"
+	case !identityValueAllowed(role, policyStringSlice(config, "allowed_roles")):
+		return "invalid_role"
+	case !identityValuesAllowed(tenantIDs, policyStringSlice(config, "allowed_tenant_ids")):
+		return "invalid_tenant"
+	default:
+		return "accepted"
+	}
+}
+
+func inviteExpired(expiresAt string) bool {
+	if strings.TrimSpace(expiresAt) == "" {
+		return false
+	}
+	t, err := time.Parse(time.RFC3339, strings.TrimSpace(expiresAt))
+	if err != nil {
+		return true
+	}
+	return time.Now().After(t)
+}
+
+func inviteTokenHashValid(token, tokenHash string) bool {
+	token = strings.TrimSpace(token)
+	tokenHash = strings.TrimSpace(tokenHash)
+	if token == "" || tokenHash == "" {
+		return false
+	}
+	sum := sha256.Sum256([]byte(token))
+	expected := hex.EncodeToString(sum[:])
+	return subtle.ConstantTimeCompare([]byte(expected), []byte(tokenHash)) == 1
+}
+
+func identityValueAllowed(value string, allowed []string) bool {
+	if len(allowed) == 0 {
+		return true
+	}
+	value = strings.TrimSpace(value)
+	for _, candidate := range allowed {
+		if strings.TrimSpace(candidate) == value {
+			return true
+		}
+	}
+	return false
+}
+
+func identityValuesAllowed(values, allowed []string) bool {
+	if len(allowed) == 0 {
+		return true
+	}
+	allowedSet := make(map[string]struct{}, len(allowed))
+	for _, value := range allowed {
+		value = strings.TrimSpace(value)
+		if value != "" {
+			allowedSet[value] = struct{}{}
+		}
+	}
+	for _, value := range values {
+		if _, ok := allowedSet[strings.TrimSpace(value)]; !ok {
+			return false
+		}
+	}
+	return true
 }

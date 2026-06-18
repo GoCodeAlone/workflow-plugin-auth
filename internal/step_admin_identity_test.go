@@ -2,10 +2,13 @@ package internal
 
 import (
 	"context"
+	"crypto/sha256"
+	"encoding/hex"
 	"fmt"
 	"slices"
 	"strings"
 	"testing"
+	"time"
 
 	pb "github.com/GoCodeAlone/workflow/plugin/external/proto"
 )
@@ -79,6 +82,139 @@ func TestAuthAdminIdentityDescribeExposesProfileCredentialAndInviteSurface(t *te
 			t.Fatalf("metadata leaks secret/token key %q=%v", key, value)
 		}
 	}
+}
+
+func TestAuthAdminInviteRedeemAcceptsBoundValidToken(t *testing.T) {
+	step := newAuthAdminInviteRedeemStep("redeem", map[string]any{
+		"allowed_roles":      []string{"tenant_admin"},
+		"allowed_tenant_ids": []string{"blackorchid"},
+	})
+
+	result, err := step.Execute(context.Background(), nil, nil, map[string]any{
+		"email":        "Admin@Example.TEST",
+		"target_email": "admin@example.test",
+		"token":        "invite-token",
+		"token_hash":   sha256HexForTest("invite-token"),
+		"expires_at":   time.Now().Add(time.Hour).UTC().Format(time.RFC3339),
+		"role":         "tenant_admin",
+		"tenant_ids":   []string{"blackorchid"},
+	}, nil, nil)
+	if err != nil {
+		t.Fatalf("redeem invite: %v", err)
+	}
+	assertBool(t, result.Output, "accepted", true)
+	if got := result.Output["email"]; got != "admin@example.test" {
+		t.Fatalf("email = %v, want admin@example.test", got)
+	}
+	if got := result.Output["reason"]; got != "accepted" {
+		t.Fatalf("reason = %v, want accepted", got)
+	}
+	output := fmt.Sprintf("%#v", result.Output)
+	if strings.Contains(output, "invite-token") || strings.Contains(output, sha256HexForTest("invite-token")) {
+		t.Fatalf("redeem output leaked token material: %s", output)
+	}
+}
+
+func TestAuthAdminInviteRedeemRejectsWrongEmailExpiredUsedAndBadToken(t *testing.T) {
+	step := newAuthAdminInviteRedeemStep("redeem", nil)
+	tests := []struct {
+		name   string
+		values map[string]any
+		reason string
+	}{
+		{
+			name: "wrong email",
+			values: map[string]any{
+				"email":        "attacker@example.test",
+				"target_email": "admin@example.test",
+				"token":        "invite-token",
+				"token_hash":   sha256HexForTest("invite-token"),
+				"expires_at":   time.Now().Add(time.Hour).UTC().Format(time.RFC3339),
+			},
+			reason: "wrong_email",
+		},
+		{
+			name: "expired",
+			values: map[string]any{
+				"email":      "admin@example.test",
+				"token":      "invite-token",
+				"token_hash": sha256HexForTest("invite-token"),
+				"expires_at": time.Now().Add(-time.Minute).UTC().Format(time.RFC3339),
+			},
+			reason: "expired",
+		},
+		{
+			name: "already used",
+			values: map[string]any{
+				"email":      "admin@example.test",
+				"token":      "invite-token",
+				"token_hash": sha256HexForTest("invite-token"),
+				"expires_at": time.Now().Add(time.Hour).UTC().Format(time.RFC3339),
+				"used_at":    time.Now().UTC().Format(time.RFC3339),
+			},
+			reason: "already_used",
+		},
+		{
+			name: "bad token",
+			values: map[string]any{
+				"email":      "admin@example.test",
+				"token":      "wrong-token",
+				"token_hash": sha256HexForTest("invite-token"),
+				"expires_at": time.Now().Add(time.Hour).UTC().Format(time.RFC3339),
+			},
+			reason: "invalid_token",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result, err := step.Execute(context.Background(), nil, nil, tt.values, nil, nil)
+			if err != nil {
+				t.Fatalf("redeem invite: %v", err)
+			}
+			assertBool(t, result.Output, "accepted", false)
+			if got := result.Output["reason"]; got != tt.reason {
+				t.Fatalf("reason = %v, want %s", got, tt.reason)
+			}
+		})
+	}
+}
+
+func TestAuthAdminInviteIssueRejectsRoleAndTenantEscalation(t *testing.T) {
+	step := newAuthAdminInviteIssueStep("issue", map[string]any{
+		"allowed_roles":      []string{"tenant_editor"},
+		"allowed_tenant_ids": []string{"blackorchid"},
+	})
+
+	result, err := step.Execute(context.Background(), nil, nil, map[string]any{
+		"email":      "new-admin@example.test",
+		"role":       "super_admin",
+		"tenant_ids": []string{"blackorchid"},
+	}, nil, nil)
+	if err != nil {
+		t.Fatalf("issue invite role: %v", err)
+	}
+	assertBool(t, result.Output, "accepted", false)
+	if got := result.Output["error"]; got != "invalid_role" {
+		t.Fatalf("error = %v, want invalid_role", got)
+	}
+
+	result, err = step.Execute(context.Background(), nil, nil, map[string]any{
+		"email":      "new-admin@example.test",
+		"role":       "tenant_editor",
+		"tenant_ids": []string{"other"},
+	}, nil, nil)
+	if err != nil {
+		t.Fatalf("issue invite tenant: %v", err)
+	}
+	assertBool(t, result.Output, "accepted", false)
+	if got := result.Output["error"]; got != "invalid_tenant" {
+		t.Fatalf("error = %v, want invalid_tenant", got)
+	}
+}
+
+func sha256HexForTest(value string) string {
+	sum := sha256.Sum256([]byte(value))
+	return hex.EncodeToString(sum[:])
 }
 
 func TestAuthAdminIdentityDescribeRedactsInviteTokens(t *testing.T) {
