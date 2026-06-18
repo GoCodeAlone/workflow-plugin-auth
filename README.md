@@ -41,6 +41,11 @@ The plugin binary itself is distributed via public GitHub Releases — `GH_TOKEN
 - `step.auth_methods_response`
 - `step.auth_policy_audit`
 - `step.auth_provider_catalog`
+- `step.auth_admin_contribution_describe`
+- `step.auth_admin_identity_describe`
+- `step.auth_admin_invite_issue`
+- `step.auth_admin_invite_redeem`
+- `step.auth_admin_invite_revoke`
 - `step.auth_admin_config_describe`
 - `step.auth_admin_config_validate`
 - `step.auth_oauth_provider_config`
@@ -128,6 +133,20 @@ shape. `step.auth_policy_audit` reports production password policy violations
 for CI or operational checks.
 
 ## Admin Configuration Contracts
+
+`step.auth_admin_contribution_describe` exposes the authentication settings
+surface for Workflow admin dashboards.
+
+`step.auth_admin_identity_describe` exposes the reusable identity-management
+surface for admin dashboards. It advertises profile, credential, invite, and
+bootstrap paths plus permission metadata; it never emits invite tokens, invite
+token hashes, OAuth secrets, passkey material, or recovery codes.
+
+`step.auth_admin_invite_issue`, `step.auth_admin_invite_redeem`, and
+`step.auth_admin_invite_revoke` provide strict-proto validation contracts for
+admin invite flows. They normalize and frame the values that the consuming app
+persists. The plugin does not own app SQL, tenant storage, or secret delivery in
+this phase.
 
 `step.auth_admin_config_describe` exposes a strict proto contract for admin
 portals to render authentication settings. It returns grouped controls with

@@ -177,6 +177,38 @@
     },
     {
       "kind": "step",
+      "type": "step.auth_admin_identity_describe",
+      "mode": "strict",
+      "config": "workflow.plugins.auth.v1.AuthAdminIdentityContributionConfig",
+      "input": "workflow.plugins.auth.v1.AuthAdminIdentityDescribeInput",
+      "output": "workflow.plugins.auth.v1.AuthAdminIdentityDescribeOutput"
+    },
+    {
+      "kind": "step",
+      "type": "step.auth_admin_invite_issue",
+      "mode": "strict",
+      "config": "workflow.plugins.auth.v1.AuthAdminInviteConfig",
+      "input": "workflow.plugins.auth.v1.AuthAdminInviteIssueInput",
+      "output": "workflow.plugins.auth.v1.AuthAdminInviteIssueOutput"
+    },
+    {
+      "kind": "step",
+      "type": "step.auth_admin_invite_redeem",
+      "mode": "strict",
+      "config": "workflow.plugins.auth.v1.AuthAdminInviteConfig",
+      "input": "workflow.plugins.auth.v1.AuthAdminInviteRedeemInput",
+      "output": "workflow.plugins.auth.v1.AuthAdminInviteRedeemOutput"
+    },
+    {
+      "kind": "step",
+      "type": "step.auth_admin_invite_revoke",
+      "mode": "strict",
+      "config": "workflow.plugins.auth.v1.AuthAdminInviteConfig",
+      "input": "workflow.plugins.auth.v1.AuthAdminInviteRevokeInput",
+      "output": "workflow.plugins.auth.v1.AuthAdminInviteRevokeOutput"
+    },
+    {
+      "kind": "step",
       "type": "step.auth_admin_config_describe",
       "mode": "strict",
       "config": "workflow.plugins.auth.v1.EmptyConfig",
