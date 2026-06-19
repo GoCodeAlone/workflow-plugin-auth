@@ -4910,6 +4910,7 @@ type AuthAdminInviteConfig struct {
 	state             protoimpl.MessageState `protogen:"open.v1"`
 	DefaultTtlMinutes int32                  `protobuf:"varint,1,opt,name=default_ttl_minutes,json=defaultTtlMinutes,proto3" json:"default_ttl_minutes,omitempty"`
 	AllowedRoles      []string               `protobuf:"bytes,2,rep,name=allowed_roles,json=allowedRoles,proto3" json:"allowed_roles,omitempty"`
+	AllowedTenantIds  []string               `protobuf:"bytes,3,rep,name=allowed_tenant_ids,json=allowedTenantIds,proto3" json:"allowed_tenant_ids,omitempty"`
 	unknownFields     protoimpl.UnknownFields
 	sizeCache         protoimpl.SizeCache
 }
@@ -4954,6 +4955,13 @@ func (x *AuthAdminInviteConfig) GetDefaultTtlMinutes() int32 {
 func (x *AuthAdminInviteConfig) GetAllowedRoles() []string {
 	if x != nil {
 		return x.AllowedRoles
+	}
+	return nil
+}
+
+func (x *AuthAdminInviteConfig) GetAllowedTenantIds() []string {
+	if x != nil {
+		return x.AllowedTenantIds
 	}
 	return nil
 }
@@ -7852,10 +7860,11 @@ const file_internal_contracts_auth_proto_rawDesc = "" +
 	"\bwarnings\x18\x05 \x03(\v2-.workflow.plugins.auth.v1.AuthAdminDiagnosticR\bwarnings\x12#\n" +
 	"\rsecret_fields\x18\x06 \x03(\tR\fsecretFields\x12\x14\n" +
 	"\x05error\x18d \x01(\tR\x05errorB\b\n" +
-	"\x06_valid\"l\n" +
+	"\x06_valid\"\x9a\x01\n" +
 	"\x15AuthAdminInviteConfig\x12.\n" +
 	"\x13default_ttl_minutes\x18\x01 \x01(\x05R\x11defaultTtlMinutes\x12#\n" +
-	"\rallowed_roles\x18\x02 \x03(\tR\fallowedRoles\"\xa2\x01\n" +
+	"\rallowed_roles\x18\x02 \x03(\tR\fallowedRoles\x12,\n" +
+	"\x12allowed_tenant_ids\x18\x03 \x03(\tR\x10allowedTenantIds\"\xa2\x01\n" +
 	"\x19AuthAdminInviteIssueInput\x12\x14\n" +
 	"\x05email\x18\x01 \x01(\tR\x05email\x12\x12\n" +
 	"\x04role\x18\x02 \x01(\tR\x04role\x12\x1d\n" +

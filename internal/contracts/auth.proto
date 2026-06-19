@@ -527,6 +527,7 @@ message AuthAdminValidateOutput {
 message AuthAdminInviteConfig {
   int32 default_ttl_minutes = 1;
   repeated string allowed_roles = 2;
+  repeated string allowed_tenant_ids = 3;
 }
 
 message AuthAdminInviteIssueInput {
