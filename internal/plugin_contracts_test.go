@@ -308,6 +308,7 @@ func TestPasskeyAndTOTPContractsUseRuntimeMapKeys(t *testing.T) {
 	requireProtoFields(t, &contracts.AuthAdminContribution{}, "id", "title", "category", "path", "render_mode", "app_context", "permissions", "actions", "metadata")
 	requireProtoFields(t, &contracts.AuthAdminContributionPermission{}, "resource", "action", "permission")
 	requireProtoFields(t, &contracts.AuthAdminContributionOutput{}, "contribution", "error")
+	requireProtoFields(t, &contracts.AuthAdminInviteConfig{}, "default_ttl_minutes", "allowed_roles", "allowed_tenant_ids")
 }
 
 func TestTypedPasskeyOutputsDecodeRuntimeKeys(t *testing.T) {

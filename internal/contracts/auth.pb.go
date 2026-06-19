@@ -4422,6 +4422,210 @@ func (x *AuthAdminContributionOutput) GetError() string {
 	return ""
 }
 
+type AuthAdminIdentityContributionConfig struct {
+	state         protoimpl.MessageState             `protogen:"open.v1"`
+	Id            string                             `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Title         string                             `protobuf:"bytes,2,opt,name=title,proto3" json:"title,omitempty"`
+	Category      string                             `protobuf:"bytes,3,opt,name=category,proto3" json:"category,omitempty"`
+	Path          string                             `protobuf:"bytes,4,opt,name=path,proto3" json:"path,omitempty"`
+	RenderMode    string                             `protobuf:"bytes,5,opt,name=render_mode,json=renderMode,proto3" json:"render_mode,omitempty"`
+	AppContext    string                             `protobuf:"bytes,6,opt,name=app_context,json=appContext,proto3" json:"app_context,omitempty"`
+	Permissions   []*AuthAdminContributionPermission `protobuf:"bytes,7,rep,name=permissions,proto3" json:"permissions,omitempty"`
+	Actions       []string                           `protobuf:"bytes,8,rep,name=actions,proto3" json:"actions,omitempty"`
+	Metadata      *structpb.Struct                   `protobuf:"bytes,9,opt,name=metadata,proto3" json:"metadata,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *AuthAdminIdentityContributionConfig) Reset() {
+	*x = AuthAdminIdentityContributionConfig{}
+	mi := &file_internal_contracts_auth_proto_msgTypes[54]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AuthAdminIdentityContributionConfig) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AuthAdminIdentityContributionConfig) ProtoMessage() {}
+
+func (x *AuthAdminIdentityContributionConfig) ProtoReflect() protoreflect.Message {
+	mi := &file_internal_contracts_auth_proto_msgTypes[54]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AuthAdminIdentityContributionConfig.ProtoReflect.Descriptor instead.
+func (*AuthAdminIdentityContributionConfig) Descriptor() ([]byte, []int) {
+	return file_internal_contracts_auth_proto_rawDescGZIP(), []int{54}
+}
+
+func (x *AuthAdminIdentityContributionConfig) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *AuthAdminIdentityContributionConfig) GetTitle() string {
+	if x != nil {
+		return x.Title
+	}
+	return ""
+}
+
+func (x *AuthAdminIdentityContributionConfig) GetCategory() string {
+	if x != nil {
+		return x.Category
+	}
+	return ""
+}
+
+func (x *AuthAdminIdentityContributionConfig) GetPath() string {
+	if x != nil {
+		return x.Path
+	}
+	return ""
+}
+
+func (x *AuthAdminIdentityContributionConfig) GetRenderMode() string {
+	if x != nil {
+		return x.RenderMode
+	}
+	return ""
+}
+
+func (x *AuthAdminIdentityContributionConfig) GetAppContext() string {
+	if x != nil {
+		return x.AppContext
+	}
+	return ""
+}
+
+func (x *AuthAdminIdentityContributionConfig) GetPermissions() []*AuthAdminContributionPermission {
+	if x != nil {
+		return x.Permissions
+	}
+	return nil
+}
+
+func (x *AuthAdminIdentityContributionConfig) GetActions() []string {
+	if x != nil {
+		return x.Actions
+	}
+	return nil
+}
+
+func (x *AuthAdminIdentityContributionConfig) GetMetadata() *structpb.Struct {
+	if x != nil {
+		return x.Metadata
+	}
+	return nil
+}
+
+type AuthAdminIdentityDescribeInput struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Contribution  *AuthAdminContribution `protobuf:"bytes,1,opt,name=contribution,proto3" json:"contribution,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *AuthAdminIdentityDescribeInput) Reset() {
+	*x = AuthAdminIdentityDescribeInput{}
+	mi := &file_internal_contracts_auth_proto_msgTypes[55]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AuthAdminIdentityDescribeInput) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AuthAdminIdentityDescribeInput) ProtoMessage() {}
+
+func (x *AuthAdminIdentityDescribeInput) ProtoReflect() protoreflect.Message {
+	mi := &file_internal_contracts_auth_proto_msgTypes[55]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AuthAdminIdentityDescribeInput.ProtoReflect.Descriptor instead.
+func (*AuthAdminIdentityDescribeInput) Descriptor() ([]byte, []int) {
+	return file_internal_contracts_auth_proto_rawDescGZIP(), []int{55}
+}
+
+func (x *AuthAdminIdentityDescribeInput) GetContribution() *AuthAdminContribution {
+	if x != nil {
+		return x.Contribution
+	}
+	return nil
+}
+
+type AuthAdminIdentityDescribeOutput struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Contribution  *AuthAdminContribution `protobuf:"bytes,1,opt,name=contribution,proto3" json:"contribution,omitempty"`
+	Error         string                 `protobuf:"bytes,100,opt,name=error,proto3" json:"error,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *AuthAdminIdentityDescribeOutput) Reset() {
+	*x = AuthAdminIdentityDescribeOutput{}
+	mi := &file_internal_contracts_auth_proto_msgTypes[56]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AuthAdminIdentityDescribeOutput) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AuthAdminIdentityDescribeOutput) ProtoMessage() {}
+
+func (x *AuthAdminIdentityDescribeOutput) ProtoReflect() protoreflect.Message {
+	mi := &file_internal_contracts_auth_proto_msgTypes[56]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AuthAdminIdentityDescribeOutput.ProtoReflect.Descriptor instead.
+func (*AuthAdminIdentityDescribeOutput) Descriptor() ([]byte, []int) {
+	return file_internal_contracts_auth_proto_rawDescGZIP(), []int{56}
+}
+
+func (x *AuthAdminIdentityDescribeOutput) GetContribution() *AuthAdminContribution {
+	if x != nil {
+		return x.Contribution
+	}
+	return nil
+}
+
+func (x *AuthAdminIdentityDescribeOutput) GetError() string {
+	if x != nil {
+		return x.Error
+	}
+	return ""
+}
+
 type AuthAdminDescribeOutput struct {
 	state           protoimpl.MessageState   `protogen:"open.v1"`
 	Groups          []*AuthAdminControlGroup `protobuf:"bytes,1,rep,name=groups,proto3" json:"groups,omitempty"`
@@ -4436,7 +4640,7 @@ type AuthAdminDescribeOutput struct {
 
 func (x *AuthAdminDescribeOutput) Reset() {
 	*x = AuthAdminDescribeOutput{}
-	mi := &file_internal_contracts_auth_proto_msgTypes[54]
+	mi := &file_internal_contracts_auth_proto_msgTypes[57]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4448,7 +4652,7 @@ func (x *AuthAdminDescribeOutput) String() string {
 func (*AuthAdminDescribeOutput) ProtoMessage() {}
 
 func (x *AuthAdminDescribeOutput) ProtoReflect() protoreflect.Message {
-	mi := &file_internal_contracts_auth_proto_msgTypes[54]
+	mi := &file_internal_contracts_auth_proto_msgTypes[57]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4461,7 +4665,7 @@ func (x *AuthAdminDescribeOutput) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AuthAdminDescribeOutput.ProtoReflect.Descriptor instead.
 func (*AuthAdminDescribeOutput) Descriptor() ([]byte, []int) {
-	return file_internal_contracts_auth_proto_rawDescGZIP(), []int{54}
+	return file_internal_contracts_auth_proto_rawDescGZIP(), []int{57}
 }
 
 func (x *AuthAdminDescribeOutput) GetGroups() []*AuthAdminControlGroup {
@@ -4515,7 +4719,7 @@ type AuthAdminValidateConfig struct {
 
 func (x *AuthAdminValidateConfig) Reset() {
 	*x = AuthAdminValidateConfig{}
-	mi := &file_internal_contracts_auth_proto_msgTypes[55]
+	mi := &file_internal_contracts_auth_proto_msgTypes[58]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4527,7 +4731,7 @@ func (x *AuthAdminValidateConfig) String() string {
 func (*AuthAdminValidateConfig) ProtoMessage() {}
 
 func (x *AuthAdminValidateConfig) ProtoReflect() protoreflect.Message {
-	mi := &file_internal_contracts_auth_proto_msgTypes[55]
+	mi := &file_internal_contracts_auth_proto_msgTypes[58]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4540,7 +4744,7 @@ func (x *AuthAdminValidateConfig) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AuthAdminValidateConfig.ProtoReflect.Descriptor instead.
 func (*AuthAdminValidateConfig) Descriptor() ([]byte, []int) {
-	return file_internal_contracts_auth_proto_rawDescGZIP(), []int{55}
+	return file_internal_contracts_auth_proto_rawDescGZIP(), []int{58}
 }
 
 func (x *AuthAdminValidateConfig) GetRequirePrimaryMethod() bool {
@@ -4561,7 +4765,7 @@ type AuthAdminValidateInput struct {
 
 func (x *AuthAdminValidateInput) Reset() {
 	*x = AuthAdminValidateInput{}
-	mi := &file_internal_contracts_auth_proto_msgTypes[56]
+	mi := &file_internal_contracts_auth_proto_msgTypes[59]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4573,7 +4777,7 @@ func (x *AuthAdminValidateInput) String() string {
 func (*AuthAdminValidateInput) ProtoMessage() {}
 
 func (x *AuthAdminValidateInput) ProtoReflect() protoreflect.Message {
-	mi := &file_internal_contracts_auth_proto_msgTypes[56]
+	mi := &file_internal_contracts_auth_proto_msgTypes[59]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4586,7 +4790,7 @@ func (x *AuthAdminValidateInput) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AuthAdminValidateInput.ProtoReflect.Descriptor instead.
 func (*AuthAdminValidateInput) Descriptor() ([]byte, []int) {
-	return file_internal_contracts_auth_proto_rawDescGZIP(), []int{56}
+	return file_internal_contracts_auth_proto_rawDescGZIP(), []int{59}
 }
 
 func (x *AuthAdminValidateInput) GetDesiredConfig() *structpb.Struct {
@@ -4625,7 +4829,7 @@ type AuthAdminValidateOutput struct {
 
 func (x *AuthAdminValidateOutput) Reset() {
 	*x = AuthAdminValidateOutput{}
-	mi := &file_internal_contracts_auth_proto_msgTypes[57]
+	mi := &file_internal_contracts_auth_proto_msgTypes[60]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4637,7 +4841,7 @@ func (x *AuthAdminValidateOutput) String() string {
 func (*AuthAdminValidateOutput) ProtoMessage() {}
 
 func (x *AuthAdminValidateOutput) ProtoReflect() protoreflect.Message {
-	mi := &file_internal_contracts_auth_proto_msgTypes[57]
+	mi := &file_internal_contracts_auth_proto_msgTypes[60]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4650,7 +4854,7 @@ func (x *AuthAdminValidateOutput) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AuthAdminValidateOutput.ProtoReflect.Descriptor instead.
 func (*AuthAdminValidateOutput) Descriptor() ([]byte, []int) {
-	return file_internal_contracts_auth_proto_rawDescGZIP(), []int{57}
+	return file_internal_contracts_auth_proto_rawDescGZIP(), []int{60}
 }
 
 func (x *AuthAdminValidateOutput) GetValid() bool {
@@ -4702,6 +4906,554 @@ func (x *AuthAdminValidateOutput) GetError() string {
 	return ""
 }
 
+type AuthAdminInviteConfig struct {
+	state             protoimpl.MessageState `protogen:"open.v1"`
+	DefaultTtlMinutes int32                  `protobuf:"varint,1,opt,name=default_ttl_minutes,json=defaultTtlMinutes,proto3" json:"default_ttl_minutes,omitempty"`
+	AllowedRoles      []string               `protobuf:"bytes,2,rep,name=allowed_roles,json=allowedRoles,proto3" json:"allowed_roles,omitempty"`
+	AllowedTenantIds  []string               `protobuf:"bytes,3,rep,name=allowed_tenant_ids,json=allowedTenantIds,proto3" json:"allowed_tenant_ids,omitempty"`
+	unknownFields     protoimpl.UnknownFields
+	sizeCache         protoimpl.SizeCache
+}
+
+func (x *AuthAdminInviteConfig) Reset() {
+	*x = AuthAdminInviteConfig{}
+	mi := &file_internal_contracts_auth_proto_msgTypes[61]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AuthAdminInviteConfig) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AuthAdminInviteConfig) ProtoMessage() {}
+
+func (x *AuthAdminInviteConfig) ProtoReflect() protoreflect.Message {
+	mi := &file_internal_contracts_auth_proto_msgTypes[61]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AuthAdminInviteConfig.ProtoReflect.Descriptor instead.
+func (*AuthAdminInviteConfig) Descriptor() ([]byte, []int) {
+	return file_internal_contracts_auth_proto_rawDescGZIP(), []int{61}
+}
+
+func (x *AuthAdminInviteConfig) GetDefaultTtlMinutes() int32 {
+	if x != nil {
+		return x.DefaultTtlMinutes
+	}
+	return 0
+}
+
+func (x *AuthAdminInviteConfig) GetAllowedRoles() []string {
+	if x != nil {
+		return x.AllowedRoles
+	}
+	return nil
+}
+
+func (x *AuthAdminInviteConfig) GetAllowedTenantIds() []string {
+	if x != nil {
+		return x.AllowedTenantIds
+	}
+	return nil
+}
+
+type AuthAdminInviteIssueInput struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Email         string                 `protobuf:"bytes,1,opt,name=email,proto3" json:"email,omitempty"`
+	Role          string                 `protobuf:"bytes,2,opt,name=role,proto3" json:"role,omitempty"`
+	TenantIds     []string               `protobuf:"bytes,3,rep,name=tenant_ids,json=tenantIds,proto3" json:"tenant_ids,omitempty"`
+	InvitedBy     string                 `protobuf:"bytes,4,opt,name=invited_by,json=invitedBy,proto3" json:"invited_by,omitempty"`
+	ExpiresAt     string                 `protobuf:"bytes,5,opt,name=expires_at,json=expiresAt,proto3" json:"expires_at,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *AuthAdminInviteIssueInput) Reset() {
+	*x = AuthAdminInviteIssueInput{}
+	mi := &file_internal_contracts_auth_proto_msgTypes[62]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AuthAdminInviteIssueInput) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AuthAdminInviteIssueInput) ProtoMessage() {}
+
+func (x *AuthAdminInviteIssueInput) ProtoReflect() protoreflect.Message {
+	mi := &file_internal_contracts_auth_proto_msgTypes[62]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AuthAdminInviteIssueInput.ProtoReflect.Descriptor instead.
+func (*AuthAdminInviteIssueInput) Descriptor() ([]byte, []int) {
+	return file_internal_contracts_auth_proto_rawDescGZIP(), []int{62}
+}
+
+func (x *AuthAdminInviteIssueInput) GetEmail() string {
+	if x != nil {
+		return x.Email
+	}
+	return ""
+}
+
+func (x *AuthAdminInviteIssueInput) GetRole() string {
+	if x != nil {
+		return x.Role
+	}
+	return ""
+}
+
+func (x *AuthAdminInviteIssueInput) GetTenantIds() []string {
+	if x != nil {
+		return x.TenantIds
+	}
+	return nil
+}
+
+func (x *AuthAdminInviteIssueInput) GetInvitedBy() string {
+	if x != nil {
+		return x.InvitedBy
+	}
+	return ""
+}
+
+func (x *AuthAdminInviteIssueInput) GetExpiresAt() string {
+	if x != nil {
+		return x.ExpiresAt
+	}
+	return ""
+}
+
+type AuthAdminInviteIssueOutput struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Accepted      bool                   `protobuf:"varint,1,opt,name=accepted,proto3" json:"accepted,omitempty"`
+	Email         string                 `protobuf:"bytes,2,opt,name=email,proto3" json:"email,omitempty"`
+	Role          string                 `protobuf:"bytes,3,opt,name=role,proto3" json:"role,omitempty"`
+	TenantIds     []string               `protobuf:"bytes,4,rep,name=tenant_ids,json=tenantIds,proto3" json:"tenant_ids,omitempty"`
+	InvitedBy     string                 `protobuf:"bytes,5,opt,name=invited_by,json=invitedBy,proto3" json:"invited_by,omitempty"`
+	ExpiresAt     string                 `protobuf:"bytes,6,opt,name=expires_at,json=expiresAt,proto3" json:"expires_at,omitempty"`
+	Error         string                 `protobuf:"bytes,100,opt,name=error,proto3" json:"error,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *AuthAdminInviteIssueOutput) Reset() {
+	*x = AuthAdminInviteIssueOutput{}
+	mi := &file_internal_contracts_auth_proto_msgTypes[63]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AuthAdminInviteIssueOutput) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AuthAdminInviteIssueOutput) ProtoMessage() {}
+
+func (x *AuthAdminInviteIssueOutput) ProtoReflect() protoreflect.Message {
+	mi := &file_internal_contracts_auth_proto_msgTypes[63]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AuthAdminInviteIssueOutput.ProtoReflect.Descriptor instead.
+func (*AuthAdminInviteIssueOutput) Descriptor() ([]byte, []int) {
+	return file_internal_contracts_auth_proto_rawDescGZIP(), []int{63}
+}
+
+func (x *AuthAdminInviteIssueOutput) GetAccepted() bool {
+	if x != nil {
+		return x.Accepted
+	}
+	return false
+}
+
+func (x *AuthAdminInviteIssueOutput) GetEmail() string {
+	if x != nil {
+		return x.Email
+	}
+	return ""
+}
+
+func (x *AuthAdminInviteIssueOutput) GetRole() string {
+	if x != nil {
+		return x.Role
+	}
+	return ""
+}
+
+func (x *AuthAdminInviteIssueOutput) GetTenantIds() []string {
+	if x != nil {
+		return x.TenantIds
+	}
+	return nil
+}
+
+func (x *AuthAdminInviteIssueOutput) GetInvitedBy() string {
+	if x != nil {
+		return x.InvitedBy
+	}
+	return ""
+}
+
+func (x *AuthAdminInviteIssueOutput) GetExpiresAt() string {
+	if x != nil {
+		return x.ExpiresAt
+	}
+	return ""
+}
+
+func (x *AuthAdminInviteIssueOutput) GetError() string {
+	if x != nil {
+		return x.Error
+	}
+	return ""
+}
+
+type AuthAdminInviteRedeemInput struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Email         string                 `protobuf:"bytes,1,opt,name=email,proto3" json:"email,omitempty"`
+	Token         string                 `protobuf:"bytes,2,opt,name=token,proto3" json:"token,omitempty"`
+	TokenHash     string                 `protobuf:"bytes,3,opt,name=token_hash,json=tokenHash,proto3" json:"token_hash,omitempty"`
+	ExpiresAt     string                 `protobuf:"bytes,4,opt,name=expires_at,json=expiresAt,proto3" json:"expires_at,omitempty"`
+	UsedAt        string                 `protobuf:"bytes,5,opt,name=used_at,json=usedAt,proto3" json:"used_at,omitempty"`
+	Role          string                 `protobuf:"bytes,6,opt,name=role,proto3" json:"role,omitempty"`
+	TenantIds     []string               `protobuf:"bytes,7,rep,name=tenant_ids,json=tenantIds,proto3" json:"tenant_ids,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *AuthAdminInviteRedeemInput) Reset() {
+	*x = AuthAdminInviteRedeemInput{}
+	mi := &file_internal_contracts_auth_proto_msgTypes[64]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AuthAdminInviteRedeemInput) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AuthAdminInviteRedeemInput) ProtoMessage() {}
+
+func (x *AuthAdminInviteRedeemInput) ProtoReflect() protoreflect.Message {
+	mi := &file_internal_contracts_auth_proto_msgTypes[64]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AuthAdminInviteRedeemInput.ProtoReflect.Descriptor instead.
+func (*AuthAdminInviteRedeemInput) Descriptor() ([]byte, []int) {
+	return file_internal_contracts_auth_proto_rawDescGZIP(), []int{64}
+}
+
+func (x *AuthAdminInviteRedeemInput) GetEmail() string {
+	if x != nil {
+		return x.Email
+	}
+	return ""
+}
+
+func (x *AuthAdminInviteRedeemInput) GetToken() string {
+	if x != nil {
+		return x.Token
+	}
+	return ""
+}
+
+func (x *AuthAdminInviteRedeemInput) GetTokenHash() string {
+	if x != nil {
+		return x.TokenHash
+	}
+	return ""
+}
+
+func (x *AuthAdminInviteRedeemInput) GetExpiresAt() string {
+	if x != nil {
+		return x.ExpiresAt
+	}
+	return ""
+}
+
+func (x *AuthAdminInviteRedeemInput) GetUsedAt() string {
+	if x != nil {
+		return x.UsedAt
+	}
+	return ""
+}
+
+func (x *AuthAdminInviteRedeemInput) GetRole() string {
+	if x != nil {
+		return x.Role
+	}
+	return ""
+}
+
+func (x *AuthAdminInviteRedeemInput) GetTenantIds() []string {
+	if x != nil {
+		return x.TenantIds
+	}
+	return nil
+}
+
+type AuthAdminInviteRedeemOutput struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Accepted      bool                   `protobuf:"varint,1,opt,name=accepted,proto3" json:"accepted,omitempty"`
+	Email         string                 `protobuf:"bytes,2,opt,name=email,proto3" json:"email,omitempty"`
+	Role          string                 `protobuf:"bytes,3,opt,name=role,proto3" json:"role,omitempty"`
+	TenantIds     []string               `protobuf:"bytes,4,rep,name=tenant_ids,json=tenantIds,proto3" json:"tenant_ids,omitempty"`
+	Reason        string                 `protobuf:"bytes,5,opt,name=reason,proto3" json:"reason,omitempty"`
+	Error         string                 `protobuf:"bytes,100,opt,name=error,proto3" json:"error,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *AuthAdminInviteRedeemOutput) Reset() {
+	*x = AuthAdminInviteRedeemOutput{}
+	mi := &file_internal_contracts_auth_proto_msgTypes[65]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AuthAdminInviteRedeemOutput) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AuthAdminInviteRedeemOutput) ProtoMessage() {}
+
+func (x *AuthAdminInviteRedeemOutput) ProtoReflect() protoreflect.Message {
+	mi := &file_internal_contracts_auth_proto_msgTypes[65]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AuthAdminInviteRedeemOutput.ProtoReflect.Descriptor instead.
+func (*AuthAdminInviteRedeemOutput) Descriptor() ([]byte, []int) {
+	return file_internal_contracts_auth_proto_rawDescGZIP(), []int{65}
+}
+
+func (x *AuthAdminInviteRedeemOutput) GetAccepted() bool {
+	if x != nil {
+		return x.Accepted
+	}
+	return false
+}
+
+func (x *AuthAdminInviteRedeemOutput) GetEmail() string {
+	if x != nil {
+		return x.Email
+	}
+	return ""
+}
+
+func (x *AuthAdminInviteRedeemOutput) GetRole() string {
+	if x != nil {
+		return x.Role
+	}
+	return ""
+}
+
+func (x *AuthAdminInviteRedeemOutput) GetTenantIds() []string {
+	if x != nil {
+		return x.TenantIds
+	}
+	return nil
+}
+
+func (x *AuthAdminInviteRedeemOutput) GetReason() string {
+	if x != nil {
+		return x.Reason
+	}
+	return ""
+}
+
+func (x *AuthAdminInviteRedeemOutput) GetError() string {
+	if x != nil {
+		return x.Error
+	}
+	return ""
+}
+
+type AuthAdminInviteRevokeInput struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	InviteId      string                 `protobuf:"bytes,1,opt,name=invite_id,json=inviteId,proto3" json:"invite_id,omitempty"`
+	Email         string                 `protobuf:"bytes,2,opt,name=email,proto3" json:"email,omitempty"`
+	RevokedBy     string                 `protobuf:"bytes,3,opt,name=revoked_by,json=revokedBy,proto3" json:"revoked_by,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *AuthAdminInviteRevokeInput) Reset() {
+	*x = AuthAdminInviteRevokeInput{}
+	mi := &file_internal_contracts_auth_proto_msgTypes[66]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AuthAdminInviteRevokeInput) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AuthAdminInviteRevokeInput) ProtoMessage() {}
+
+func (x *AuthAdminInviteRevokeInput) ProtoReflect() protoreflect.Message {
+	mi := &file_internal_contracts_auth_proto_msgTypes[66]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AuthAdminInviteRevokeInput.ProtoReflect.Descriptor instead.
+func (*AuthAdminInviteRevokeInput) Descriptor() ([]byte, []int) {
+	return file_internal_contracts_auth_proto_rawDescGZIP(), []int{66}
+}
+
+func (x *AuthAdminInviteRevokeInput) GetInviteId() string {
+	if x != nil {
+		return x.InviteId
+	}
+	return ""
+}
+
+func (x *AuthAdminInviteRevokeInput) GetEmail() string {
+	if x != nil {
+		return x.Email
+	}
+	return ""
+}
+
+func (x *AuthAdminInviteRevokeInput) GetRevokedBy() string {
+	if x != nil {
+		return x.RevokedBy
+	}
+	return ""
+}
+
+type AuthAdminInviteRevokeOutput struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Accepted      bool                   `protobuf:"varint,1,opt,name=accepted,proto3" json:"accepted,omitempty"`
+	InviteId      string                 `protobuf:"bytes,2,opt,name=invite_id,json=inviteId,proto3" json:"invite_id,omitempty"`
+	Email         string                 `protobuf:"bytes,3,opt,name=email,proto3" json:"email,omitempty"`
+	RevokedBy     string                 `protobuf:"bytes,4,opt,name=revoked_by,json=revokedBy,proto3" json:"revoked_by,omitempty"`
+	Reason        string                 `protobuf:"bytes,5,opt,name=reason,proto3" json:"reason,omitempty"`
+	Error         string                 `protobuf:"bytes,100,opt,name=error,proto3" json:"error,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *AuthAdminInviteRevokeOutput) Reset() {
+	*x = AuthAdminInviteRevokeOutput{}
+	mi := &file_internal_contracts_auth_proto_msgTypes[67]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AuthAdminInviteRevokeOutput) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AuthAdminInviteRevokeOutput) ProtoMessage() {}
+
+func (x *AuthAdminInviteRevokeOutput) ProtoReflect() protoreflect.Message {
+	mi := &file_internal_contracts_auth_proto_msgTypes[67]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AuthAdminInviteRevokeOutput.ProtoReflect.Descriptor instead.
+func (*AuthAdminInviteRevokeOutput) Descriptor() ([]byte, []int) {
+	return file_internal_contracts_auth_proto_rawDescGZIP(), []int{67}
+}
+
+func (x *AuthAdminInviteRevokeOutput) GetAccepted() bool {
+	if x != nil {
+		return x.Accepted
+	}
+	return false
+}
+
+func (x *AuthAdminInviteRevokeOutput) GetInviteId() string {
+	if x != nil {
+		return x.InviteId
+	}
+	return ""
+}
+
+func (x *AuthAdminInviteRevokeOutput) GetEmail() string {
+	if x != nil {
+		return x.Email
+	}
+	return ""
+}
+
+func (x *AuthAdminInviteRevokeOutput) GetRevokedBy() string {
+	if x != nil {
+		return x.RevokedBy
+	}
+	return ""
+}
+
+func (x *AuthAdminInviteRevokeOutput) GetReason() string {
+	if x != nil {
+		return x.Reason
+	}
+	return ""
+}
+
+func (x *AuthAdminInviteRevokeOutput) GetError() string {
+	if x != nil {
+		return x.Error
+	}
+	return ""
+}
+
 type OAuthProviderConfig struct {
 	state                           protoimpl.MessageState `protogen:"open.v1"`
 	Provider                        string                 `protobuf:"bytes,1,opt,name=provider,proto3" json:"provider,omitempty"`
@@ -4729,7 +5481,7 @@ type OAuthProviderConfig struct {
 
 func (x *OAuthProviderConfig) Reset() {
 	*x = OAuthProviderConfig{}
-	mi := &file_internal_contracts_auth_proto_msgTypes[58]
+	mi := &file_internal_contracts_auth_proto_msgTypes[68]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4741,7 +5493,7 @@ func (x *OAuthProviderConfig) String() string {
 func (*OAuthProviderConfig) ProtoMessage() {}
 
 func (x *OAuthProviderConfig) ProtoReflect() protoreflect.Message {
-	mi := &file_internal_contracts_auth_proto_msgTypes[58]
+	mi := &file_internal_contracts_auth_proto_msgTypes[68]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4754,7 +5506,7 @@ func (x *OAuthProviderConfig) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use OAuthProviderConfig.ProtoReflect.Descriptor instead.
 func (*OAuthProviderConfig) Descriptor() ([]byte, []int) {
-	return file_internal_contracts_auth_proto_rawDescGZIP(), []int{58}
+	return file_internal_contracts_auth_proto_rawDescGZIP(), []int{68}
 }
 
 func (x *OAuthProviderConfig) GetProvider() string {
@@ -4855,7 +5607,7 @@ type OAuthProviderInput struct {
 
 func (x *OAuthProviderInput) Reset() {
 	*x = OAuthProviderInput{}
-	mi := &file_internal_contracts_auth_proto_msgTypes[59]
+	mi := &file_internal_contracts_auth_proto_msgTypes[69]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4867,7 +5619,7 @@ func (x *OAuthProviderInput) String() string {
 func (*OAuthProviderInput) ProtoMessage() {}
 
 func (x *OAuthProviderInput) ProtoReflect() protoreflect.Message {
-	mi := &file_internal_contracts_auth_proto_msgTypes[59]
+	mi := &file_internal_contracts_auth_proto_msgTypes[69]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4880,7 +5632,7 @@ func (x *OAuthProviderInput) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use OAuthProviderInput.ProtoReflect.Descriptor instead.
 func (*OAuthProviderInput) Descriptor() ([]byte, []int) {
-	return file_internal_contracts_auth_proto_rawDescGZIP(), []int{59}
+	return file_internal_contracts_auth_proto_rawDescGZIP(), []int{69}
 }
 
 func (x *OAuthProviderInput) GetProvider() string {
@@ -4943,7 +5695,7 @@ type OAuthProviderConfigOutput struct {
 
 func (x *OAuthProviderConfigOutput) Reset() {
 	*x = OAuthProviderConfigOutput{}
-	mi := &file_internal_contracts_auth_proto_msgTypes[60]
+	mi := &file_internal_contracts_auth_proto_msgTypes[70]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4955,7 +5707,7 @@ func (x *OAuthProviderConfigOutput) String() string {
 func (*OAuthProviderConfigOutput) ProtoMessage() {}
 
 func (x *OAuthProviderConfigOutput) ProtoReflect() protoreflect.Message {
-	mi := &file_internal_contracts_auth_proto_msgTypes[60]
+	mi := &file_internal_contracts_auth_proto_msgTypes[70]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4968,7 +5720,7 @@ func (x *OAuthProviderConfigOutput) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use OAuthProviderConfigOutput.ProtoReflect.Descriptor instead.
 func (*OAuthProviderConfigOutput) Descriptor() ([]byte, []int) {
-	return file_internal_contracts_auth_proto_rawDescGZIP(), []int{60}
+	return file_internal_contracts_auth_proto_rawDescGZIP(), []int{70}
 }
 
 func (x *OAuthProviderConfigOutput) GetProvider() string {
@@ -5060,7 +5812,7 @@ type OAuthStartOutput struct {
 
 func (x *OAuthStartOutput) Reset() {
 	*x = OAuthStartOutput{}
-	mi := &file_internal_contracts_auth_proto_msgTypes[61]
+	mi := &file_internal_contracts_auth_proto_msgTypes[71]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5072,7 +5824,7 @@ func (x *OAuthStartOutput) String() string {
 func (*OAuthStartOutput) ProtoMessage() {}
 
 func (x *OAuthStartOutput) ProtoReflect() protoreflect.Message {
-	mi := &file_internal_contracts_auth_proto_msgTypes[61]
+	mi := &file_internal_contracts_auth_proto_msgTypes[71]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5085,7 +5837,7 @@ func (x *OAuthStartOutput) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use OAuthStartOutput.ProtoReflect.Descriptor instead.
 func (*OAuthStartOutput) Descriptor() ([]byte, []int) {
-	return file_internal_contracts_auth_proto_rawDescGZIP(), []int{61}
+	return file_internal_contracts_auth_proto_rawDescGZIP(), []int{71}
 }
 
 func (x *OAuthStartOutput) GetStarted() bool {
@@ -5183,7 +5935,7 @@ type OAuthExchangeOutput struct {
 
 func (x *OAuthExchangeOutput) Reset() {
 	*x = OAuthExchangeOutput{}
-	mi := &file_internal_contracts_auth_proto_msgTypes[62]
+	mi := &file_internal_contracts_auth_proto_msgTypes[72]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5195,7 +5947,7 @@ func (x *OAuthExchangeOutput) String() string {
 func (*OAuthExchangeOutput) ProtoMessage() {}
 
 func (x *OAuthExchangeOutput) ProtoReflect() protoreflect.Message {
-	mi := &file_internal_contracts_auth_proto_msgTypes[62]
+	mi := &file_internal_contracts_auth_proto_msgTypes[72]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5208,7 +5960,7 @@ func (x *OAuthExchangeOutput) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use OAuthExchangeOutput.ProtoReflect.Descriptor instead.
 func (*OAuthExchangeOutput) Descriptor() ([]byte, []int) {
-	return file_internal_contracts_auth_proto_rawDescGZIP(), []int{62}
+	return file_internal_contracts_auth_proto_rawDescGZIP(), []int{72}
 }
 
 func (x *OAuthExchangeOutput) GetExchanged() bool {
@@ -5299,7 +6051,7 @@ type OAuthUserinfoOutput struct {
 
 func (x *OAuthUserinfoOutput) Reset() {
 	*x = OAuthUserinfoOutput{}
-	mi := &file_internal_contracts_auth_proto_msgTypes[63]
+	mi := &file_internal_contracts_auth_proto_msgTypes[73]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5311,7 +6063,7 @@ func (x *OAuthUserinfoOutput) String() string {
 func (*OAuthUserinfoOutput) ProtoMessage() {}
 
 func (x *OAuthUserinfoOutput) ProtoReflect() protoreflect.Message {
-	mi := &file_internal_contracts_auth_proto_msgTypes[63]
+	mi := &file_internal_contracts_auth_proto_msgTypes[73]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5324,7 +6076,7 @@ func (x *OAuthUserinfoOutput) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use OAuthUserinfoOutput.ProtoReflect.Descriptor instead.
 func (*OAuthUserinfoOutput) Descriptor() ([]byte, []int) {
-	return file_internal_contracts_auth_proto_rawDescGZIP(), []int{63}
+	return file_internal_contracts_auth_proto_rawDescGZIP(), []int{73}
 }
 
 func (x *OAuthUserinfoOutput) GetFetched() bool {
@@ -5408,7 +6160,7 @@ type AuthProviderConfigOption struct {
 
 func (x *AuthProviderConfigOption) Reset() {
 	*x = AuthProviderConfigOption{}
-	mi := &file_internal_contracts_auth_proto_msgTypes[64]
+	mi := &file_internal_contracts_auth_proto_msgTypes[74]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5420,7 +6172,7 @@ func (x *AuthProviderConfigOption) String() string {
 func (*AuthProviderConfigOption) ProtoMessage() {}
 
 func (x *AuthProviderConfigOption) ProtoReflect() protoreflect.Message {
-	mi := &file_internal_contracts_auth_proto_msgTypes[64]
+	mi := &file_internal_contracts_auth_proto_msgTypes[74]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5433,7 +6185,7 @@ func (x *AuthProviderConfigOption) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AuthProviderConfigOption.ProtoReflect.Descriptor instead.
 func (*AuthProviderConfigOption) Descriptor() ([]byte, []int) {
-	return file_internal_contracts_auth_proto_rawDescGZIP(), []int{64}
+	return file_internal_contracts_auth_proto_rawDescGZIP(), []int{74}
 }
 
 func (x *AuthProviderConfigOption) GetValue() string {
@@ -5475,7 +6227,7 @@ type AuthProviderConfigField struct {
 
 func (x *AuthProviderConfigField) Reset() {
 	*x = AuthProviderConfigField{}
-	mi := &file_internal_contracts_auth_proto_msgTypes[65]
+	mi := &file_internal_contracts_auth_proto_msgTypes[75]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5487,7 +6239,7 @@ func (x *AuthProviderConfigField) String() string {
 func (*AuthProviderConfigField) ProtoMessage() {}
 
 func (x *AuthProviderConfigField) ProtoReflect() protoreflect.Message {
-	mi := &file_internal_contracts_auth_proto_msgTypes[65]
+	mi := &file_internal_contracts_auth_proto_msgTypes[75]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5500,7 +6252,7 @@ func (x *AuthProviderConfigField) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AuthProviderConfigField.ProtoReflect.Descriptor instead.
 func (*AuthProviderConfigField) Descriptor() ([]byte, []int) {
-	return file_internal_contracts_auth_proto_rawDescGZIP(), []int{65}
+	return file_internal_contracts_auth_proto_rawDescGZIP(), []int{75}
 }
 
 func (x *AuthProviderConfigField) GetKey() string {
@@ -5591,7 +6343,7 @@ type AuthProviderCapability struct {
 
 func (x *AuthProviderCapability) Reset() {
 	*x = AuthProviderCapability{}
-	mi := &file_internal_contracts_auth_proto_msgTypes[66]
+	mi := &file_internal_contracts_auth_proto_msgTypes[76]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5603,7 +6355,7 @@ func (x *AuthProviderCapability) String() string {
 func (*AuthProviderCapability) ProtoMessage() {}
 
 func (x *AuthProviderCapability) ProtoReflect() protoreflect.Message {
-	mi := &file_internal_contracts_auth_proto_msgTypes[66]
+	mi := &file_internal_contracts_auth_proto_msgTypes[76]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5616,7 +6368,7 @@ func (x *AuthProviderCapability) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AuthProviderCapability.ProtoReflect.Descriptor instead.
 func (*AuthProviderCapability) Descriptor() ([]byte, []int) {
-	return file_internal_contracts_auth_proto_rawDescGZIP(), []int{66}
+	return file_internal_contracts_auth_proto_rawDescGZIP(), []int{76}
 }
 
 func (x *AuthProviderCapability) GetKey() string {
@@ -5707,7 +6459,7 @@ type AuthProviderDescriptor struct {
 
 func (x *AuthProviderDescriptor) Reset() {
 	*x = AuthProviderDescriptor{}
-	mi := &file_internal_contracts_auth_proto_msgTypes[67]
+	mi := &file_internal_contracts_auth_proto_msgTypes[77]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5719,7 +6471,7 @@ func (x *AuthProviderDescriptor) String() string {
 func (*AuthProviderDescriptor) ProtoMessage() {}
 
 func (x *AuthProviderDescriptor) ProtoReflect() protoreflect.Message {
-	mi := &file_internal_contracts_auth_proto_msgTypes[67]
+	mi := &file_internal_contracts_auth_proto_msgTypes[77]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5732,7 +6484,7 @@ func (x *AuthProviderDescriptor) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AuthProviderDescriptor.ProtoReflect.Descriptor instead.
 func (*AuthProviderDescriptor) Descriptor() ([]byte, []int) {
-	return file_internal_contracts_auth_proto_rawDescGZIP(), []int{67}
+	return file_internal_contracts_auth_proto_rawDescGZIP(), []int{77}
 }
 
 func (x *AuthProviderDescriptor) GetId() string {
@@ -5814,7 +6566,7 @@ type AuthProviderCatalogConfig struct {
 
 func (x *AuthProviderCatalogConfig) Reset() {
 	*x = AuthProviderCatalogConfig{}
-	mi := &file_internal_contracts_auth_proto_msgTypes[68]
+	mi := &file_internal_contracts_auth_proto_msgTypes[78]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5826,7 +6578,7 @@ func (x *AuthProviderCatalogConfig) String() string {
 func (*AuthProviderCatalogConfig) ProtoMessage() {}
 
 func (x *AuthProviderCatalogConfig) ProtoReflect() protoreflect.Message {
-	mi := &file_internal_contracts_auth_proto_msgTypes[68]
+	mi := &file_internal_contracts_auth_proto_msgTypes[78]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5839,7 +6591,7 @@ func (x *AuthProviderCatalogConfig) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AuthProviderCatalogConfig.ProtoReflect.Descriptor instead.
 func (*AuthProviderCatalogConfig) Descriptor() ([]byte, []int) {
-	return file_internal_contracts_auth_proto_rawDescGZIP(), []int{68}
+	return file_internal_contracts_auth_proto_rawDescGZIP(), []int{78}
 }
 
 func (x *AuthProviderCatalogConfig) GetProviders() []*AuthProviderDescriptor {
@@ -5858,7 +6610,7 @@ type AuthProviderCatalogInput struct {
 
 func (x *AuthProviderCatalogInput) Reset() {
 	*x = AuthProviderCatalogInput{}
-	mi := &file_internal_contracts_auth_proto_msgTypes[69]
+	mi := &file_internal_contracts_auth_proto_msgTypes[79]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5870,7 +6622,7 @@ func (x *AuthProviderCatalogInput) String() string {
 func (*AuthProviderCatalogInput) ProtoMessage() {}
 
 func (x *AuthProviderCatalogInput) ProtoReflect() protoreflect.Message {
-	mi := &file_internal_contracts_auth_proto_msgTypes[69]
+	mi := &file_internal_contracts_auth_proto_msgTypes[79]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5883,7 +6635,7 @@ func (x *AuthProviderCatalogInput) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AuthProviderCatalogInput.ProtoReflect.Descriptor instead.
 func (*AuthProviderCatalogInput) Descriptor() ([]byte, []int) {
-	return file_internal_contracts_auth_proto_rawDescGZIP(), []int{69}
+	return file_internal_contracts_auth_proto_rawDescGZIP(), []int{79}
 }
 
 func (x *AuthProviderCatalogInput) GetProviders() []*AuthProviderDescriptor {
@@ -5904,7 +6656,7 @@ type AuthProviderCatalogOutput struct {
 
 func (x *AuthProviderCatalogOutput) Reset() {
 	*x = AuthProviderCatalogOutput{}
-	mi := &file_internal_contracts_auth_proto_msgTypes[70]
+	mi := &file_internal_contracts_auth_proto_msgTypes[80]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5916,7 +6668,7 @@ func (x *AuthProviderCatalogOutput) String() string {
 func (*AuthProviderCatalogOutput) ProtoMessage() {}
 
 func (x *AuthProviderCatalogOutput) ProtoReflect() protoreflect.Message {
-	mi := &file_internal_contracts_auth_proto_msgTypes[70]
+	mi := &file_internal_contracts_auth_proto_msgTypes[80]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5929,7 +6681,7 @@ func (x *AuthProviderCatalogOutput) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AuthProviderCatalogOutput.ProtoReflect.Descriptor instead.
 func (*AuthProviderCatalogOutput) Descriptor() ([]byte, []int) {
-	return file_internal_contracts_auth_proto_rawDescGZIP(), []int{70}
+	return file_internal_contracts_auth_proto_rawDescGZIP(), []int{80}
 }
 
 func (x *AuthProviderCatalogOutput) GetProviders() []*AuthProviderDescriptor {
@@ -5962,7 +6714,7 @@ type CredentialListInput struct {
 
 func (x *CredentialListInput) Reset() {
 	*x = CredentialListInput{}
-	mi := &file_internal_contracts_auth_proto_msgTypes[71]
+	mi := &file_internal_contracts_auth_proto_msgTypes[81]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5974,7 +6726,7 @@ func (x *CredentialListInput) String() string {
 func (*CredentialListInput) ProtoMessage() {}
 
 func (x *CredentialListInput) ProtoReflect() protoreflect.Message {
-	mi := &file_internal_contracts_auth_proto_msgTypes[71]
+	mi := &file_internal_contracts_auth_proto_msgTypes[81]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5987,7 +6739,7 @@ func (x *CredentialListInput) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CredentialListInput.ProtoReflect.Descriptor instead.
 func (*CredentialListInput) Descriptor() ([]byte, []int) {
-	return file_internal_contracts_auth_proto_rawDescGZIP(), []int{71}
+	return file_internal_contracts_auth_proto_rawDescGZIP(), []int{81}
 }
 
 func (x *CredentialListInput) GetCredentialsJson() string {
@@ -6010,7 +6762,7 @@ type CredentialSummary struct {
 
 func (x *CredentialSummary) Reset() {
 	*x = CredentialSummary{}
-	mi := &file_internal_contracts_auth_proto_msgTypes[72]
+	mi := &file_internal_contracts_auth_proto_msgTypes[82]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6022,7 +6774,7 @@ func (x *CredentialSummary) String() string {
 func (*CredentialSummary) ProtoMessage() {}
 
 func (x *CredentialSummary) ProtoReflect() protoreflect.Message {
-	mi := &file_internal_contracts_auth_proto_msgTypes[72]
+	mi := &file_internal_contracts_auth_proto_msgTypes[82]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6035,7 +6787,7 @@ func (x *CredentialSummary) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CredentialSummary.ProtoReflect.Descriptor instead.
 func (*CredentialSummary) Descriptor() ([]byte, []int) {
-	return file_internal_contracts_auth_proto_rawDescGZIP(), []int{72}
+	return file_internal_contracts_auth_proto_rawDescGZIP(), []int{82}
 }
 
 func (x *CredentialSummary) GetId() string {
@@ -6084,7 +6836,7 @@ type CredentialListOutput struct {
 
 func (x *CredentialListOutput) Reset() {
 	*x = CredentialListOutput{}
-	mi := &file_internal_contracts_auth_proto_msgTypes[73]
+	mi := &file_internal_contracts_auth_proto_msgTypes[83]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6096,7 +6848,7 @@ func (x *CredentialListOutput) String() string {
 func (*CredentialListOutput) ProtoMessage() {}
 
 func (x *CredentialListOutput) ProtoReflect() protoreflect.Message {
-	mi := &file_internal_contracts_auth_proto_msgTypes[73]
+	mi := &file_internal_contracts_auth_proto_msgTypes[83]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6109,7 +6861,7 @@ func (x *CredentialListOutput) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CredentialListOutput.ProtoReflect.Descriptor instead.
 func (*CredentialListOutput) Descriptor() ([]byte, []int) {
-	return file_internal_contracts_auth_proto_rawDescGZIP(), []int{73}
+	return file_internal_contracts_auth_proto_rawDescGZIP(), []int{83}
 }
 
 func (x *CredentialListOutput) GetCredentials() []*CredentialSummary {
@@ -6144,7 +6896,7 @@ type CredentialRevokeInput struct {
 
 func (x *CredentialRevokeInput) Reset() {
 	*x = CredentialRevokeInput{}
-	mi := &file_internal_contracts_auth_proto_msgTypes[74]
+	mi := &file_internal_contracts_auth_proto_msgTypes[84]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6156,7 +6908,7 @@ func (x *CredentialRevokeInput) String() string {
 func (*CredentialRevokeInput) ProtoMessage() {}
 
 func (x *CredentialRevokeInput) ProtoReflect() protoreflect.Message {
-	mi := &file_internal_contracts_auth_proto_msgTypes[74]
+	mi := &file_internal_contracts_auth_proto_msgTypes[84]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6169,7 +6921,7 @@ func (x *CredentialRevokeInput) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CredentialRevokeInput.ProtoReflect.Descriptor instead.
 func (*CredentialRevokeInput) Descriptor() ([]byte, []int) {
-	return file_internal_contracts_auth_proto_rawDescGZIP(), []int{74}
+	return file_internal_contracts_auth_proto_rawDescGZIP(), []int{84}
 }
 
 func (x *CredentialRevokeInput) GetCredentialId() string {
@@ -6204,7 +6956,7 @@ type CredentialRevokeOutput struct {
 
 func (x *CredentialRevokeOutput) Reset() {
 	*x = CredentialRevokeOutput{}
-	mi := &file_internal_contracts_auth_proto_msgTypes[75]
+	mi := &file_internal_contracts_auth_proto_msgTypes[85]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6216,7 +6968,7 @@ func (x *CredentialRevokeOutput) String() string {
 func (*CredentialRevokeOutput) ProtoMessage() {}
 
 func (x *CredentialRevokeOutput) ProtoReflect() protoreflect.Message {
-	mi := &file_internal_contracts_auth_proto_msgTypes[75]
+	mi := &file_internal_contracts_auth_proto_msgTypes[85]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6229,7 +6981,7 @@ func (x *CredentialRevokeOutput) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CredentialRevokeOutput.ProtoReflect.Descriptor instead.
 func (*CredentialRevokeOutput) Descriptor() ([]byte, []int) {
-	return file_internal_contracts_auth_proto_rawDescGZIP(), []int{75}
+	return file_internal_contracts_auth_proto_rawDescGZIP(), []int{85}
 }
 
 func (x *CredentialRevokeOutput) GetAuthorized() bool {
@@ -6265,7 +7017,7 @@ type BootstrapRedeemConfig struct {
 
 func (x *BootstrapRedeemConfig) Reset() {
 	*x = BootstrapRedeemConfig{}
-	mi := &file_internal_contracts_auth_proto_msgTypes[76]
+	mi := &file_internal_contracts_auth_proto_msgTypes[86]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6277,7 +7029,7 @@ func (x *BootstrapRedeemConfig) String() string {
 func (*BootstrapRedeemConfig) ProtoMessage() {}
 
 func (x *BootstrapRedeemConfig) ProtoReflect() protoreflect.Message {
-	mi := &file_internal_contracts_auth_proto_msgTypes[76]
+	mi := &file_internal_contracts_auth_proto_msgTypes[86]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6290,7 +7042,7 @@ func (x *BootstrapRedeemConfig) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BootstrapRedeemConfig.ProtoReflect.Descriptor instead.
 func (*BootstrapRedeemConfig) Descriptor() ([]byte, []int) {
-	return file_internal_contracts_auth_proto_rawDescGZIP(), []int{76}
+	return file_internal_contracts_auth_proto_rawDescGZIP(), []int{86}
 }
 
 func (x *BootstrapRedeemConfig) GetSuperAdminEmail() string {
@@ -6328,7 +7080,7 @@ type BootstrapRedeemInput struct {
 
 func (x *BootstrapRedeemInput) Reset() {
 	*x = BootstrapRedeemInput{}
-	mi := &file_internal_contracts_auth_proto_msgTypes[77]
+	mi := &file_internal_contracts_auth_proto_msgTypes[87]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6340,7 +7092,7 @@ func (x *BootstrapRedeemInput) String() string {
 func (*BootstrapRedeemInput) ProtoMessage() {}
 
 func (x *BootstrapRedeemInput) ProtoReflect() protoreflect.Message {
-	mi := &file_internal_contracts_auth_proto_msgTypes[77]
+	mi := &file_internal_contracts_auth_proto_msgTypes[87]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6353,7 +7105,7 @@ func (x *BootstrapRedeemInput) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BootstrapRedeemInput.ProtoReflect.Descriptor instead.
 func (*BootstrapRedeemInput) Descriptor() ([]byte, []int) {
-	return file_internal_contracts_auth_proto_rawDescGZIP(), []int{77}
+	return file_internal_contracts_auth_proto_rawDescGZIP(), []int{87}
 }
 
 func (x *BootstrapRedeemInput) GetCode() string {
@@ -6383,7 +7135,7 @@ type BootstrapRedeemOutput struct {
 
 func (x *BootstrapRedeemOutput) Reset() {
 	*x = BootstrapRedeemOutput{}
-	mi := &file_internal_contracts_auth_proto_msgTypes[78]
+	mi := &file_internal_contracts_auth_proto_msgTypes[88]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6395,7 +7147,7 @@ func (x *BootstrapRedeemOutput) String() string {
 func (*BootstrapRedeemOutput) ProtoMessage() {}
 
 func (x *BootstrapRedeemOutput) ProtoReflect() protoreflect.Message {
-	mi := &file_internal_contracts_auth_proto_msgTypes[78]
+	mi := &file_internal_contracts_auth_proto_msgTypes[88]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6408,7 +7160,7 @@ func (x *BootstrapRedeemOutput) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BootstrapRedeemOutput.ProtoReflect.Descriptor instead.
 func (*BootstrapRedeemOutput) Descriptor() ([]byte, []int) {
-	return file_internal_contracts_auth_proto_rawDescGZIP(), []int{78}
+	return file_internal_contracts_auth_proto_rawDescGZIP(), []int{88}
 }
 
 func (x *BootstrapRedeemOutput) GetRedeemed() bool {
@@ -6458,7 +7210,7 @@ type JWTIssueConfig struct {
 
 func (x *JWTIssueConfig) Reset() {
 	*x = JWTIssueConfig{}
-	mi := &file_internal_contracts_auth_proto_msgTypes[79]
+	mi := &file_internal_contracts_auth_proto_msgTypes[89]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6470,7 +7222,7 @@ func (x *JWTIssueConfig) String() string {
 func (*JWTIssueConfig) ProtoMessage() {}
 
 func (x *JWTIssueConfig) ProtoReflect() protoreflect.Message {
-	mi := &file_internal_contracts_auth_proto_msgTypes[79]
+	mi := &file_internal_contracts_auth_proto_msgTypes[89]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6483,7 +7235,7 @@ func (x *JWTIssueConfig) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use JWTIssueConfig.ProtoReflect.Descriptor instead.
 func (*JWTIssueConfig) Descriptor() ([]byte, []int) {
-	return file_internal_contracts_auth_proto_rawDescGZIP(), []int{79}
+	return file_internal_contracts_auth_proto_rawDescGZIP(), []int{89}
 }
 
 func (x *JWTIssueConfig) GetSecretEnv() string {
@@ -6517,7 +7269,7 @@ type JWTIssueInput struct {
 
 func (x *JWTIssueInput) Reset() {
 	*x = JWTIssueInput{}
-	mi := &file_internal_contracts_auth_proto_msgTypes[80]
+	mi := &file_internal_contracts_auth_proto_msgTypes[90]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6529,7 +7281,7 @@ func (x *JWTIssueInput) String() string {
 func (*JWTIssueInput) ProtoMessage() {}
 
 func (x *JWTIssueInput) ProtoReflect() protoreflect.Message {
-	mi := &file_internal_contracts_auth_proto_msgTypes[80]
+	mi := &file_internal_contracts_auth_proto_msgTypes[90]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6542,7 +7294,7 @@ func (x *JWTIssueInput) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use JWTIssueInput.ProtoReflect.Descriptor instead.
 func (*JWTIssueInput) Descriptor() ([]byte, []int) {
-	return file_internal_contracts_auth_proto_rawDescGZIP(), []int{80}
+	return file_internal_contracts_auth_proto_rawDescGZIP(), []int{90}
 }
 
 func (x *JWTIssueInput) GetSubject() string {
@@ -6570,7 +7322,7 @@ type JWTIssueOutput struct {
 
 func (x *JWTIssueOutput) Reset() {
 	*x = JWTIssueOutput{}
-	mi := &file_internal_contracts_auth_proto_msgTypes[81]
+	mi := &file_internal_contracts_auth_proto_msgTypes[91]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6582,7 +7334,7 @@ func (x *JWTIssueOutput) String() string {
 func (*JWTIssueOutput) ProtoMessage() {}
 
 func (x *JWTIssueOutput) ProtoReflect() protoreflect.Message {
-	mi := &file_internal_contracts_auth_proto_msgTypes[81]
+	mi := &file_internal_contracts_auth_proto_msgTypes[91]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6595,7 +7347,7 @@ func (x *JWTIssueOutput) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use JWTIssueOutput.ProtoReflect.Descriptor instead.
 func (*JWTIssueOutput) Descriptor() ([]byte, []int) {
-	return file_internal_contracts_auth_proto_rawDescGZIP(), []int{81}
+	return file_internal_contracts_auth_proto_rawDescGZIP(), []int{91}
 }
 
 func (x *JWTIssueOutput) GetToken() string {
@@ -7067,6 +7819,23 @@ const file_internal_contracts_auth_proto_rawDesc = "" +
 	"\bmetadata\x18\t \x01(\v2\x17.google.protobuf.StructR\bmetadata\"\x88\x01\n" +
 	"\x1bAuthAdminContributionOutput\x12S\n" +
 	"\fcontribution\x18\x01 \x01(\v2/.workflow.plugins.auth.v1.AuthAdminContributionR\fcontribution\x12\x14\n" +
+	"\x05error\x18d \x01(\tR\x05error\"\xe9\x02\n" +
+	"#AuthAdminIdentityContributionConfig\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x14\n" +
+	"\x05title\x18\x02 \x01(\tR\x05title\x12\x1a\n" +
+	"\bcategory\x18\x03 \x01(\tR\bcategory\x12\x12\n" +
+	"\x04path\x18\x04 \x01(\tR\x04path\x12\x1f\n" +
+	"\vrender_mode\x18\x05 \x01(\tR\n" +
+	"renderMode\x12\x1f\n" +
+	"\vapp_context\x18\x06 \x01(\tR\n" +
+	"appContext\x12[\n" +
+	"\vpermissions\x18\a \x03(\v29.workflow.plugins.auth.v1.AuthAdminContributionPermissionR\vpermissions\x12\x18\n" +
+	"\aactions\x18\b \x03(\tR\aactions\x123\n" +
+	"\bmetadata\x18\t \x01(\v2\x17.google.protobuf.StructR\bmetadata\"u\n" +
+	"\x1eAuthAdminIdentityDescribeInput\x12S\n" +
+	"\fcontribution\x18\x01 \x01(\v2/.workflow.plugins.auth.v1.AuthAdminContributionR\fcontribution\"\x8c\x01\n" +
+	"\x1fAuthAdminIdentityDescribeOutput\x12S\n" +
+	"\fcontribution\x18\x01 \x01(\v2/.workflow.plugins.auth.v1.AuthAdminContributionR\fcontribution\x12\x14\n" +
 	"\x05error\x18d \x01(\tR\x05error\"\xec\x02\n" +
 	"\x17AuthAdminDescribeOutput\x12G\n" +
 	"\x06groups\x18\x01 \x03(\v2/.workflow.plugins.auth.v1.AuthAdminControlGroupR\x06groups\x12B\n" +
@@ -7091,7 +7860,63 @@ const file_internal_contracts_auth_proto_rawDesc = "" +
 	"\bwarnings\x18\x05 \x03(\v2-.workflow.plugins.auth.v1.AuthAdminDiagnosticR\bwarnings\x12#\n" +
 	"\rsecret_fields\x18\x06 \x03(\tR\fsecretFields\x12\x14\n" +
 	"\x05error\x18d \x01(\tR\x05errorB\b\n" +
-	"\x06_valid\"\xba\x05\n" +
+	"\x06_valid\"\x9a\x01\n" +
+	"\x15AuthAdminInviteConfig\x12.\n" +
+	"\x13default_ttl_minutes\x18\x01 \x01(\x05R\x11defaultTtlMinutes\x12#\n" +
+	"\rallowed_roles\x18\x02 \x03(\tR\fallowedRoles\x12,\n" +
+	"\x12allowed_tenant_ids\x18\x03 \x03(\tR\x10allowedTenantIds\"\xa2\x01\n" +
+	"\x19AuthAdminInviteIssueInput\x12\x14\n" +
+	"\x05email\x18\x01 \x01(\tR\x05email\x12\x12\n" +
+	"\x04role\x18\x02 \x01(\tR\x04role\x12\x1d\n" +
+	"\n" +
+	"tenant_ids\x18\x03 \x03(\tR\ttenantIds\x12\x1d\n" +
+	"\n" +
+	"invited_by\x18\x04 \x01(\tR\tinvitedBy\x12\x1d\n" +
+	"\n" +
+	"expires_at\x18\x05 \x01(\tR\texpiresAt\"\xd5\x01\n" +
+	"\x1aAuthAdminInviteIssueOutput\x12\x1a\n" +
+	"\baccepted\x18\x01 \x01(\bR\baccepted\x12\x14\n" +
+	"\x05email\x18\x02 \x01(\tR\x05email\x12\x12\n" +
+	"\x04role\x18\x03 \x01(\tR\x04role\x12\x1d\n" +
+	"\n" +
+	"tenant_ids\x18\x04 \x03(\tR\ttenantIds\x12\x1d\n" +
+	"\n" +
+	"invited_by\x18\x05 \x01(\tR\tinvitedBy\x12\x1d\n" +
+	"\n" +
+	"expires_at\x18\x06 \x01(\tR\texpiresAt\x12\x14\n" +
+	"\x05error\x18d \x01(\tR\x05error\"\xd2\x01\n" +
+	"\x1aAuthAdminInviteRedeemInput\x12\x14\n" +
+	"\x05email\x18\x01 \x01(\tR\x05email\x12\x14\n" +
+	"\x05token\x18\x02 \x01(\tR\x05token\x12\x1d\n" +
+	"\n" +
+	"token_hash\x18\x03 \x01(\tR\ttokenHash\x12\x1d\n" +
+	"\n" +
+	"expires_at\x18\x04 \x01(\tR\texpiresAt\x12\x17\n" +
+	"\aused_at\x18\x05 \x01(\tR\x06usedAt\x12\x12\n" +
+	"\x04role\x18\x06 \x01(\tR\x04role\x12\x1d\n" +
+	"\n" +
+	"tenant_ids\x18\a \x03(\tR\ttenantIds\"\xb0\x01\n" +
+	"\x1bAuthAdminInviteRedeemOutput\x12\x1a\n" +
+	"\baccepted\x18\x01 \x01(\bR\baccepted\x12\x14\n" +
+	"\x05email\x18\x02 \x01(\tR\x05email\x12\x12\n" +
+	"\x04role\x18\x03 \x01(\tR\x04role\x12\x1d\n" +
+	"\n" +
+	"tenant_ids\x18\x04 \x03(\tR\ttenantIds\x12\x16\n" +
+	"\x06reason\x18\x05 \x01(\tR\x06reason\x12\x14\n" +
+	"\x05error\x18d \x01(\tR\x05error\"n\n" +
+	"\x1aAuthAdminInviteRevokeInput\x12\x1b\n" +
+	"\tinvite_id\x18\x01 \x01(\tR\binviteId\x12\x14\n" +
+	"\x05email\x18\x02 \x01(\tR\x05email\x12\x1d\n" +
+	"\n" +
+	"revoked_by\x18\x03 \x01(\tR\trevokedBy\"\xb9\x01\n" +
+	"\x1bAuthAdminInviteRevokeOutput\x12\x1a\n" +
+	"\baccepted\x18\x01 \x01(\bR\baccepted\x12\x1b\n" +
+	"\tinvite_id\x18\x02 \x01(\tR\binviteId\x12\x14\n" +
+	"\x05email\x18\x03 \x01(\tR\x05email\x12\x1d\n" +
+	"\n" +
+	"revoked_by\x18\x04 \x01(\tR\trevokedBy\x12\x16\n" +
+	"\x06reason\x18\x05 \x01(\tR\x06reason\x12\x14\n" +
+	"\x05error\x18d \x01(\tR\x05error\"\xba\x05\n" +
 	"\x13OAuthProviderConfig\x12\x1a\n" +
 	"\bprovider\x18\x01 \x01(\tR\bprovider\x123\n" +
 	"\x16google_oauth_client_id\x18\x02 \x01(\tR\x13googleOauthClientId\x12;\n" +
@@ -7283,130 +8108,144 @@ func file_internal_contracts_auth_proto_rawDescGZIP() []byte {
 	return file_internal_contracts_auth_proto_rawDescData
 }
 
-var file_internal_contracts_auth_proto_msgTypes = make([]protoimpl.MessageInfo, 82)
+var file_internal_contracts_auth_proto_msgTypes = make([]protoimpl.MessageInfo, 92)
 var file_internal_contracts_auth_proto_goTypes = []any{
-	(*CredentialModuleConfig)(nil),          // 0: workflow.plugins.auth.v1.CredentialModuleConfig
-	(*PasskeyStepConfig)(nil),               // 1: workflow.plugins.auth.v1.PasskeyStepConfig
-	(*PasskeyBeginRegisterInput)(nil),       // 2: workflow.plugins.auth.v1.PasskeyBeginRegisterInput
-	(*PasskeyBeginRegisterOutput)(nil),      // 3: workflow.plugins.auth.v1.PasskeyBeginRegisterOutput
-	(*PasskeyFinishRegisterInput)(nil),      // 4: workflow.plugins.auth.v1.PasskeyFinishRegisterInput
-	(*PasskeyFinishRegisterOutput)(nil),     // 5: workflow.plugins.auth.v1.PasskeyFinishRegisterOutput
-	(*PasskeyBeginLoginInput)(nil),          // 6: workflow.plugins.auth.v1.PasskeyBeginLoginInput
-	(*PasskeyBeginLoginOutput)(nil),         // 7: workflow.plugins.auth.v1.PasskeyBeginLoginOutput
-	(*PasskeyFinishLoginInput)(nil),         // 8: workflow.plugins.auth.v1.PasskeyFinishLoginInput
-	(*PasskeyFinishLoginOutput)(nil),        // 9: workflow.plugins.auth.v1.PasskeyFinishLoginOutput
-	(*EmptyConfig)(nil),                     // 10: workflow.plugins.auth.v1.EmptyConfig
-	(*TOTPGenerateSecretInput)(nil),         // 11: workflow.plugins.auth.v1.TOTPGenerateSecretInput
-	(*TOTPGenerateSecretOutput)(nil),        // 12: workflow.plugins.auth.v1.TOTPGenerateSecretOutput
-	(*TOTPVerifyInput)(nil),                 // 13: workflow.plugins.auth.v1.TOTPVerifyInput
-	(*TOTPVerifyOutput)(nil),                // 14: workflow.plugins.auth.v1.TOTPVerifyOutput
-	(*TOTPRecoveryCodesInput)(nil),          // 15: workflow.plugins.auth.v1.TOTPRecoveryCodesInput
-	(*TOTPRecoveryCodesOutput)(nil),         // 16: workflow.plugins.auth.v1.TOTPRecoveryCodesOutput
-	(*MagicLinkGenerateInput)(nil),          // 17: workflow.plugins.auth.v1.MagicLinkGenerateInput
-	(*MagicLinkGenerateOutput)(nil),         // 18: workflow.plugins.auth.v1.MagicLinkGenerateOutput
-	(*MagicLinkVerifyInput)(nil),            // 19: workflow.plugins.auth.v1.MagicLinkVerifyInput
-	(*MagicLinkVerifyOutput)(nil),           // 20: workflow.plugins.auth.v1.MagicLinkVerifyOutput
-	(*MagicLinkSendConfig)(nil),             // 21: workflow.plugins.auth.v1.MagicLinkSendConfig
-	(*MagicLinkSendInput)(nil),              // 22: workflow.plugins.auth.v1.MagicLinkSendInput
-	(*MagicLinkSendOutput)(nil),             // 23: workflow.plugins.auth.v1.MagicLinkSendOutput
-	(*PasswordHashInput)(nil),               // 24: workflow.plugins.auth.v1.PasswordHashInput
-	(*PasswordHashOutput)(nil),              // 25: workflow.plugins.auth.v1.PasswordHashOutput
-	(*PasswordVerifyInput)(nil),             // 26: workflow.plugins.auth.v1.PasswordVerifyInput
-	(*PasswordVerifyOutput)(nil),            // 27: workflow.plugins.auth.v1.PasswordVerifyOutput
-	(*ChallengeGenerateInput)(nil),          // 28: workflow.plugins.auth.v1.ChallengeGenerateInput
-	(*ChallengeGenerateOutput)(nil),         // 29: workflow.plugins.auth.v1.ChallengeGenerateOutput
-	(*ChallengeVerifyInput)(nil),            // 30: workflow.plugins.auth.v1.ChallengeVerifyInput
-	(*ChallengeVerifyOutput)(nil),           // 31: workflow.plugins.auth.v1.ChallengeVerifyOutput
-	(*NormalizePhoneInput)(nil),             // 32: workflow.plugins.auth.v1.NormalizePhoneInput
-	(*NormalizePhoneOutput)(nil),            // 33: workflow.plugins.auth.v1.NormalizePhoneOutput
-	(*AuthMethodsPolicyConfig)(nil),         // 34: workflow.plugins.auth.v1.AuthMethodsPolicyConfig
-	(*AuthMethodsPolicyInput)(nil),          // 35: workflow.plugins.auth.v1.AuthMethodsPolicyInput
-	(*AuthMethodsPolicyOutput)(nil),         // 36: workflow.plugins.auth.v1.AuthMethodsPolicyOutput
-	(*AuthPolicyGateConfig)(nil),            // 37: workflow.plugins.auth.v1.AuthPolicyGateConfig
-	(*AuthChallengeVerifyConfig)(nil),       // 38: workflow.plugins.auth.v1.AuthChallengeVerifyConfig
-	(*AuthChallengeGenerateConfig)(nil),     // 39: workflow.plugins.auth.v1.AuthChallengeGenerateConfig
-	(*AuthPolicyGateInput)(nil),             // 40: workflow.plugins.auth.v1.AuthPolicyGateInput
-	(*AuthMethodsResponseOutput)(nil),       // 41: workflow.plugins.auth.v1.AuthMethodsResponseOutput
-	(*AuthPolicyAuditOutput)(nil),           // 42: workflow.plugins.auth.v1.AuthPolicyAuditOutput
-	(*AuthAdminConfig)(nil),                 // 43: workflow.plugins.auth.v1.AuthAdminConfig
-	(*AuthAdminDescribeInput)(nil),          // 44: workflow.plugins.auth.v1.AuthAdminDescribeInput
-	(*AuthAdminControlOption)(nil),          // 45: workflow.plugins.auth.v1.AuthAdminControlOption
-	(*AuthAdminControl)(nil),                // 46: workflow.plugins.auth.v1.AuthAdminControl
-	(*AuthAdminControlGroup)(nil),           // 47: workflow.plugins.auth.v1.AuthAdminControlGroup
-	(*AuthAdminDiagnostic)(nil),             // 48: workflow.plugins.auth.v1.AuthAdminDiagnostic
-	(*AuthAdminContributionConfig)(nil),     // 49: workflow.plugins.auth.v1.AuthAdminContributionConfig
-	(*AuthAdminContributionInput)(nil),      // 50: workflow.plugins.auth.v1.AuthAdminContributionInput
-	(*AuthAdminContributionPermission)(nil), // 51: workflow.plugins.auth.v1.AuthAdminContributionPermission
-	(*AuthAdminContribution)(nil),           // 52: workflow.plugins.auth.v1.AuthAdminContribution
-	(*AuthAdminContributionOutput)(nil),     // 53: workflow.plugins.auth.v1.AuthAdminContributionOutput
-	(*AuthAdminDescribeOutput)(nil),         // 54: workflow.plugins.auth.v1.AuthAdminDescribeOutput
-	(*AuthAdminValidateConfig)(nil),         // 55: workflow.plugins.auth.v1.AuthAdminValidateConfig
-	(*AuthAdminValidateInput)(nil),          // 56: workflow.plugins.auth.v1.AuthAdminValidateInput
-	(*AuthAdminValidateOutput)(nil),         // 57: workflow.plugins.auth.v1.AuthAdminValidateOutput
-	(*OAuthProviderConfig)(nil),             // 58: workflow.plugins.auth.v1.OAuthProviderConfig
-	(*OAuthProviderInput)(nil),              // 59: workflow.plugins.auth.v1.OAuthProviderInput
-	(*OAuthProviderConfigOutput)(nil),       // 60: workflow.plugins.auth.v1.OAuthProviderConfigOutput
-	(*OAuthStartOutput)(nil),                // 61: workflow.plugins.auth.v1.OAuthStartOutput
-	(*OAuthExchangeOutput)(nil),             // 62: workflow.plugins.auth.v1.OAuthExchangeOutput
-	(*OAuthUserinfoOutput)(nil),             // 63: workflow.plugins.auth.v1.OAuthUserinfoOutput
-	(*AuthProviderConfigOption)(nil),        // 64: workflow.plugins.auth.v1.AuthProviderConfigOption
-	(*AuthProviderConfigField)(nil),         // 65: workflow.plugins.auth.v1.AuthProviderConfigField
-	(*AuthProviderCapability)(nil),          // 66: workflow.plugins.auth.v1.AuthProviderCapability
-	(*AuthProviderDescriptor)(nil),          // 67: workflow.plugins.auth.v1.AuthProviderDescriptor
-	(*AuthProviderCatalogConfig)(nil),       // 68: workflow.plugins.auth.v1.AuthProviderCatalogConfig
-	(*AuthProviderCatalogInput)(nil),        // 69: workflow.plugins.auth.v1.AuthProviderCatalogInput
-	(*AuthProviderCatalogOutput)(nil),       // 70: workflow.plugins.auth.v1.AuthProviderCatalogOutput
-	(*CredentialListInput)(nil),             // 71: workflow.plugins.auth.v1.CredentialListInput
-	(*CredentialSummary)(nil),               // 72: workflow.plugins.auth.v1.CredentialSummary
-	(*CredentialListOutput)(nil),            // 73: workflow.plugins.auth.v1.CredentialListOutput
-	(*CredentialRevokeInput)(nil),           // 74: workflow.plugins.auth.v1.CredentialRevokeInput
-	(*CredentialRevokeOutput)(nil),          // 75: workflow.plugins.auth.v1.CredentialRevokeOutput
-	(*BootstrapRedeemConfig)(nil),           // 76: workflow.plugins.auth.v1.BootstrapRedeemConfig
-	(*BootstrapRedeemInput)(nil),            // 77: workflow.plugins.auth.v1.BootstrapRedeemInput
-	(*BootstrapRedeemOutput)(nil),           // 78: workflow.plugins.auth.v1.BootstrapRedeemOutput
-	(*JWTIssueConfig)(nil),                  // 79: workflow.plugins.auth.v1.JWTIssueConfig
-	(*JWTIssueInput)(nil),                   // 80: workflow.plugins.auth.v1.JWTIssueInput
-	(*JWTIssueOutput)(nil),                  // 81: workflow.plugins.auth.v1.JWTIssueOutput
-	(*structpb.Struct)(nil),                 // 82: google.protobuf.Struct
+	(*CredentialModuleConfig)(nil),              // 0: workflow.plugins.auth.v1.CredentialModuleConfig
+	(*PasskeyStepConfig)(nil),                   // 1: workflow.plugins.auth.v1.PasskeyStepConfig
+	(*PasskeyBeginRegisterInput)(nil),           // 2: workflow.plugins.auth.v1.PasskeyBeginRegisterInput
+	(*PasskeyBeginRegisterOutput)(nil),          // 3: workflow.plugins.auth.v1.PasskeyBeginRegisterOutput
+	(*PasskeyFinishRegisterInput)(nil),          // 4: workflow.plugins.auth.v1.PasskeyFinishRegisterInput
+	(*PasskeyFinishRegisterOutput)(nil),         // 5: workflow.plugins.auth.v1.PasskeyFinishRegisterOutput
+	(*PasskeyBeginLoginInput)(nil),              // 6: workflow.plugins.auth.v1.PasskeyBeginLoginInput
+	(*PasskeyBeginLoginOutput)(nil),             // 7: workflow.plugins.auth.v1.PasskeyBeginLoginOutput
+	(*PasskeyFinishLoginInput)(nil),             // 8: workflow.plugins.auth.v1.PasskeyFinishLoginInput
+	(*PasskeyFinishLoginOutput)(nil),            // 9: workflow.plugins.auth.v1.PasskeyFinishLoginOutput
+	(*EmptyConfig)(nil),                         // 10: workflow.plugins.auth.v1.EmptyConfig
+	(*TOTPGenerateSecretInput)(nil),             // 11: workflow.plugins.auth.v1.TOTPGenerateSecretInput
+	(*TOTPGenerateSecretOutput)(nil),            // 12: workflow.plugins.auth.v1.TOTPGenerateSecretOutput
+	(*TOTPVerifyInput)(nil),                     // 13: workflow.plugins.auth.v1.TOTPVerifyInput
+	(*TOTPVerifyOutput)(nil),                    // 14: workflow.plugins.auth.v1.TOTPVerifyOutput
+	(*TOTPRecoveryCodesInput)(nil),              // 15: workflow.plugins.auth.v1.TOTPRecoveryCodesInput
+	(*TOTPRecoveryCodesOutput)(nil),             // 16: workflow.plugins.auth.v1.TOTPRecoveryCodesOutput
+	(*MagicLinkGenerateInput)(nil),              // 17: workflow.plugins.auth.v1.MagicLinkGenerateInput
+	(*MagicLinkGenerateOutput)(nil),             // 18: workflow.plugins.auth.v1.MagicLinkGenerateOutput
+	(*MagicLinkVerifyInput)(nil),                // 19: workflow.plugins.auth.v1.MagicLinkVerifyInput
+	(*MagicLinkVerifyOutput)(nil),               // 20: workflow.plugins.auth.v1.MagicLinkVerifyOutput
+	(*MagicLinkSendConfig)(nil),                 // 21: workflow.plugins.auth.v1.MagicLinkSendConfig
+	(*MagicLinkSendInput)(nil),                  // 22: workflow.plugins.auth.v1.MagicLinkSendInput
+	(*MagicLinkSendOutput)(nil),                 // 23: workflow.plugins.auth.v1.MagicLinkSendOutput
+	(*PasswordHashInput)(nil),                   // 24: workflow.plugins.auth.v1.PasswordHashInput
+	(*PasswordHashOutput)(nil),                  // 25: workflow.plugins.auth.v1.PasswordHashOutput
+	(*PasswordVerifyInput)(nil),                 // 26: workflow.plugins.auth.v1.PasswordVerifyInput
+	(*PasswordVerifyOutput)(nil),                // 27: workflow.plugins.auth.v1.PasswordVerifyOutput
+	(*ChallengeGenerateInput)(nil),              // 28: workflow.plugins.auth.v1.ChallengeGenerateInput
+	(*ChallengeGenerateOutput)(nil),             // 29: workflow.plugins.auth.v1.ChallengeGenerateOutput
+	(*ChallengeVerifyInput)(nil),                // 30: workflow.plugins.auth.v1.ChallengeVerifyInput
+	(*ChallengeVerifyOutput)(nil),               // 31: workflow.plugins.auth.v1.ChallengeVerifyOutput
+	(*NormalizePhoneInput)(nil),                 // 32: workflow.plugins.auth.v1.NormalizePhoneInput
+	(*NormalizePhoneOutput)(nil),                // 33: workflow.plugins.auth.v1.NormalizePhoneOutput
+	(*AuthMethodsPolicyConfig)(nil),             // 34: workflow.plugins.auth.v1.AuthMethodsPolicyConfig
+	(*AuthMethodsPolicyInput)(nil),              // 35: workflow.plugins.auth.v1.AuthMethodsPolicyInput
+	(*AuthMethodsPolicyOutput)(nil),             // 36: workflow.plugins.auth.v1.AuthMethodsPolicyOutput
+	(*AuthPolicyGateConfig)(nil),                // 37: workflow.plugins.auth.v1.AuthPolicyGateConfig
+	(*AuthChallengeVerifyConfig)(nil),           // 38: workflow.plugins.auth.v1.AuthChallengeVerifyConfig
+	(*AuthChallengeGenerateConfig)(nil),         // 39: workflow.plugins.auth.v1.AuthChallengeGenerateConfig
+	(*AuthPolicyGateInput)(nil),                 // 40: workflow.plugins.auth.v1.AuthPolicyGateInput
+	(*AuthMethodsResponseOutput)(nil),           // 41: workflow.plugins.auth.v1.AuthMethodsResponseOutput
+	(*AuthPolicyAuditOutput)(nil),               // 42: workflow.plugins.auth.v1.AuthPolicyAuditOutput
+	(*AuthAdminConfig)(nil),                     // 43: workflow.plugins.auth.v1.AuthAdminConfig
+	(*AuthAdminDescribeInput)(nil),              // 44: workflow.plugins.auth.v1.AuthAdminDescribeInput
+	(*AuthAdminControlOption)(nil),              // 45: workflow.plugins.auth.v1.AuthAdminControlOption
+	(*AuthAdminControl)(nil),                    // 46: workflow.plugins.auth.v1.AuthAdminControl
+	(*AuthAdminControlGroup)(nil),               // 47: workflow.plugins.auth.v1.AuthAdminControlGroup
+	(*AuthAdminDiagnostic)(nil),                 // 48: workflow.plugins.auth.v1.AuthAdminDiagnostic
+	(*AuthAdminContributionConfig)(nil),         // 49: workflow.plugins.auth.v1.AuthAdminContributionConfig
+	(*AuthAdminContributionInput)(nil),          // 50: workflow.plugins.auth.v1.AuthAdminContributionInput
+	(*AuthAdminContributionPermission)(nil),     // 51: workflow.plugins.auth.v1.AuthAdminContributionPermission
+	(*AuthAdminContribution)(nil),               // 52: workflow.plugins.auth.v1.AuthAdminContribution
+	(*AuthAdminContributionOutput)(nil),         // 53: workflow.plugins.auth.v1.AuthAdminContributionOutput
+	(*AuthAdminIdentityContributionConfig)(nil), // 54: workflow.plugins.auth.v1.AuthAdminIdentityContributionConfig
+	(*AuthAdminIdentityDescribeInput)(nil),      // 55: workflow.plugins.auth.v1.AuthAdminIdentityDescribeInput
+	(*AuthAdminIdentityDescribeOutput)(nil),     // 56: workflow.plugins.auth.v1.AuthAdminIdentityDescribeOutput
+	(*AuthAdminDescribeOutput)(nil),             // 57: workflow.plugins.auth.v1.AuthAdminDescribeOutput
+	(*AuthAdminValidateConfig)(nil),             // 58: workflow.plugins.auth.v1.AuthAdminValidateConfig
+	(*AuthAdminValidateInput)(nil),              // 59: workflow.plugins.auth.v1.AuthAdminValidateInput
+	(*AuthAdminValidateOutput)(nil),             // 60: workflow.plugins.auth.v1.AuthAdminValidateOutput
+	(*AuthAdminInviteConfig)(nil),               // 61: workflow.plugins.auth.v1.AuthAdminInviteConfig
+	(*AuthAdminInviteIssueInput)(nil),           // 62: workflow.plugins.auth.v1.AuthAdminInviteIssueInput
+	(*AuthAdminInviteIssueOutput)(nil),          // 63: workflow.plugins.auth.v1.AuthAdminInviteIssueOutput
+	(*AuthAdminInviteRedeemInput)(nil),          // 64: workflow.plugins.auth.v1.AuthAdminInviteRedeemInput
+	(*AuthAdminInviteRedeemOutput)(nil),         // 65: workflow.plugins.auth.v1.AuthAdminInviteRedeemOutput
+	(*AuthAdminInviteRevokeInput)(nil),          // 66: workflow.plugins.auth.v1.AuthAdminInviteRevokeInput
+	(*AuthAdminInviteRevokeOutput)(nil),         // 67: workflow.plugins.auth.v1.AuthAdminInviteRevokeOutput
+	(*OAuthProviderConfig)(nil),                 // 68: workflow.plugins.auth.v1.OAuthProviderConfig
+	(*OAuthProviderInput)(nil),                  // 69: workflow.plugins.auth.v1.OAuthProviderInput
+	(*OAuthProviderConfigOutput)(nil),           // 70: workflow.plugins.auth.v1.OAuthProviderConfigOutput
+	(*OAuthStartOutput)(nil),                    // 71: workflow.plugins.auth.v1.OAuthStartOutput
+	(*OAuthExchangeOutput)(nil),                 // 72: workflow.plugins.auth.v1.OAuthExchangeOutput
+	(*OAuthUserinfoOutput)(nil),                 // 73: workflow.plugins.auth.v1.OAuthUserinfoOutput
+	(*AuthProviderConfigOption)(nil),            // 74: workflow.plugins.auth.v1.AuthProviderConfigOption
+	(*AuthProviderConfigField)(nil),             // 75: workflow.plugins.auth.v1.AuthProviderConfigField
+	(*AuthProviderCapability)(nil),              // 76: workflow.plugins.auth.v1.AuthProviderCapability
+	(*AuthProviderDescriptor)(nil),              // 77: workflow.plugins.auth.v1.AuthProviderDescriptor
+	(*AuthProviderCatalogConfig)(nil),           // 78: workflow.plugins.auth.v1.AuthProviderCatalogConfig
+	(*AuthProviderCatalogInput)(nil),            // 79: workflow.plugins.auth.v1.AuthProviderCatalogInput
+	(*AuthProviderCatalogOutput)(nil),           // 80: workflow.plugins.auth.v1.AuthProviderCatalogOutput
+	(*CredentialListInput)(nil),                 // 81: workflow.plugins.auth.v1.CredentialListInput
+	(*CredentialSummary)(nil),                   // 82: workflow.plugins.auth.v1.CredentialSummary
+	(*CredentialListOutput)(nil),                // 83: workflow.plugins.auth.v1.CredentialListOutput
+	(*CredentialRevokeInput)(nil),               // 84: workflow.plugins.auth.v1.CredentialRevokeInput
+	(*CredentialRevokeOutput)(nil),              // 85: workflow.plugins.auth.v1.CredentialRevokeOutput
+	(*BootstrapRedeemConfig)(nil),               // 86: workflow.plugins.auth.v1.BootstrapRedeemConfig
+	(*BootstrapRedeemInput)(nil),                // 87: workflow.plugins.auth.v1.BootstrapRedeemInput
+	(*BootstrapRedeemOutput)(nil),               // 88: workflow.plugins.auth.v1.BootstrapRedeemOutput
+	(*JWTIssueConfig)(nil),                      // 89: workflow.plugins.auth.v1.JWTIssueConfig
+	(*JWTIssueInput)(nil),                       // 90: workflow.plugins.auth.v1.JWTIssueInput
+	(*JWTIssueOutput)(nil),                      // 91: workflow.plugins.auth.v1.JWTIssueOutput
+	(*structpb.Struct)(nil),                     // 92: google.protobuf.Struct
 }
 var file_internal_contracts_auth_proto_depIdxs = []int32{
-	67, // 0: workflow.plugins.auth.v1.AuthAdminConfig.providers:type_name -> workflow.plugins.auth.v1.AuthProviderDescriptor
+	77, // 0: workflow.plugins.auth.v1.AuthAdminConfig.providers:type_name -> workflow.plugins.auth.v1.AuthProviderDescriptor
 	43, // 1: workflow.plugins.auth.v1.AuthAdminDescribeInput.config:type_name -> workflow.plugins.auth.v1.AuthAdminConfig
-	67, // 2: workflow.plugins.auth.v1.AuthAdminDescribeInput.providers:type_name -> workflow.plugins.auth.v1.AuthProviderDescriptor
+	77, // 2: workflow.plugins.auth.v1.AuthAdminDescribeInput.providers:type_name -> workflow.plugins.auth.v1.AuthProviderDescriptor
 	45, // 3: workflow.plugins.auth.v1.AuthAdminControl.options:type_name -> workflow.plugins.auth.v1.AuthAdminControlOption
 	46, // 4: workflow.plugins.auth.v1.AuthAdminControlGroup.controls:type_name -> workflow.plugins.auth.v1.AuthAdminControl
 	51, // 5: workflow.plugins.auth.v1.AuthAdminContributionConfig.permissions:type_name -> workflow.plugins.auth.v1.AuthAdminContributionPermission
-	82, // 6: workflow.plugins.auth.v1.AuthAdminContributionConfig.metadata:type_name -> google.protobuf.Struct
+	92, // 6: workflow.plugins.auth.v1.AuthAdminContributionConfig.metadata:type_name -> google.protobuf.Struct
 	52, // 7: workflow.plugins.auth.v1.AuthAdminContributionInput.contribution:type_name -> workflow.plugins.auth.v1.AuthAdminContribution
 	51, // 8: workflow.plugins.auth.v1.AuthAdminContribution.permissions:type_name -> workflow.plugins.auth.v1.AuthAdminContributionPermission
-	82, // 9: workflow.plugins.auth.v1.AuthAdminContribution.metadata:type_name -> google.protobuf.Struct
+	92, // 9: workflow.plugins.auth.v1.AuthAdminContribution.metadata:type_name -> google.protobuf.Struct
 	52, // 10: workflow.plugins.auth.v1.AuthAdminContributionOutput.contribution:type_name -> workflow.plugins.auth.v1.AuthAdminContribution
-	47, // 11: workflow.plugins.auth.v1.AuthAdminDescribeOutput.groups:type_name -> workflow.plugins.auth.v1.AuthAdminControlGroup
-	82, // 12: workflow.plugins.auth.v1.AuthAdminDescribeOutput.effective_config:type_name -> google.protobuf.Struct
-	82, // 13: workflow.plugins.auth.v1.AuthAdminDescribeOutput.methods_policy:type_name -> google.protobuf.Struct
-	48, // 14: workflow.plugins.auth.v1.AuthAdminDescribeOutput.warnings:type_name -> workflow.plugins.auth.v1.AuthAdminDiagnostic
-	82, // 15: workflow.plugins.auth.v1.AuthAdminValidateInput.desired_config:type_name -> google.protobuf.Struct
-	67, // 16: workflow.plugins.auth.v1.AuthAdminValidateInput.providers:type_name -> workflow.plugins.auth.v1.AuthProviderDescriptor
-	82, // 17: workflow.plugins.auth.v1.AuthAdminValidateOutput.accepted_config:type_name -> google.protobuf.Struct
-	82, // 18: workflow.plugins.auth.v1.AuthAdminValidateOutput.methods_policy:type_name -> google.protobuf.Struct
-	48, // 19: workflow.plugins.auth.v1.AuthAdminValidateOutput.errors:type_name -> workflow.plugins.auth.v1.AuthAdminDiagnostic
-	48, // 20: workflow.plugins.auth.v1.AuthAdminValidateOutput.warnings:type_name -> workflow.plugins.auth.v1.AuthAdminDiagnostic
-	82, // 21: workflow.plugins.auth.v1.OAuthExchangeOutput.raw_tokens:type_name -> google.protobuf.Struct
-	82, // 22: workflow.plugins.auth.v1.OAuthUserinfoOutput.raw_claims:type_name -> google.protobuf.Struct
-	64, // 23: workflow.plugins.auth.v1.AuthProviderConfigField.options:type_name -> workflow.plugins.auth.v1.AuthProviderConfigOption
-	65, // 24: workflow.plugins.auth.v1.AuthProviderCapability.config_fields:type_name -> workflow.plugins.auth.v1.AuthProviderConfigField
-	66, // 25: workflow.plugins.auth.v1.AuthProviderDescriptor.capabilities:type_name -> workflow.plugins.auth.v1.AuthProviderCapability
-	67, // 26: workflow.plugins.auth.v1.AuthProviderCatalogConfig.providers:type_name -> workflow.plugins.auth.v1.AuthProviderDescriptor
-	67, // 27: workflow.plugins.auth.v1.AuthProviderCatalogInput.providers:type_name -> workflow.plugins.auth.v1.AuthProviderDescriptor
-	67, // 28: workflow.plugins.auth.v1.AuthProviderCatalogOutput.providers:type_name -> workflow.plugins.auth.v1.AuthProviderDescriptor
-	48, // 29: workflow.plugins.auth.v1.AuthProviderCatalogOutput.warnings:type_name -> workflow.plugins.auth.v1.AuthAdminDiagnostic
-	72, // 30: workflow.plugins.auth.v1.CredentialListOutput.credentials:type_name -> workflow.plugins.auth.v1.CredentialSummary
-	82, // 31: workflow.plugins.auth.v1.JWTIssueInput.claims:type_name -> google.protobuf.Struct
-	32, // [32:32] is the sub-list for method output_type
-	32, // [32:32] is the sub-list for method input_type
-	32, // [32:32] is the sub-list for extension type_name
-	32, // [32:32] is the sub-list for extension extendee
-	0,  // [0:32] is the sub-list for field type_name
+	51, // 11: workflow.plugins.auth.v1.AuthAdminIdentityContributionConfig.permissions:type_name -> workflow.plugins.auth.v1.AuthAdminContributionPermission
+	92, // 12: workflow.plugins.auth.v1.AuthAdminIdentityContributionConfig.metadata:type_name -> google.protobuf.Struct
+	52, // 13: workflow.plugins.auth.v1.AuthAdminIdentityDescribeInput.contribution:type_name -> workflow.plugins.auth.v1.AuthAdminContribution
+	52, // 14: workflow.plugins.auth.v1.AuthAdminIdentityDescribeOutput.contribution:type_name -> workflow.plugins.auth.v1.AuthAdminContribution
+	47, // 15: workflow.plugins.auth.v1.AuthAdminDescribeOutput.groups:type_name -> workflow.plugins.auth.v1.AuthAdminControlGroup
+	92, // 16: workflow.plugins.auth.v1.AuthAdminDescribeOutput.effective_config:type_name -> google.protobuf.Struct
+	92, // 17: workflow.plugins.auth.v1.AuthAdminDescribeOutput.methods_policy:type_name -> google.protobuf.Struct
+	48, // 18: workflow.plugins.auth.v1.AuthAdminDescribeOutput.warnings:type_name -> workflow.plugins.auth.v1.AuthAdminDiagnostic
+	92, // 19: workflow.plugins.auth.v1.AuthAdminValidateInput.desired_config:type_name -> google.protobuf.Struct
+	77, // 20: workflow.plugins.auth.v1.AuthAdminValidateInput.providers:type_name -> workflow.plugins.auth.v1.AuthProviderDescriptor
+	92, // 21: workflow.plugins.auth.v1.AuthAdminValidateOutput.accepted_config:type_name -> google.protobuf.Struct
+	92, // 22: workflow.plugins.auth.v1.AuthAdminValidateOutput.methods_policy:type_name -> google.protobuf.Struct
+	48, // 23: workflow.plugins.auth.v1.AuthAdminValidateOutput.errors:type_name -> workflow.plugins.auth.v1.AuthAdminDiagnostic
+	48, // 24: workflow.plugins.auth.v1.AuthAdminValidateOutput.warnings:type_name -> workflow.plugins.auth.v1.AuthAdminDiagnostic
+	92, // 25: workflow.plugins.auth.v1.OAuthExchangeOutput.raw_tokens:type_name -> google.protobuf.Struct
+	92, // 26: workflow.plugins.auth.v1.OAuthUserinfoOutput.raw_claims:type_name -> google.protobuf.Struct
+	74, // 27: workflow.plugins.auth.v1.AuthProviderConfigField.options:type_name -> workflow.plugins.auth.v1.AuthProviderConfigOption
+	75, // 28: workflow.plugins.auth.v1.AuthProviderCapability.config_fields:type_name -> workflow.plugins.auth.v1.AuthProviderConfigField
+	76, // 29: workflow.plugins.auth.v1.AuthProviderDescriptor.capabilities:type_name -> workflow.plugins.auth.v1.AuthProviderCapability
+	77, // 30: workflow.plugins.auth.v1.AuthProviderCatalogConfig.providers:type_name -> workflow.plugins.auth.v1.AuthProviderDescriptor
+	77, // 31: workflow.plugins.auth.v1.AuthProviderCatalogInput.providers:type_name -> workflow.plugins.auth.v1.AuthProviderDescriptor
+	77, // 32: workflow.plugins.auth.v1.AuthProviderCatalogOutput.providers:type_name -> workflow.plugins.auth.v1.AuthProviderDescriptor
+	48, // 33: workflow.plugins.auth.v1.AuthProviderCatalogOutput.warnings:type_name -> workflow.plugins.auth.v1.AuthAdminDiagnostic
+	82, // 34: workflow.plugins.auth.v1.CredentialListOutput.credentials:type_name -> workflow.plugins.auth.v1.CredentialSummary
+	92, // 35: workflow.plugins.auth.v1.JWTIssueInput.claims:type_name -> google.protobuf.Struct
+	36, // [36:36] is the sub-list for method output_type
+	36, // [36:36] is the sub-list for method input_type
+	36, // [36:36] is the sub-list for extension type_name
+	36, // [36:36] is the sub-list for extension extendee
+	0,  // [0:36] is the sub-list for field type_name
 }
 
 func init() { file_internal_contracts_auth_proto_init() }
@@ -7419,18 +8258,18 @@ func file_internal_contracts_auth_proto_init() {
 	file_internal_contracts_auth_proto_msgTypes[34].OneofWrappers = []any{}
 	file_internal_contracts_auth_proto_msgTypes[35].OneofWrappers = []any{}
 	file_internal_contracts_auth_proto_msgTypes[43].OneofWrappers = []any{}
-	file_internal_contracts_auth_proto_msgTypes[55].OneofWrappers = []any{}
-	file_internal_contracts_auth_proto_msgTypes[56].OneofWrappers = []any{}
-	file_internal_contracts_auth_proto_msgTypes[57].OneofWrappers = []any{}
 	file_internal_contracts_auth_proto_msgTypes[58].OneofWrappers = []any{}
 	file_internal_contracts_auth_proto_msgTypes[59].OneofWrappers = []any{}
+	file_internal_contracts_auth_proto_msgTypes[60].OneofWrappers = []any{}
+	file_internal_contracts_auth_proto_msgTypes[68].OneofWrappers = []any{}
+	file_internal_contracts_auth_proto_msgTypes[69].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_internal_contracts_auth_proto_rawDesc), len(file_internal_contracts_auth_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   82,
+			NumMessages:   92,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

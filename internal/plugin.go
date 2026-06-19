@@ -38,6 +38,10 @@ var allStepTypes = []string{
 	"step.auth_policy_audit",
 	"step.auth_provider_catalog",
 	"step.auth_admin_contribution_describe",
+	"step.auth_admin_identity_describe",
+	"step.auth_admin_invite_issue",
+	"step.auth_admin_invite_redeem",
+	"step.auth_admin_invite_revoke",
 	"step.auth_admin_config_describe",
 	"step.auth_admin_config_validate",
 	"step.auth_oauth_provider_config",
@@ -148,6 +152,14 @@ func (p *authPlugin) CreateStep(typeName, name string, config map[string]any) (s
 		return newAuthProviderCatalogStep(name, config), nil
 	case "step.auth_admin_contribution_describe":
 		return newAuthAdminContributionDescribeStep(name, config), nil
+	case "step.auth_admin_identity_describe":
+		return newAuthAdminIdentityDescribeStep(name, config), nil
+	case "step.auth_admin_invite_issue":
+		return newAuthAdminInviteIssueStep(name, config), nil
+	case "step.auth_admin_invite_redeem":
+		return newAuthAdminInviteRedeemStep(name, config), nil
+	case "step.auth_admin_invite_revoke":
+		return newAuthAdminInviteRevokeStep(name, config), nil
 	case "step.auth_admin_config_describe":
 		return newAuthAdminConfigDescribeStep(name, config), nil
 	case "step.auth_admin_config_validate":
@@ -255,6 +267,22 @@ func (p *authPlugin) CreateTypedStep(typeName, name string, config *anypb.Any) (
 		return sdk.NewTypedStepFactory(typeName, &contracts.AuthAdminContributionConfig{}, &contracts.AuthAdminContributionInput{}, typedLegacyStep[*contracts.AuthAdminContributionConfig, *contracts.AuthAdminContributionInput, *contracts.AuthAdminContributionOutput](func(name string, config map[string]any) sdk.StepInstance {
 			return newAuthAdminContributionDescribeStep(name, config)
 		}, &contracts.AuthAdminContributionOutput{})).CreateTypedStep(typeName, name, config)
+	case "step.auth_admin_identity_describe":
+		return sdk.NewTypedStepFactory(typeName, &contracts.AuthAdminIdentityContributionConfig{}, &contracts.AuthAdminIdentityDescribeInput{}, typedLegacyStep[*contracts.AuthAdminIdentityContributionConfig, *contracts.AuthAdminIdentityDescribeInput, *contracts.AuthAdminIdentityDescribeOutput](func(name string, config map[string]any) sdk.StepInstance {
+			return newAuthAdminIdentityDescribeStep(name, config)
+		}, &contracts.AuthAdminIdentityDescribeOutput{})).CreateTypedStep(typeName, name, config)
+	case "step.auth_admin_invite_issue":
+		return sdk.NewTypedStepFactory(typeName, &contracts.AuthAdminInviteConfig{}, &contracts.AuthAdminInviteIssueInput{}, typedLegacyStep[*contracts.AuthAdminInviteConfig, *contracts.AuthAdminInviteIssueInput, *contracts.AuthAdminInviteIssueOutput](func(name string, config map[string]any) sdk.StepInstance {
+			return newAuthAdminInviteIssueStep(name, config)
+		}, &contracts.AuthAdminInviteIssueOutput{})).CreateTypedStep(typeName, name, config)
+	case "step.auth_admin_invite_redeem":
+		return sdk.NewTypedStepFactory(typeName, &contracts.AuthAdminInviteConfig{}, &contracts.AuthAdminInviteRedeemInput{}, typedLegacyStep[*contracts.AuthAdminInviteConfig, *contracts.AuthAdminInviteRedeemInput, *contracts.AuthAdminInviteRedeemOutput](func(name string, config map[string]any) sdk.StepInstance {
+			return newAuthAdminInviteRedeemStep(name, config)
+		}, &contracts.AuthAdminInviteRedeemOutput{})).CreateTypedStep(typeName, name, config)
+	case "step.auth_admin_invite_revoke":
+		return sdk.NewTypedStepFactory(typeName, &contracts.AuthAdminInviteConfig{}, &contracts.AuthAdminInviteRevokeInput{}, typedLegacyStep[*contracts.AuthAdminInviteConfig, *contracts.AuthAdminInviteRevokeInput, *contracts.AuthAdminInviteRevokeOutput](func(name string, config map[string]any) sdk.StepInstance {
+			return newAuthAdminInviteRevokeStep(name, config)
+		}, &contracts.AuthAdminInviteRevokeOutput{})).CreateTypedStep(typeName, name, config)
 	case "step.auth_admin_config_describe":
 		return sdk.NewTypedStepFactory(typeName, &contracts.EmptyConfig{}, &contracts.AuthAdminDescribeInput{}, typedAuthAdminConfigDescribe).CreateTypedStep(typeName, name, config)
 	case "step.auth_admin_config_validate":
@@ -330,6 +358,10 @@ var authContractRegistry = &pb.ContractRegistry{
 		stepContract("step.auth_policy_audit", "AuthMethodsPolicyConfig", "AuthMethodsPolicyInput", "AuthPolicyAuditOutput"),
 		stepContract("step.auth_provider_catalog", "AuthProviderCatalogConfig", "AuthProviderCatalogInput", "AuthProviderCatalogOutput"),
 		stepContract("step.auth_admin_contribution_describe", "AuthAdminContributionConfig", "AuthAdminContributionInput", "AuthAdminContributionOutput"),
+		stepContract("step.auth_admin_identity_describe", "AuthAdminIdentityContributionConfig", "AuthAdminIdentityDescribeInput", "AuthAdminIdentityDescribeOutput"),
+		stepContract("step.auth_admin_invite_issue", "AuthAdminInviteConfig", "AuthAdminInviteIssueInput", "AuthAdminInviteIssueOutput"),
+		stepContract("step.auth_admin_invite_redeem", "AuthAdminInviteConfig", "AuthAdminInviteRedeemInput", "AuthAdminInviteRedeemOutput"),
+		stepContract("step.auth_admin_invite_revoke", "AuthAdminInviteConfig", "AuthAdminInviteRevokeInput", "AuthAdminInviteRevokeOutput"),
 		stepContract("step.auth_admin_config_describe", "EmptyConfig", "AuthAdminDescribeInput", "AuthAdminDescribeOutput"),
 		stepContract("step.auth_admin_config_validate", "AuthAdminValidateConfig", "AuthAdminValidateInput", "AuthAdminValidateOutput"),
 		stepContract("step.auth_oauth_provider_config", "OAuthProviderConfig", "OAuthProviderInput", "OAuthProviderConfigOutput"),
