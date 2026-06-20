@@ -121,6 +121,13 @@ SMS code auth requires routes enabled, SMS enabled, `twilio_verify_service_sid`,
 and either `twilio_account_sid` plus `twilio_auth_token`, or
 `twilio_api_key_sid` plus `twilio_api_key_secret`.
 
+The auth plugin does not call Twilio Verify directly. It provides policy,
+normalization, and signed challenge primitives; SMS delivery remains a
+host-owned or provider-plugin side effect. A consuming app should call its SMS
+provider only after `step.auth_methods_policy` and `step.auth_policy_gate`
+indicate SMS code auth is available, then persist and verify the challenge state
+with `step.auth_challenge_generate` and `step.auth_challenge_verify`.
+
 `step.auth_policy_gate` filters a previous policy step before public auth
 conditionals or responses use it. It disables email-code auth unless a concrete
 `signing_secret` is available, filters OAuth providers to supported
