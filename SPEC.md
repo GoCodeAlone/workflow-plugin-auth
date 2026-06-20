@@ -126,17 +126,17 @@ Bootstrap + JWT-issue invariants (design rev 4, ADR-0001/0002):
 - V-B7: `auth_jwt_issue` signs HS256 only when the configured secret is ≥32 chars (matches `auth.jwt.Init` + RFC 8725); else returns an error (no unsigned/weak-secret token).
 - V-B8: `auth_jwt_issue` always sets `sub/iat/exp/iss/jti` itself, overwriting any same-named keys in the caller `claims` map — a caller cannot override the standard claims (anti-injection).
 
-## §T — Tasks (status as of 2026-05-25)
+## §T — Tasks (status as of 2026-06-20)
 
 | Task | Status | Evidence |
 |---|---|---|
 | T-AUTH-1 disable_password_auth knob | ✅ | `internal/disable_password_test.go`, `module_credential.disablePasswordAuth` |
-| T-AUTH-2 Credential model | ⚠️ verify | `step_credential.go` exists; struct shape needs audit |
+| T-AUTH-2 Credential model | ✅ | `internal/step_credential.go` list/revoke primitives sanitize credential output and enforce owner checks |
 | T-AUTH-3 WebAuthn/passkey handlers | ✅ | `step_passkey.go` + test |
 | T-AUTH-4 Google OAuth | ✅ | `step_oauth.go` (Google URLs + scopes) |
 | T-AUTH-5 Facebook OAuth | ❌ | filed as #32 |
-| T-AUTH-6 credential-link + delete-min-1 guard | ⚠️ verify | per V1 + V4 |
-| T-AUTH-7 identity unification (find_or_create) | ⚠️ verify | per V3 |
+| T-AUTH-6 credential-link + delete-min-1 guard | ✅ primitive | credential list/revoke steps exist; consuming app owns persistence and minimum-credential SQL transaction |
+| T-AUTH-7 identity unification (find_or_create) | ✅ primitive | admin identity/invite steps frame profile, credential, invite, and bootstrap surfaces; consuming app owns user/identity persistence |
 | T-AUTH-8 bootstrap-code redeem | ✅ | superseded by T-AUTH-14 (`step.auth_bootstrap_redeem` shipped, #23) |
 | T-AUTH-9 test matrix | ⚠️ partial | 16 test files |
 | T-AUTH-10 SPEC.md backport | ✅ (this doc) | filed as #33 |
@@ -146,6 +146,7 @@ Bootstrap + JWT-issue invariants (design rev 4, ADR-0001/0002):
 | T-AUTH-14 step.auth_bootstrap_redeem (count-gated) | ✅ | `internal/step_bootstrap.go` + `internal/step_bootstrap_test.go` |
 | T-AUTH-15 step.auth_jwt_issue (HS256 mint) | ✅ | `internal/step_jwt_issue.go` + `internal/step_jwt_issue_test.go` |
 | T-AUTH-16 cross-service asymmetric auth (#41) | ✅ by reuse | engine `auth.m2m` (ES256+JWKS) + `sso.oidc` jwksUri verify (workflow-plugin-sso v0.1.8) + provider pattern; demonstrated in workflow-scenarios#102; README "Auth Use Cases & Combinations"; ADR-0003. No bespoke IDP. |
+| T-AUTH-17 production follow-up audit (#54) | ✅ | `docs/plans/2026-06-20-auth-production-followups-audit.md`; Twilio delivery remains provider/host-owned, not a core auth dependency |
 
 ## §X — References
 
