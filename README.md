@@ -169,6 +169,11 @@ config store. Secret values are never echoed in outputs. Production password
 auth, incomplete passkey settings, incomplete OAuth settings, and zero-primary
 method configurations are rejected when applicable.
 
+Go hosts can mount the reusable authentication settings page from
+`adminui.Handler`. The handler renders controls from
+`step.auth_admin_config_describe` and submits validation requests to the
+host-owned `step.auth_admin_config_validate` endpoint.
+
 `step.auth_provider_catalog` merges provider descriptors from auth-provider
 plugins. Descriptors advertise provider categories, capabilities, required
 config fields, selectable options, admin/app scopes, disabled reasons, and
