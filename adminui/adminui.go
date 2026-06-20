@@ -11,8 +11,8 @@ import (
 
 const (
 	defaultAdminBasePath = "/admin/auth/config"
-	defaultDescribePath  = "/api/v1/admin/auth/config"
-	defaultValidatePath  = "/api/v1/admin/auth/config/validate"
+	defaultDescribePath  = "/api/admin/auth/config"
+	defaultValidatePath  = "/api/admin/auth/config/validate"
 )
 
 // Options configures the embedded auth admin configuration UI for a host app.
@@ -173,7 +173,7 @@ function renderControl(control){
     }
   }else{
     input=document.createElement("input");
-    input.type=control.input_type==="toggle"?"checkbox":(control.input_type||"text");
+    input.type=inputType(control.input_type);
   }
   input.name=key;
   input.disabled=Boolean(control.disabled_reason);
@@ -183,6 +183,11 @@ function renderControl(control){
   const help=control.disabled_reason||control.help_text||control.description||"";
   if(help){const small=document.createElement("small");small.textContent=help;label.appendChild(small);}
   return label;
+}
+function inputType(value){
+  if(value==="toggle"){return "checkbox";}
+  if(value==="secret"){return "password";}
+  return value||"text";
 }
 function render(payload){
   form.innerHTML="";

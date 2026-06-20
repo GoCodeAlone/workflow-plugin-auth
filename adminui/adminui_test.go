@@ -25,6 +25,7 @@ func TestConfigHTMLInjectsRuntimeConfig(t *testing.T) {
 		`"validatePath":"/api/v1/admin/auth/config/validate"`,
 		`Authentication Settings`,
 		`Save Settings`,
+		`if(value==="secret"){return "password";}`,
 	} {
 		if !strings.Contains(body, want) {
 			t.Fatalf("config html missing %q: %s", want, body)
@@ -32,6 +33,23 @@ func TestConfigHTMLInjectsRuntimeConfig(t *testing.T) {
 	}
 	if strings.TrimSpace(body) == "/admin/auth/config" {
 		t.Fatal("config html rendered only the route path")
+	}
+}
+
+func TestConfigHTMLDefaultsMatchContributionMetadata(t *testing.T) {
+	html, err := adminui.ConfigHTML(adminui.Options{})
+	if err != nil {
+		t.Fatalf("ConfigHTML: %v", err)
+	}
+	body := string(html)
+	for _, want := range []string{
+		`"adminBasePath":"/admin/auth/config"`,
+		`"describePath":"/api/admin/auth/config"`,
+		`"validatePath":"/api/admin/auth/config/validate"`,
+	} {
+		if !strings.Contains(body, want) {
+			t.Fatalf("default config html missing %q: %s", want, body)
+		}
 	}
 }
 
