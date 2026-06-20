@@ -126,12 +126,12 @@ Bootstrap + JWT-issue invariants (design rev 4, ADR-0001/0002):
 - V-B7: `auth_jwt_issue` signs HS256 only when the configured secret is ≥32 chars (matches `auth.jwt.Init` + RFC 8725); else returns an error (no unsigned/weak-secret token).
 - V-B8: `auth_jwt_issue` always sets `sub/iat/exp/iss/jti` itself, overwriting any same-named keys in the caller `claims` map — a caller cannot override the standard claims (anti-injection).
 
-## §T — Tasks (status as of 2026-05-25)
+## §T — Tasks (status as of 2026-06-20)
 
 | Task | Status | Evidence |
 |---|---|---|
 | T-AUTH-1 disable_password_auth knob | ✅ | `internal/disable_password_test.go`, `module_credential.disablePasswordAuth` |
-| T-AUTH-2 Credential model | ✅ | `step_credential.go` list/revoke primitives sanitize credential output and enforce owner checks |
+| T-AUTH-2 Credential model | ✅ | `internal/step_credential.go` list/revoke primitives sanitize credential output and enforce owner checks |
 | T-AUTH-3 WebAuthn/passkey handlers | ✅ | `step_passkey.go` + test |
 | T-AUTH-4 Google OAuth | ✅ | `step_oauth.go` (Google URLs + scopes) |
 | T-AUTH-5 Facebook OAuth | ❌ | filed as #32 |
