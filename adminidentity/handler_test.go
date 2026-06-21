@@ -107,8 +107,9 @@ func TestCredentialsReflectTOTPEnrollmentState(t *testing.T) {
 		t.Fatalf("status = %d, want 200 body=%s", rec.Code, rec.Body.String())
 	}
 	var payload struct {
-		TOTPEnrolled bool         `json:"totp_enrolled"`
-		Credentials  []Credential `json:"credentials"`
+		TOTPEnrolled bool            `json:"totp_enrolled"`
+		Credentials  []Credential    `json:"credentials"`
+		Methods      map[string]bool `json:"methods"`
 	}
 	if err := json.Unmarshal(rec.Body.Bytes(), &payload); err != nil {
 		t.Fatalf("decode response: %v", err)
@@ -118,6 +119,9 @@ func TestCredentialsReflectTOTPEnrollmentState(t *testing.T) {
 	}
 	if len(payload.Credentials) != 2 {
 		t.Fatalf("credentials len = %d, want 2", len(payload.Credentials))
+	}
+	if !payload.Methods["passkey"] || !payload.Methods["totp"] {
+		t.Fatalf("methods = %#v, want passkey and totp", payload.Methods)
 	}
 }
 

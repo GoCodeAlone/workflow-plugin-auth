@@ -222,6 +222,7 @@ func (h *handler) credentials(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, map[string]any{
 		"credentials":   credentials,
 		"count":         len(credentials),
+		"methods":       map[string]bool{"passkey": true, "totp": true, "google": false},
 		"totp_enrolled": totpEnrolled,
 	})
 }
