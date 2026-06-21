@@ -54,6 +54,9 @@ func TestHandlerServesIdentityPageWithConfiguredRoutes(t *testing.T) {
 		`beginTotp.addEventListener("click"`,
 		`fetch(config.totpBeginPath`,
 		`fetch(config.totpVerifyPath`,
+		`Object.prototype.hasOwnProperty.call(payload,"totp_enrolled")`,
+		`credentials.some`,
+		`String(credential.kind||"").toLowerCase()==="totp"`,
 	} {
 		if !strings.Contains(body, want) {
 			t.Fatalf("identity page missing %s\n%s", want, body)
