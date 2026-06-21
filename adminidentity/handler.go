@@ -348,7 +348,7 @@ func (h *handler) passkeyFinish(w http.ResponseWriter, r *http.Request) {
 		writeError(w, http.StatusInternalServerError, "credential unavailable")
 		return
 	}
-	writeJSON(w, http.StatusOK, map[string]any{"valid": true, "credential": credential})
+	writeJSON(w, http.StatusCreated, map[string]any{"valid": true, "credential": credential})
 }
 
 func (h *handler) totpBegin(w http.ResponseWriter, r *http.Request) {
@@ -420,7 +420,7 @@ func (h *handler) totpVerify(w http.ResponseWriter, r *http.Request) {
 		writeError(w, http.StatusInternalServerError, "credential unavailable")
 		return
 	}
-	writeJSON(w, http.StatusOK, map[string]any{"valid": true, "credential": credential})
+	writeJSON(w, http.StatusCreated, map[string]any{"valid": true, "credential": credential})
 }
 
 func (h *handler) setupRedeem(w http.ResponseWriter, r *http.Request) {

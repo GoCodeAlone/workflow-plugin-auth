@@ -181,8 +181,8 @@ func TestTOTPBeginAndVerifyUseStepInvokerAndCredentialStore(t *testing.T) {
 	verify.Header.Set("Content-Type", "application/json")
 	verifyRec := httptest.NewRecorder()
 	h.ServeHTTP(verifyRec, verify)
-	if verifyRec.Code != http.StatusOK {
-		t.Fatalf("verify status = %d, want 200 body=%s", verifyRec.Code, verifyRec.Body.String())
+	if verifyRec.Code != http.StatusCreated {
+		t.Fatalf("verify status = %d, want 201 body=%s", verifyRec.Code, verifyRec.Body.String())
 	}
 	if invoker.calls[1].StepType != "step.auth_totp_verify" {
 		t.Fatalf("second step = %s, want verify", invoker.calls[1].StepType)
@@ -223,8 +223,8 @@ func TestPasskeyBeginAndFinishUseStepInvokerAndCredentialStore(t *testing.T) {
 	finish.Header.Set("Content-Type", "application/json")
 	finishRec := httptest.NewRecorder()
 	h.ServeHTTP(finishRec, finish)
-	if finishRec.Code != http.StatusOK {
-		t.Fatalf("finish status = %d, want 200 body=%s", finishRec.Code, finishRec.Body.String())
+	if finishRec.Code != http.StatusCreated {
+		t.Fatalf("finish status = %d, want 201 body=%s", finishRec.Code, finishRec.Body.String())
 	}
 	if invoker.calls[1].StepType != "step.auth_passkey_finish_register" {
 		t.Fatalf("second step = %s, want passkey finish", invoker.calls[1].StepType)
