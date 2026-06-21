@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"net/url"
 	"path"
 	"strings"
 	"time"
@@ -91,6 +92,9 @@ func normalizeOptions(options Options) Options {
 	if strings.TrimSpace(options.SetupRedeemPath) == "" {
 		options.SetupRedeemPath = "/api/admin/auth/setup/redeem"
 	}
+	if strings.TrimSpace(options.SetupLoginPath) == "" {
+		options.SetupLoginPath = "/login"
+	}
 	options.PagePath = cleanPath(options.PagePath)
 	options.ProfilePath = cleanPath(options.ProfilePath)
 	options.CredentialsPath = cleanPath(options.CredentialsPath)
@@ -100,6 +104,7 @@ func normalizeOptions(options Options) Options {
 	options.TOTPVerifyPath = cleanPath(options.TOTPVerifyPath)
 	options.UsersPath = cleanPath(options.UsersPath)
 	options.SetupRedeemPath = cleanPath(options.SetupRedeemPath)
+	options.SetupLoginPath = cleanPath(options.SetupLoginPath)
 	if strings.TrimSpace(options.LogoutPath) != "" {
 		options.LogoutPath = cleanPath(options.LogoutPath)
 	}
@@ -150,23 +155,44 @@ func (h *handler) identityPage(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *handler) profile(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodGet {
-		methodNotAllowed(w, "GET")
-		return
-	}
 	principal, ok := h.principal(w, r)
 	if !ok {
 		return
 	}
-	if !h.authorize(w, r, principal, "auth.profile", "read") {
-		return
+	switch r.Method {
+	case http.MethodGet:
+		if !h.authorize(w, r, principal, "auth.profile", "read") {
+			return
+		}
+		user, err := h.options.UserStore.CurrentUser(r.Context(), principal)
+		if err != nil {
+			writeError(w, http.StatusInternalServerError, "profile unavailable")
+			return
+		}
+		writeJSON(w, http.StatusOK, map[string]any{"user": user})
+	case http.MethodPatch:
+		if !h.authorize(w, r, principal, "auth.profile", "update") {
+			return
+		}
+		var input UpdateProfileInput
+		if err := decodeJSON(r, &input); err != nil {
+			writeError(w, http.StatusBadRequest, "invalid JSON")
+			return
+		}
+		updater, ok := h.options.UserStore.(ProfileUpdater)
+		if !ok {
+			writeError(w, http.StatusNotImplemented, "profile update unavailable")
+			return
+		}
+		user, err := updater.UpdateCurrentUser(r.Context(), principal, input)
+		if err != nil {
+			writeError(w, http.StatusBadRequest, "profile update rejected")
+			return
+		}
+		writeJSON(w, http.StatusOK, map[string]any{"user": user})
+	default:
+		methodNotAllowed(w, "GET, PATCH")
 	}
-	user, err := h.options.UserStore.CurrentUser(r.Context(), principal)
-	if err != nil {
-		writeError(w, http.StatusInternalServerError, "profile unavailable")
-		return
-	}
-	writeJSON(w, http.StatusOK, map[string]any{"user": user})
 }
 
 func (h *handler) credentials(w http.ResponseWriter, r *http.Request) {
@@ -240,6 +266,7 @@ func (h *handler) users(w http.ResponseWriter, r *http.Request) {
 			"role":       code.Role,
 			"tenant_ids": code.TenantIDs,
 			"expires_at": code.ExpiresAt,
+			"setup_url":  setupURL(h.options, code.Code),
 		})
 	default:
 		methodNotAllowed(w, "GET, POST")
@@ -473,6 +500,14 @@ func cleanPath(value string) string {
 		return clean + "/"
 	}
 	return clean
+}
+
+func setupURL(options Options, code string) string {
+	code = strings.TrimSpace(code)
+	if code == "" {
+		return ""
+	}
+	return options.SetupLoginPath + "?setup_code=" + url.QueryEscape(code)
 }
 
 func methodNotAllowed(w http.ResponseWriter, allow string) {

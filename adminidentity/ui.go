@@ -15,6 +15,7 @@ func identityHTML(options Options) ([]byte, error) {
 		"totpVerifyPath":    options.TOTPVerifyPath,
 		"usersPath":         options.UsersPath,
 		"setupRedeemPath":   options.SetupRedeemPath,
+		"setupLoginPath":    options.SetupLoginPath,
 	})
 	if err != nil {
 		return nil, err
@@ -45,6 +46,12 @@ const identityHTMLTemplate = `<!doctype html>
     <section>
       <h2>My Profile</h2>
       <p id="profile" class="muted">Loading profile...</p>
+      <form id="profileForm">
+        <label>Display name <input id="displayName" name="display_name"></label>
+        <label>Recovery email <input id="recoveryEmail" name="recovery_email" type="email"></label>
+        <button type="submit">Save profile</button>
+      </form>
+      <p id="profileStatus" class="muted"></p>
     </section>
     <section>
       <h2>Sign-in & 2FA</h2>
@@ -54,14 +61,27 @@ const identityHTMLTemplate = `<!doctype html>
     <section>
       <h2>Users</h2>
       <p id="users" class="muted">Loading users...</p>
+      <form id="inviteForm">
+        <label>Email <input name="email" type="email" required></label>
+        <label>Display name <input name="display_name"></label>
+        <label>Role <select name="role"><option value="tenant_editor">tenant_editor</option><option value="tenant_admin">tenant_admin</option><option value="super_admin">super_admin</option></select></label>
+        <button type="submit">Add admin</button>
+      </form>
+      <p id="inviteStatus" class="muted"></p>
     </section>
   </main>
   <script>window.__WORKFLOW_AUTH_IDENTITY_UI__=%s;</script>
   <script>
 const config=window.__WORKFLOW_AUTH_IDENTITY_UI__;
 const profileEl=document.getElementById("profile");
+const profileForm=document.getElementById("profileForm");
+const profileStatus=document.getElementById("profileStatus");
+const displayName=document.getElementById("displayName");
+const recoveryEmail=document.getElementById("recoveryEmail");
 const credentialsEl=document.getElementById("credentials");
 const usersEl=document.getElementById("users");
+const inviteForm=document.getElementById("inviteForm");
+const inviteStatus=document.getElementById("inviteStatus");
 const beginTotp=document.getElementById("beginTotp");
 function setTotpEnrollmentState(enrolled){
   beginTotp.disabled=Boolean(enrolled);
@@ -72,6 +92,8 @@ async function loadProfile(){
   if(!res.ok){throw new Error("Profile unavailable");}
   const payload=await res.json();
   const user=payload.user||{};
+  displayName.value=user.display_name||"";
+  recoveryEmail.value=user.recovery_email||user.email||"";
   profileEl.textContent=[user.display_name,user.email].filter(Boolean).join(" · ")||"Profile loaded";
 }
 async function loadCredentials(){
@@ -85,8 +107,40 @@ async function loadUsers(){
   const res=await fetch(config.usersPath,{credentials:"same-origin"});
   if(!res.ok){usersEl.textContent="Users unavailable";return;}
   const payload=await res.json();
-  usersEl.textContent=((payload.users||[]).length)+" user(s)";
+  const users=payload.users||[];
+  usersEl.textContent=users.map(user=>(user.display_name||user.email)+" · "+user.role).join("\n")||"No users found";
 }
+profileForm.addEventListener("submit",async(event)=>{
+  event.preventDefault();
+  try{
+    const res=await fetch(config.profilePath,{
+      method:"PATCH",
+      credentials:"same-origin",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({display_name:displayName.value,recovery_email:recoveryEmail.value})
+    });
+    if(!res.ok){throw new Error("Profile update failed");}
+    profileStatus.textContent="Profile saved.";
+    await loadProfile();
+  }catch(err){profileStatus.textContent=err.message;}
+});
+inviteForm.addEventListener("submit",async(event)=>{
+  event.preventDefault();
+  const data=new FormData(inviteForm);
+  try{
+    const res=await fetch(config.usersPath,{
+      method:"POST",
+      credentials:"same-origin",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({email:data.get("email"),display_name:data.get("display_name"),role:data.get("role")})
+    });
+    if(!res.ok){throw new Error("Admin invite failed");}
+    const payload=await res.json();
+    inviteForm.reset();
+    inviteStatus.textContent=payload.setup_url||payload.code||"Admin added.";
+    await loadUsers();
+  }catch(err){inviteStatus.textContent=err.message;}
+});
 beginTotp.addEventListener("click",async()=>{
   beginTotp.disabled=true;
   try{
