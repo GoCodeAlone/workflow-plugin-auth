@@ -181,6 +181,38 @@ Go hosts can mount the reusable authentication settings page from
 `step.auth_admin_config_describe` and submits validation requests to the
 host-owned `step.auth_admin_config_validate` endpoint.
 
+Go hosts can mount reusable profile, credential, setup-code, passkey/TOTP, and
+user-administration routes from `adminidentity.NewHandler`. The auth plugin owns
+the route behavior and browser UI; the host supplies typed adapters for durable
+users, credentials, setup codes, session issue, authorization, and step
+invocation. This keeps app databases app-owned while preventing every consumer
+from rebuilding bootstrap/profile/TOTP/passkey/user administration.
+
+```go
+handler, err := adminidentity.NewHandler(adminidentity.Options{
+    PagePath:          "/admin/account/profile/",
+    ProfilePath:       "/api/v1/admin/account/profile",
+    CredentialsPath:   "/api/v1/admin/account/credentials",
+    TOTPBeginPath:     "/api/v1/admin/account/totp/begin",
+    TOTPVerifyPath:    "/api/v1/admin/account/totp/verify",
+    UsersPath:         "/api/v1/admin/auth/users",
+    SetupRedeemPath:   "/api/v1/admin/setup/redeem",
+    PrincipalResolver: hostPrincipalResolver,
+    UserStore:         hostUserStore,
+    CredentialStore:   hostCredentialStore,
+    SetupCodeStore:    hostSetupCodeStore,
+    SessionIssuer:     hostSessionIssuer,
+    StepInvoker:       hostAuthStepInvoker,
+    Authorizer:        hostAuthorizer,
+})
+```
+
+`adminidentity.CheckConformance` can be run by host tests against either an
+in-process handler or a launched `httptest.Server`. It verifies that declared
+identity routes return the expected status and non-empty content, catching the
+class of integration failure where a contribution is registered but its profile,
+credential, setup, or user routes are not actually mounted.
+
 `step.auth_provider_catalog` merges provider descriptors from auth-provider
 plugins. Descriptors advertise provider categories, capabilities, required
 config fields, selectable options, admin/app scopes, disabled reasons, and

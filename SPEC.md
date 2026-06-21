@@ -147,6 +147,7 @@ Bootstrap + JWT-issue invariants (design rev 4, ADR-0001/0002):
 | T-AUTH-15 step.auth_jwt_issue (HS256 mint) | ✅ | `internal/step_jwt_issue.go` + `internal/step_jwt_issue_test.go` |
 | T-AUTH-16 cross-service asymmetric auth (#41) | ✅ by reuse | engine `auth.m2m` (ES256+JWKS) + `sso.oidc` jwksUri verify (workflow-plugin-sso v0.1.8) + provider pattern; demonstrated in workflow-scenarios#102; README "Auth Use Cases & Combinations"; ADR-0003. No bespoke IDP. |
 | T-AUTH-17 production follow-up audit (#54) | ✅ | `docs/plans/2026-06-20-auth-production-followups-audit.md`; Twilio delivery remains provider/host-owned, not a core auth dependency |
+| T-AUTH-18 reusable identity admin host surface | ✅ | `adminidentity.NewHandler` typed adapters + `adminidentity.CheckConformance`; hosts no longer need bespoke profile/users/setup/TOTP route behavior |
 
 ## §X — References
 
