@@ -103,7 +103,8 @@ async function loadCredentials(){
   if(!res.ok){throw new Error("Credentials unavailable");}
   const payload=await res.json();
   const credentials=Array.isArray(payload.credentials)?payload.credentials:[];
-  const totpEnrolled=Boolean(payload.totp_enrolled)||credentials.some(credential=>String(credential.kind||"").toLowerCase()==="totp");
+  const hasExplicitTOTP=Object.prototype.hasOwnProperty.call(payload,"totp_enrolled");
+  const totpEnrolled=hasExplicitTOTP?Boolean(payload.totp_enrolled):credentials.some(credential=>String(credential.kind||"").toLowerCase()==="totp");
   setTotpEnrollmentState(totpEnrolled);
   const count=Number.isFinite(payload.count)?payload.count:credentials.length;
   credentialsEl.textContent=count+" credential(s)";

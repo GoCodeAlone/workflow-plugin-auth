@@ -54,6 +54,7 @@ func TestHandlerServesIdentityPageWithConfiguredRoutes(t *testing.T) {
 		`beginTotp.addEventListener("click"`,
 		`fetch(config.totpBeginPath`,
 		`fetch(config.totpVerifyPath`,
+		`Object.prototype.hasOwnProperty.call(payload,"totp_enrolled")`,
 		`credentials.some`,
 		`String(credential.kind||"").toLowerCase()==="totp"`,
 	} {
