@@ -87,9 +87,34 @@ async function loadUsers(){
   const payload=await res.json();
   usersEl.textContent=((payload.users||[]).length)+" user(s)";
 }
-Promise.all([loadProfile(),loadCredentials(),loadUsers()]).catch(err=>{
-  profileEl.textContent=err.message;
+beginTotp.addEventListener("click",async()=>{
+  beginTotp.disabled=true;
+  try{
+    const begin=await fetch(config.totpBeginPath,{method:"POST",credentials:"same-origin"});
+    if(!begin.ok){throw new Error("2FA setup unavailable");}
+    const setup=await begin.json();
+    const secret=setup.secret||"";
+    if(!secret){throw new Error("2FA secret unavailable");}
+    const provisioningUri=setup.provisioning_uri||"";
+    credentialsEl.textContent=provisioningUri?"Use authenticator URI: "+provisioningUri:"Authenticator secret generated";
+    const code=window.prompt("Enter the 6-digit code from your authenticator app");
+    if(!code){setTotpEnrollmentState(false);return;}
+    const verify=await fetch(config.totpVerifyPath,{
+      method:"POST",
+      credentials:"same-origin",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({secret:secret,code:code,label:"Authenticator app"})
+    });
+    if(!verify.ok){throw new Error("2FA verification failed");}
+    await loadCredentials();
+  }catch(err){
+    credentialsEl.textContent=err.message;
+    setTotpEnrollmentState(false);
+  }
 });
+loadProfile().catch(err=>{profileEl.textContent=err.message;});
+loadCredentials().catch(err=>{credentialsEl.textContent=err.message;});
+loadUsers().catch(err=>{usersEl.textContent=err.message;});
   </script>
 </body>
 </html>`

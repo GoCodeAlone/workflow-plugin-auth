@@ -41,13 +41,21 @@ func (h *handler) routes() {
 	h.handle(h.options.UsersPath, h.users)
 	h.handle(h.options.SetupRedeemPath, h.setupRedeem)
 	if h.options.LogoutPath != "" {
-		h.handle(h.options.LogoutPath, h.logout)
+		if h.options.LogoutHandler != nil {
+			h.handleHandler(h.options.LogoutPath, h.options.LogoutHandler)
+		} else {
+			h.handle(h.options.LogoutPath, h.logout)
+		}
 	}
 }
 
 func (h *handler) handle(route string, fn http.HandlerFunc) {
+	h.handleHandler(route, fn)
+}
+
+func (h *handler) handleHandler(route string, handler http.Handler) {
 	clean := cleanPath(route)
-	h.mux.HandleFunc(clean, fn)
+	h.mux.Handle(clean, handler)
 	if strings.HasSuffix(route, "/") {
 		h.mux.HandleFunc(strings.TrimSuffix(clean, "/"), func(w http.ResponseWriter, r *http.Request) {
 			http.Redirect(w, r, clean, http.StatusMovedPermanently)
@@ -400,16 +408,18 @@ func (h *handler) setupRedeem(w http.ResponseWriter, r *http.Request) {
 		writeError(w, http.StatusBadRequest, "invalid JSON")
 		return
 	}
-	setup, err := h.options.SetupCodeStore.RedeemSetupCode(r.Context(), input.Code, input.Email)
+	setup, err := h.options.SetupCodeStore.RedeemSetupCode(r.Context(), input.Code, normalizeEmail(input.Email))
 	if err != nil {
-		status := http.StatusForbidden
-		if errors.Is(err, ErrSetupCodeNotFound) {
-			status = http.StatusNotFound
+		switch {
+		case errors.Is(err, ErrSetupCodeNotFound):
+			writeError(w, http.StatusNotFound, ErrSetupCodeNotFound.Error())
+		case errors.Is(err, ErrSetupCodeWrongEmail):
+			writeError(w, http.StatusForbidden, ErrSetupCodeWrongEmail.Error())
+		case errors.Is(err, ErrSetupCodeExpired):
+			writeError(w, http.StatusGone, ErrSetupCodeExpired.Error())
+		default:
+			writeError(w, http.StatusInternalServerError, "setup code unavailable")
 		}
-		if errors.Is(err, ErrSetupCodeExpired) {
-			status = http.StatusGone
-		}
-		writeError(w, status, err.Error())
 		return
 	}
 	if h.options.SessionIssuer == nil {
@@ -434,8 +444,7 @@ func (h *handler) logout(w http.ResponseWriter, r *http.Request) {
 		methodNotAllowed(w, "POST")
 		return
 	}
-	http.SetCookie(w, &http.Cookie{Name: "admin_session", Path: "/", MaxAge: -1, HttpOnly: true, SameSite: http.SameSiteLaxMode})
-	writeJSON(w, http.StatusOK, map[string]any{"logged_out": true})
+	writeError(w, http.StatusNotImplemented, "logout requires host handler")
 }
 
 func (h *handler) principal(w http.ResponseWriter, r *http.Request) (Principal, bool) {

@@ -41,6 +41,7 @@ type Options struct {
 	SessionIssuer     SessionIssuer
 	StepInvoker       StepInvoker
 	Authorizer        Authorizer
+	LogoutHandler     http.Handler
 }
 
 type Principal struct {

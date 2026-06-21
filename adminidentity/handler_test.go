@@ -43,10 +43,19 @@ func TestHandlerServesIdentityPageWithConfiguredRoutes(t *testing.T) {
 		`"totpBeginPath":"/api/v1/admin/account/totp/begin"`,
 		`"totpVerifyPath":"/api/v1/admin/account/totp/verify"`,
 		`"usersPath":"/api/v1/admin/auth/users"`,
+		`loadProfile().catch`,
+		`loadCredentials().catch`,
+		`loadUsers().catch`,
+		`beginTotp.addEventListener("click"`,
+		`fetch(config.totpBeginPath`,
+		`fetch(config.totpVerifyPath`,
 	} {
 		if !strings.Contains(body, want) {
 			t.Fatalf("identity page missing %s\n%s", want, body)
 		}
+	}
+	if strings.Contains(body, `Promise.all([loadProfile(),loadCredentials(),loadUsers()]).catch`) {
+		t.Fatalf("identity page still routes all loader failures into one shared handler:\n%s", body)
 	}
 }
 
@@ -195,6 +204,64 @@ func TestSetupCodeRedeemRejectsWrongEmailAndIssuesSession(t *testing.T) {
 	if !stores.sessionIssued {
 		t.Fatal("session was not issued")
 	}
+	if got := stores.lastRedeemEmail; got != "admin@example.test" {
+		t.Fatalf("redeem email = %q, want normalized admin@example.test", got)
+	}
+}
+
+func TestSetupCodeRedeemHidesUnexpectedStoreErrors(t *testing.T) {
+	stores := &testStores{
+		setup: SetupCode{
+			Code:      "code-1",
+			Email:     "admin@example.test",
+			ExpiresAt: time.Now().Add(time.Hour),
+		},
+		redeemErr: errors.New("database password leaked in error"),
+	}
+	h := newTestHandler(t, stores)
+
+	req := httptest.NewRequest(http.MethodPost, "/api/v1/admin/setup/redeem", strings.NewReader(`{"code":"code-1","email":"admin@example.test"}`))
+	req.Header.Set("Content-Type", "application/json")
+	rec := httptest.NewRecorder()
+	h.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusInternalServerError {
+		t.Fatalf("status = %d, want 500 body=%s", rec.Code, rec.Body.String())
+	}
+	if strings.Contains(rec.Body.String(), "database password") {
+		t.Fatalf("unexpected store error leaked to client: %s", rec.Body.String())
+	}
+	if !strings.Contains(rec.Body.String(), "setup code unavailable") {
+		t.Fatalf("body = %s, want generic setup code unavailable error", rec.Body.String())
+	}
+}
+
+func TestLogoutRouteRequiresHostSuppliedHandler(t *testing.T) {
+	stores := &testStores{}
+	h, err := NewHandler(Options{
+		LogoutPath:        "/api/v1/admin/logout",
+		PrincipalResolver: fixedPrincipal{principal: Principal{UserID: "user-1", Email: "admin@example.test", Role: "super_admin"}},
+		UserStore:         stores,
+		CredentialStore:   stores,
+		SetupCodeStore:    stores,
+		SessionIssuer:     stores,
+		StepInvoker:       &recordingInvoker{},
+		Authorizer:        allowAuthorizer{},
+	})
+	if err != nil {
+		t.Fatalf("NewHandler: %v", err)
+	}
+
+	req := httptest.NewRequest(http.MethodPost, "/api/v1/admin/logout", nil)
+	rec := httptest.NewRecorder()
+	h.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusNotImplemented {
+		t.Fatalf("status = %d, want 501 body=%s", rec.Code, rec.Body.String())
+	}
+	if got := rec.Header().Values("Set-Cookie"); len(got) != 0 {
+		t.Fatalf("logout without host handler set cookies: %#v", got)
+	}
 }
 
 func TestHandlerRedactsSensitiveCredentialFields(t *testing.T) {
@@ -279,6 +346,8 @@ type testStores struct {
 	addedTOTPSecret        string
 	addedPasskeyCredential string
 	sessionIssued          bool
+	redeemErr              error
+	lastRedeemEmail        string
 }
 
 func (s *testStores) CurrentUser(context.Context, Principal) (User, error) {
@@ -324,6 +393,10 @@ func (s *testStores) IssueSetupCode(_ context.Context, input IssueSetupCodeInput
 }
 
 func (s *testStores) RedeemSetupCode(_ context.Context, code, email string) (SetupCode, error) {
+	s.lastRedeemEmail = email
+	if s.redeemErr != nil {
+		return SetupCode{}, s.redeemErr
+	}
 	if s.setup.Code != code {
 		return SetupCode{}, ErrSetupCodeNotFound
 	}
