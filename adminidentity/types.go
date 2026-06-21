@@ -52,11 +52,12 @@ type Principal struct {
 }
 
 type User struct {
-	ID          string   `json:"id"`
-	Email       string   `json:"email"`
-	DisplayName string   `json:"display_name,omitempty"`
-	Role        string   `json:"role,omitempty"`
-	TenantIDs   []string `json:"tenant_ids,omitempty"`
+	ID            string   `json:"id"`
+	Email         string   `json:"email"`
+	DisplayName   string   `json:"display_name,omitempty"`
+	RecoveryEmail string   `json:"recovery_email,omitempty"`
+	Role          string   `json:"role,omitempty"`
+	TenantIDs     []string `json:"tenant_ids,omitempty"`
 }
 
 type Credential struct {
