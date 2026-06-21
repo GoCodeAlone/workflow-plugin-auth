@@ -102,7 +102,8 @@ async function loadCredentials(){
   const res=await fetch(config.credentialsPath,{credentials:"same-origin"});
   if(!res.ok){throw new Error("Credentials unavailable");}
   const payload=await res.json();
-  setTotpEnrollmentState(Boolean(payload.totp_enrolled));
+  const totpEnrolled=Boolean(payload.totp_enrolled);
+  setTotpEnrollmentState(totpEnrolled);
   credentialsEl.textContent=(payload.count||0)+" credential(s)";
 }
 async function loadUsers(){
