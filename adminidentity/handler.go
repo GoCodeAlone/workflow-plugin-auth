@@ -186,7 +186,7 @@ func (h *handler) profile(w http.ResponseWriter, r *http.Request) {
 		}
 		user, err := updater.UpdateCurrentUser(r.Context(), principal, input)
 		if err != nil {
-			writeError(w, http.StatusBadRequest, "profile update rejected")
+			writeError(w, http.StatusInternalServerError, "profile update unavailable")
 			return
 		}
 		writeJSON(w, http.StatusOK, map[string]any{"user": user})

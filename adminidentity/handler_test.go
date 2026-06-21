@@ -85,8 +85,8 @@ func TestProfilePatchUsesTypedUpdater(t *testing.T) {
 	if err := json.Unmarshal(rec.Body.Bytes(), &payload); err != nil {
 		t.Fatal(err)
 	}
-	if payload.User.DisplayName != "Updated Admin" {
-		t.Fatalf("user = %#v, want updated display name", payload.User)
+	if payload.User.DisplayName != "Updated Admin" || payload.User.RecoveryEmail != "recovery@example.test" {
+		t.Fatalf("user = %#v, want updated display and recovery email", payload.User)
 	}
 }
 
@@ -428,6 +428,7 @@ func (s *testStores) ListUsers(context.Context, ListUsersFilter) ([]User, error)
 func (s *testStores) UpdateCurrentUser(_ context.Context, _ Principal, input UpdateProfileInput) (User, error) {
 	s.profileUpdate = input
 	s.user.DisplayName = input.DisplayName
+	s.user.RecoveryEmail = input.RecoveryEmail
 	return s.user, nil
 }
 

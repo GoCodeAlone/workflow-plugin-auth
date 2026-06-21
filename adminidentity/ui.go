@@ -61,7 +61,7 @@ const identityHTMLTemplate = `<!doctype html>
     </section>
     <section>
       <h2>Users</h2>
-      <p id="users" class="muted">Loading users...</p>
+      <ul id="users" class="muted">Loading users...</ul>
       <form id="inviteForm">
         <label>Email <input name="email" type="email" required></label>
         <label>Display name <input name="display_name"></label>
@@ -111,7 +111,13 @@ async function loadUsers(){
   if(!res.ok){usersEl.textContent="Users unavailable";return;}
   const payload=await res.json();
   const users=payload.users||[];
-  usersEl.textContent=users.map(user=>(user.display_name||user.email)+" · "+user.role).join("\n")||"No users found";
+  usersEl.replaceChildren();
+  if(!users.length){usersEl.textContent="No users found";return;}
+  for(const user of users){
+    const item=document.createElement("li");
+    item.textContent=(user.display_name||user.email)+" · "+user.role;
+    usersEl.append(item);
+  }
 }
 function b64urlToBuf(value){
   const base64=String(value||"").replace(/-/g,"+").replace(/_/g,"/");
