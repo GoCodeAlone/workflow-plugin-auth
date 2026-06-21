@@ -186,6 +186,9 @@ func TestTOTPBeginAndVerifyUseStepInvokerAndCredentialStore(t *testing.T) {
 	if beginRec.Code != http.StatusOK {
 		t.Fatalf("begin status = %d, want 200 body=%s", beginRec.Code, beginRec.Body.String())
 	}
+	if got := beginRec.Header().Get("Cache-Control"); got != "no-store" {
+		t.Fatalf("begin Cache-Control = %q, want no-store", got)
+	}
 	if invoker.calls[0].StepType != "step.auth_totp_generate_secret" {
 		t.Fatalf("first step = %s, want generate secret", invoker.calls[0].StepType)
 	}
@@ -196,6 +199,9 @@ func TestTOTPBeginAndVerifyUseStepInvokerAndCredentialStore(t *testing.T) {
 	h.ServeHTTP(verifyRec, verify)
 	if verifyRec.Code != http.StatusCreated {
 		t.Fatalf("verify status = %d, want 201 body=%s", verifyRec.Code, verifyRec.Body.String())
+	}
+	if got := verifyRec.Header().Get("Cache-Control"); got != "no-store" {
+		t.Fatalf("verify Cache-Control = %q, want no-store", got)
 	}
 	if invoker.calls[1].StepType != "step.auth_totp_verify" {
 		t.Fatalf("second step = %s, want verify", invoker.calls[1].StepType)

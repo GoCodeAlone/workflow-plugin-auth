@@ -526,6 +526,7 @@ func decodeJSON(r *http.Request, out any) error {
 }
 
 func writeJSON(w http.ResponseWriter, status int, payload any) {
+	noStore(w)
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	w.WriteHeader(status)
 	_ = json.NewEncoder(w).Encode(payload)
