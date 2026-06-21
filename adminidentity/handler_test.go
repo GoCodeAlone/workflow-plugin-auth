@@ -43,6 +43,11 @@ func TestHandlerServesIdentityPageWithConfiguredRoutes(t *testing.T) {
 		`"totpBeginPath":"/api/v1/admin/account/totp/begin"`,
 		`"totpVerifyPath":"/api/v1/admin/account/totp/verify"`,
 		`"usersPath":"/api/v1/admin/auth/users"`,
+		`"setupLoginPath":"/login"`,
+		`id="profileForm"`,
+		`method:"PATCH"`,
+		`id="inviteForm"`,
+		`Add admin`,
 		`loadProfile().catch`,
 		`loadCredentials().catch`,
 		`loadUsers().catch`,
@@ -56,6 +61,32 @@ func TestHandlerServesIdentityPageWithConfiguredRoutes(t *testing.T) {
 	}
 	if strings.Contains(body, `Promise.all([loadProfile(),loadCredentials(),loadUsers()]).catch`) {
 		t.Fatalf("identity page still routes all loader failures into one shared handler:\n%s", body)
+	}
+}
+
+func TestProfilePatchUsesTypedUpdater(t *testing.T) {
+	stores := &testStores{}
+	h := newTestHandler(t, stores)
+
+	req := httptest.NewRequest(http.MethodPatch, "/api/v1/admin/account/profile", strings.NewReader(`{"display_name":"Updated Admin","recovery_email":"recovery@example.test"}`))
+	req.Header.Set("Content-Type", "application/json")
+	rec := httptest.NewRecorder()
+	h.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("status = %d, want 200 body=%s", rec.Code, rec.Body.String())
+	}
+	if stores.profileUpdate.DisplayName != "Updated Admin" || stores.profileUpdate.RecoveryEmail != "recovery@example.test" {
+		t.Fatalf("profile update = %#v", stores.profileUpdate)
+	}
+	var payload struct {
+		User User `json:"user"`
+	}
+	if err := json.Unmarshal(rec.Body.Bytes(), &payload); err != nil {
+		t.Fatal(err)
+	}
+	if payload.User.DisplayName != "Updated Admin" || payload.User.RecoveryEmail != "recovery@example.test" {
+		t.Fatalf("user = %#v, want updated display and recovery email", payload.User)
 	}
 }
 
@@ -76,8 +107,9 @@ func TestCredentialsReflectTOTPEnrollmentState(t *testing.T) {
 		t.Fatalf("status = %d, want 200 body=%s", rec.Code, rec.Body.String())
 	}
 	var payload struct {
-		TOTPEnrolled bool         `json:"totp_enrolled"`
-		Credentials  []Credential `json:"credentials"`
+		TOTPEnrolled bool            `json:"totp_enrolled"`
+		Credentials  []Credential    `json:"credentials"`
+		Methods      map[string]bool `json:"methods"`
 	}
 	if err := json.Unmarshal(rec.Body.Bytes(), &payload); err != nil {
 		t.Fatalf("decode response: %v", err)
@@ -87,6 +119,36 @@ func TestCredentialsReflectTOTPEnrollmentState(t *testing.T) {
 	}
 	if len(payload.Credentials) != 2 {
 		t.Fatalf("credentials len = %d, want 2", len(payload.Credentials))
+	}
+	if !payload.Methods["passkey"] || !payload.Methods["totp"] {
+		t.Fatalf("methods = %#v, want passkey and totp", payload.Methods)
+	}
+}
+
+func TestUsersPostIssuesSetupCodeWithDisplayNameAndSetupURL(t *testing.T) {
+	stores := &testStores{}
+	h := newTestHandler(t, stores)
+
+	req := httptest.NewRequest(http.MethodPost, "/api/v1/admin/auth/users", strings.NewReader(`{"email":"editor@example.test","display_name":"Editor User","role":"tenant_editor"}`))
+	req.Header.Set("Content-Type", "application/json")
+	rec := httptest.NewRecorder()
+	h.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusCreated {
+		t.Fatalf("status = %d, want 201 body=%s", rec.Code, rec.Body.String())
+	}
+	if stores.setupInput.Email != "editor@example.test" || stores.setupInput.DisplayName != "Editor User" || stores.setupInput.Role != "tenant_editor" {
+		t.Fatalf("setup input = %#v", stores.setupInput)
+	}
+	var payload struct {
+		Code     string `json:"code"`
+		SetupURL string `json:"setup_url"`
+	}
+	if err := json.Unmarshal(rec.Body.Bytes(), &payload); err != nil {
+		t.Fatal(err)
+	}
+	if payload.Code != "setup-code" || payload.SetupURL != "/login?setup_code=setup-code" {
+		t.Fatalf("payload = %#v", payload)
 	}
 }
 
@@ -119,8 +181,8 @@ func TestTOTPBeginAndVerifyUseStepInvokerAndCredentialStore(t *testing.T) {
 	verify.Header.Set("Content-Type", "application/json")
 	verifyRec := httptest.NewRecorder()
 	h.ServeHTTP(verifyRec, verify)
-	if verifyRec.Code != http.StatusOK {
-		t.Fatalf("verify status = %d, want 200 body=%s", verifyRec.Code, verifyRec.Body.String())
+	if verifyRec.Code != http.StatusCreated {
+		t.Fatalf("verify status = %d, want 201 body=%s", verifyRec.Code, verifyRec.Body.String())
 	}
 	if invoker.calls[1].StepType != "step.auth_totp_verify" {
 		t.Fatalf("second step = %s, want verify", invoker.calls[1].StepType)
@@ -161,8 +223,8 @@ func TestPasskeyBeginAndFinishUseStepInvokerAndCredentialStore(t *testing.T) {
 	finish.Header.Set("Content-Type", "application/json")
 	finishRec := httptest.NewRecorder()
 	h.ServeHTTP(finishRec, finish)
-	if finishRec.Code != http.StatusOK {
-		t.Fatalf("finish status = %d, want 200 body=%s", finishRec.Code, finishRec.Body.String())
+	if finishRec.Code != http.StatusCreated {
+		t.Fatalf("finish status = %d, want 201 body=%s", finishRec.Code, finishRec.Body.String())
 	}
 	if invoker.calls[1].StepType != "step.auth_passkey_finish_register" {
 		t.Fatalf("second step = %s, want passkey finish", invoker.calls[1].StepType)
@@ -348,6 +410,8 @@ type testStores struct {
 	sessionIssued          bool
 	redeemErr              error
 	lastRedeemEmail        string
+	profileUpdate          UpdateProfileInput
+	setupInput             IssueSetupCodeInput
 }
 
 func (s *testStores) CurrentUser(context.Context, Principal) (User, error) {
@@ -359,6 +423,13 @@ func (s *testStores) ListUsers(context.Context, ListUsersFilter) ([]User, error)
 		return s.users, nil
 	}
 	return []User{s.user}, nil
+}
+
+func (s *testStores) UpdateCurrentUser(_ context.Context, _ Principal, input UpdateProfileInput) (User, error) {
+	s.profileUpdate = input
+	s.user.DisplayName = input.DisplayName
+	s.user.RecoveryEmail = input.RecoveryEmail
+	return s.user, nil
 }
 
 func (s *testStores) ListCredentials(context.Context, string) ([]Credential, error) {
@@ -380,6 +451,7 @@ func (s *testStores) AddPasskeyCredential(_ context.Context, userID string, inpu
 }
 
 func (s *testStores) IssueSetupCode(_ context.Context, input IssueSetupCodeInput) (SetupCode, error) {
+	s.setupInput = input
 	s.setup = SetupCode{
 		ID:        "setup-issued",
 		Code:      "setup-code",

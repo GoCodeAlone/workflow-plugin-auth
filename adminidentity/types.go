@@ -32,6 +32,7 @@ type Options struct {
 	TOTPVerifyPath    string
 	UsersPath         string
 	SetupRedeemPath   string
+	SetupLoginPath    string
 	LogoutPath        string
 
 	PrincipalResolver PrincipalResolver
@@ -51,11 +52,12 @@ type Principal struct {
 }
 
 type User struct {
-	ID          string   `json:"id"`
-	Email       string   `json:"email"`
-	DisplayName string   `json:"display_name,omitempty"`
-	Role        string   `json:"role,omitempty"`
-	TenantIDs   []string `json:"tenant_ids,omitempty"`
+	ID            string   `json:"id"`
+	Email         string   `json:"email"`
+	DisplayName   string   `json:"display_name,omitempty"`
+	RecoveryEmail string   `json:"recovery_email,omitempty"`
+	Role          string   `json:"role,omitempty"`
+	TenantIDs     []string `json:"tenant_ids,omitempty"`
 }
 
 type Credential struct {
@@ -80,10 +82,16 @@ type SetupCode struct {
 }
 
 type IssueSetupCodeInput struct {
-	Email     string
-	Role      string
-	TenantIDs []string
-	ExpiresAt time.Time
+	Email       string    `json:"email"`
+	DisplayName string    `json:"display_name,omitempty"`
+	Role        string    `json:"role"`
+	TenantIDs   []string  `json:"tenant_ids,omitempty"`
+	ExpiresAt   time.Time `json:"expires_at,omitempty"`
+}
+
+type UpdateProfileInput struct {
+	DisplayName   string `json:"display_name,omitempty"`
+	RecoveryEmail string `json:"recovery_email,omitempty"`
 }
 
 type AddTOTPCredentialInput struct {
@@ -126,6 +134,10 @@ type PrincipalResolver interface {
 type UserStore interface {
 	CurrentUser(context.Context, Principal) (User, error)
 	ListUsers(context.Context, ListUsersFilter) ([]User, error)
+}
+
+type ProfileUpdater interface {
+	UpdateCurrentUser(context.Context, Principal, UpdateProfileInput) (User, error)
 }
 
 type CredentialStore interface {
