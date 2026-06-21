@@ -139,6 +139,7 @@ func (h *handler) identityPage(w http.ResponseWriter, r *http.Request) {
 		methodNotAllowed(w, "GET, HEAD")
 		return
 	}
+	noStore(w)
 	if _, ok := h.principal(w, r); !ok {
 		return
 	}
@@ -155,6 +156,7 @@ func (h *handler) identityPage(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *handler) profile(w http.ResponseWriter, r *http.Request) {
+	noStore(w)
 	principal, ok := h.principal(w, r)
 	if !ok {
 		return
@@ -200,6 +202,7 @@ func (h *handler) credentials(w http.ResponseWriter, r *http.Request) {
 		methodNotAllowed(w, "GET")
 		return
 	}
+	noStore(w)
 	principal, ok := h.principal(w, r)
 	if !ok {
 		return
@@ -228,6 +231,7 @@ func (h *handler) credentials(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *handler) users(w http.ResponseWriter, r *http.Request) {
+	noStore(w)
 	principal, ok := h.principal(w, r)
 	if !ok {
 		return
@@ -525,6 +529,10 @@ func writeJSON(w http.ResponseWriter, status int, payload any) {
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	w.WriteHeader(status)
 	_ = json.NewEncoder(w).Encode(payload)
+}
+
+func noStore(w http.ResponseWriter) {
+	w.Header().Set("Cache-Control", "no-store")
 }
 
 func writeError(w http.ResponseWriter, status int, message string) {

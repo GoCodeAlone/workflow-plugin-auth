@@ -33,6 +33,9 @@ func TestHandlerServesIdentityPageWithConfiguredRoutes(t *testing.T) {
 	if rec.Code != http.StatusOK {
 		t.Fatalf("status = %d, want 200 body=%s", rec.Code, rec.Body.String())
 	}
+	if got := rec.Header().Get("Cache-Control"); got != "no-store" {
+		t.Fatalf("Cache-Control = %q, want no-store", got)
+	}
 	body := rec.Body.String()
 	for _, want := range []string{
 		`data-auth-identity-admin="1"`,
@@ -45,6 +48,7 @@ func TestHandlerServesIdentityPageWithConfiguredRoutes(t *testing.T) {
 		`"usersPath":"/api/v1/admin/auth/users"`,
 		`"setupLoginPath":"/login"`,
 		`id="profileForm"`,
+		`id="totpStatus"`,
 		`method:"PATCH"`,
 		`id="inviteForm"`,
 		`Add admin`,
@@ -57,6 +61,9 @@ func TestHandlerServesIdentityPageWithConfiguredRoutes(t *testing.T) {
 		`Object.prototype.hasOwnProperty.call(payload,"totp_enrolled")`,
 		`credentials.some`,
 		`String(credential.kind||"").toLowerCase()==="totp"`,
+		`beginTotp.hidden=Boolean(enrolled)`,
+		`totpStatus.hidden=!enrolled`,
+		`2FA is enabled`,
 	} {
 		if !strings.Contains(body, want) {
 			t.Fatalf("identity page missing %s\n%s", want, body)
@@ -108,6 +115,9 @@ func TestCredentialsReflectTOTPEnrollmentState(t *testing.T) {
 
 	if rec.Code != http.StatusOK {
 		t.Fatalf("status = %d, want 200 body=%s", rec.Code, rec.Body.String())
+	}
+	if got := rec.Header().Get("Cache-Control"); got != "no-store" {
+		t.Fatalf("Cache-Control = %q, want no-store", got)
 	}
 	var payload struct {
 		TOTPEnrolled bool            `json:"totp_enrolled"`
