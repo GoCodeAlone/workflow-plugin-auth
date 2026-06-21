@@ -56,6 +56,7 @@ const identityHTMLTemplate = `<!doctype html>
     <section>
       <h2>Sign-in & 2FA</h2>
       <p id="credentials" class="muted">Loading credentials...</p>
+      <button id="addPasskey" type="button">Add passkey</button>
       <button id="beginTotp" type="button">Set up 2FA</button>
     </section>
     <section>
@@ -82,6 +83,7 @@ const credentialsEl=document.getElementById("credentials");
 const usersEl=document.getElementById("users");
 const inviteForm=document.getElementById("inviteForm");
 const inviteStatus=document.getElementById("inviteStatus");
+const addPasskey=document.getElementById("addPasskey");
 const beginTotp=document.getElementById("beginTotp");
 function setTotpEnrollmentState(enrolled){
   beginTotp.disabled=Boolean(enrolled);
@@ -109,6 +111,31 @@ async function loadUsers(){
   const payload=await res.json();
   const users=payload.users||[];
   usersEl.textContent=users.map(user=>(user.display_name||user.email)+" · "+user.role).join("\n")||"No users found";
+}
+function b64urlToBuf(value){
+  const base64=String(value||"").replace(/-/g,"+").replace(/_/g,"/");
+  const padded=base64+"=".repeat((4-base64.length%%4)%%4);
+  const raw=atob(padded);
+  const bytes=new Uint8Array(raw.length);
+  for(let i=0;i<raw.length;i++){bytes[i]=raw.charCodeAt(i);}
+  return bytes.buffer;
+}
+function bufToB64url(value){
+  const bytes=new Uint8Array(value);
+  let raw="";
+  for(const byte of bytes){raw+=String.fromCharCode(byte);}
+  return btoa(raw).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"");
+}
+function webauthnCreationOptions(options){
+  const parsed=typeof options==="string"?JSON.parse(options):options;
+  const publicKey=parsed.publicKey||parsed;
+  publicKey.challenge=b64urlToBuf(publicKey.challenge);
+  if(publicKey.user&&publicKey.user.id){publicKey.user.id=b64urlToBuf(publicKey.user.id);}
+  if(publicKey.excludeCredentials){for(const credential of publicKey.excludeCredentials){credential.id=b64urlToBuf(credential.id);}}
+  return {publicKey};
+}
+function creationResponsePayload(credential){
+  return {id:credential.id,type:credential.type,rawId:bufToB64url(credential.rawId),authenticatorAttachment:credential.authenticatorAttachment||"",response:{clientDataJSON:bufToB64url(credential.response.clientDataJSON),attestationObject:bufToB64url(credential.response.attestationObject)}};
 }
 profileForm.addEventListener("submit",async(event)=>{
   event.preventDefault();
@@ -140,6 +167,19 @@ inviteForm.addEventListener("submit",async(event)=>{
     inviteStatus.textContent=payload.setup_url||payload.code||"Admin added.";
     await loadUsers();
   }catch(err){inviteStatus.textContent=err.message;}
+});
+addPasskey.addEventListener("click",async()=>{
+  try{
+    if(!window.PublicKeyCredential){throw new Error("This browser does not support passkeys.");}
+    const begin=await fetch(config.passkeyBeginPath,{method:"POST",credentials:"same-origin",headers:{"Content-Type":"application/json"},body:JSON.stringify({label:"Passkey"})});
+    if(!begin.ok){throw new Error("Passkey setup unavailable");}
+    const payload=await begin.json();
+    const credential=await navigator.credentials.create(webauthnCreationOptions(payload.options));
+    const finish=await fetch(config.passkeyFinishPath,{method:"POST",credentials:"same-origin",headers:{"Content-Type":"application/json"},body:JSON.stringify({label:"Passkey",session_data:payload.session_data,credential:JSON.stringify(creationResponsePayload(credential))})});
+    if(!finish.ok){throw new Error("Passkey registration failed");}
+    credentialsEl.textContent="Passkey added.";
+    await loadCredentials();
+  }catch(err){credentialsEl.textContent=err.message;}
 });
 beginTotp.addEventListener("click",async()=>{
   beginTotp.disabled=true;
