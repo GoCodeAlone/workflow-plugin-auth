@@ -56,6 +56,7 @@ const identityHTMLTemplate = `<!doctype html>
     <section>
       <h2>Sign-in & 2FA</h2>
       <p id="credentials" class="muted">Loading credentials...</p>
+      <p id="totpStatus" class="muted" hidden>2FA is enabled.</p>
       <button id="addPasskey" type="button">Add passkey</button>
       <button id="beginTotp" type="button">Set up 2FA</button>
     </section>
@@ -85,9 +86,13 @@ const inviteForm=document.getElementById("inviteForm");
 const inviteStatus=document.getElementById("inviteStatus");
 const addPasskey=document.getElementById("addPasskey");
 const beginTotp=document.getElementById("beginTotp");
+const totpStatus=document.getElementById("totpStatus");
 function setTotpEnrollmentState(enrolled){
   beginTotp.disabled=Boolean(enrolled);
+  beginTotp.hidden=Boolean(enrolled);
   beginTotp.textContent=enrolled?"2FA enabled":"Set up 2FA";
+  totpStatus.hidden=!enrolled;
+  totpStatus.textContent=enrolled?"2FA is enabled.":"";
 }
 async function loadProfile(){
   const res=await fetch(config.profilePath,{credentials:"same-origin"});

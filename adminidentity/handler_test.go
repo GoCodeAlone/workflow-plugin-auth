@@ -33,6 +33,9 @@ func TestHandlerServesIdentityPageWithConfiguredRoutes(t *testing.T) {
 	if rec.Code != http.StatusOK {
 		t.Fatalf("status = %d, want 200 body=%s", rec.Code, rec.Body.String())
 	}
+	if got := rec.Header().Get("Cache-Control"); got != "no-store" {
+		t.Fatalf("Cache-Control = %q, want no-store", got)
+	}
 	body := rec.Body.String()
 	for _, want := range []string{
 		`data-auth-identity-admin="1"`,
@@ -45,6 +48,7 @@ func TestHandlerServesIdentityPageWithConfiguredRoutes(t *testing.T) {
 		`"usersPath":"/api/v1/admin/auth/users"`,
 		`"setupLoginPath":"/login"`,
 		`id="profileForm"`,
+		`id="totpStatus"`,
 		`method:"PATCH"`,
 		`id="inviteForm"`,
 		`Add admin`,
@@ -57,6 +61,9 @@ func TestHandlerServesIdentityPageWithConfiguredRoutes(t *testing.T) {
 		`Object.prototype.hasOwnProperty.call(payload,"totp_enrolled")`,
 		`credentials.some`,
 		`String(credential.kind||"").toLowerCase()==="totp"`,
+		`beginTotp.hidden=Boolean(enrolled)`,
+		`totpStatus.hidden=!enrolled`,
+		`2FA is enabled`,
 	} {
 		if !strings.Contains(body, want) {
 			t.Fatalf("identity page missing %s\n%s", want, body)
@@ -108,6 +115,9 @@ func TestCredentialsReflectTOTPEnrollmentState(t *testing.T) {
 
 	if rec.Code != http.StatusOK {
 		t.Fatalf("status = %d, want 200 body=%s", rec.Code, rec.Body.String())
+	}
+	if got := rec.Header().Get("Cache-Control"); got != "no-store" {
+		t.Fatalf("Cache-Control = %q, want no-store", got)
 	}
 	var payload struct {
 		TOTPEnrolled bool            `json:"totp_enrolled"`
@@ -176,6 +186,9 @@ func TestTOTPBeginAndVerifyUseStepInvokerAndCredentialStore(t *testing.T) {
 	if beginRec.Code != http.StatusOK {
 		t.Fatalf("begin status = %d, want 200 body=%s", beginRec.Code, beginRec.Body.String())
 	}
+	if got := beginRec.Header().Get("Cache-Control"); got != "no-store" {
+		t.Fatalf("begin Cache-Control = %q, want no-store", got)
+	}
 	if invoker.calls[0].StepType != "step.auth_totp_generate_secret" {
 		t.Fatalf("first step = %s, want generate secret", invoker.calls[0].StepType)
 	}
@@ -186,6 +199,9 @@ func TestTOTPBeginAndVerifyUseStepInvokerAndCredentialStore(t *testing.T) {
 	h.ServeHTTP(verifyRec, verify)
 	if verifyRec.Code != http.StatusCreated {
 		t.Fatalf("verify status = %d, want 201 body=%s", verifyRec.Code, verifyRec.Body.String())
+	}
+	if got := verifyRec.Header().Get("Cache-Control"); got != "no-store" {
+		t.Fatalf("verify Cache-Control = %q, want no-store", got)
 	}
 	if invoker.calls[1].StepType != "step.auth_totp_verify" {
 		t.Fatalf("second step = %s, want verify", invoker.calls[1].StepType)
