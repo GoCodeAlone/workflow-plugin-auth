@@ -792,3 +792,34 @@ message JWTIssueOutput {
   string expires_at = 2;  // RFC3339
   string error      = 100;
 }
+
+// --- Anthropic 2-step OAuth exchange (step.auth_anthropic_exchange) ---
+// DISTINCT from the generic auth_oauth_exchange (google/facebook). This step
+// implements Anthropic's bespoke 2-step OAuth: code -> access_token at
+// console.anthropic.com, then access_token -> permanent API key at
+// api.anthropic.com. The PKCE `state` parameter is reused as the
+// `code_verifier`. Gated by enable_anthropic_oauth (default false): the step
+// mints long-lived Anthropic API keys, so only opt-in consumers (ratchet)
+// enable it (D17 confused-deputy guard).
+message AnthropicExchangeConfig {
+  // enable_anthropic_oauth MUST be explicitly true for the step to perform the
+  // exchange. Default false: the step returns a disabled result and performs
+  // NO HTTP. Opt-in only.
+  bool enable_anthropic_oauth = 1;
+}
+
+message AnthropicExchangeInput {
+  string code          = 1;  // authorization code from the SPA redirect
+  string redirect_uri  = 2;  // runtime SPA redirect_uri (NOT config)
+  // code_verifier is the PKCE verifier. Anthropic reuses the OAuth `state`
+  // parameter as the code_verifier; either field is accepted as the verifier.
+  string code_verifier = 3;
+  string state         = 4;  // alias for code_verifier (PKCE quirk)
+}
+
+message AnthropicExchangeOutput {
+  bool   success      = 1;
+  string api_key      = 2;   // permanent raw_key from create_api_key
+  string access_token = 3;   // ephemeral token from step 1 (debug only)
+  string error        = 100;
+}

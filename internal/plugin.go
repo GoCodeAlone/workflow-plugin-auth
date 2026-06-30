@@ -52,6 +52,13 @@ var allStepTypes = []string{
 	"step.auth_credential_revoke",
 	"step.auth_bootstrap_redeem",
 	"step.auth_jwt_issue",
+	// NOTE: step.auth_anthropic_exchange is intentionally NOT listed here.
+	// allStepTypes backs GetManifest()/StepTypes() — the gRPC-served surface
+	// that plugin.json capabilities must mirror (TestIntegration_PluginMani-
+	// festAndStepTypes enforces parity). The anthropic step is in-process-
+	// only (D17): it is registered in the CreateStep switch below so the
+	// reverse sdk->in-process bridge (engine_plugin.go) can resolve it, but
+	// it is NOT served over gRPC and MUST NOT appear in plugin.json.
 }
 
 type authPlugin struct{}
@@ -180,6 +187,11 @@ func (p *authPlugin) CreateStep(typeName, name string, config map[string]any) (s
 		return newBootstrapRedeemStep(name, config), nil
 	case "step.auth_jwt_issue":
 		return newJWTIssueStep(name, config), nil
+	case "step.auth_anthropic_exchange":
+		// In-process opt-in step (D17). Registered here so the reverse
+		// sdk->in-process bridge in engine_plugin.go can resolve it via
+		// CreateStep, mirroring the password steps.
+		return newAnthropicExchangeStep(name, config), nil
 	default:
 		return nil, fmt.Errorf("unknown step type: %s", typeName)
 	}
@@ -372,6 +384,11 @@ var authContractRegistry = &pb.ContractRegistry{
 		stepContract("step.auth_credential_revoke", "EmptyConfig", "CredentialRevokeInput", "CredentialRevokeOutput"),
 		stepContract("step.auth_bootstrap_redeem", "BootstrapRedeemConfig", "BootstrapRedeemInput", "BootstrapRedeemOutput"),
 		stepContract("step.auth_jwt_issue", "JWTIssueConfig", "JWTIssueInput", "JWTIssueOutput"),
+		// In-process-only (D17): declared in the contract registry so strict-
+		// proto validation accepts the descriptor for in-process consumers
+		// (ratchet), but NOT in allStepTypes/plugin.json (gRPC GetManifest) —
+		// the step is served via NewAuthEnginePlugin, not the gRPC binary.
+		stepContract("step.auth_anthropic_exchange", "AnthropicExchangeConfig", "AnthropicExchangeInput", "AnthropicExchangeOutput"),
 	},
 }
 
