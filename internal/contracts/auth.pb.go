@@ -7371,6 +7371,199 @@ func (x *JWTIssueOutput) GetError() string {
 	return ""
 }
 
+// --- Anthropic 2-step OAuth exchange (step.auth_anthropic_exchange) ---
+// DISTINCT from the generic auth_oauth_exchange (google/facebook). This step
+// implements Anthropic's bespoke 2-step OAuth: code -> access_token at
+// console.anthropic.com, then access_token -> permanent API key at
+// api.anthropic.com. The PKCE `state` parameter is reused as the
+// `code_verifier`. Gated by enable_anthropic_oauth (default false): the step
+// mints long-lived Anthropic API keys, so only opt-in consumers (ratchet)
+// enable it (D17 confused-deputy guard).
+type AnthropicExchangeConfig struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// enable_anthropic_oauth MUST be explicitly true for the step to perform the
+	// exchange. Default false: the step returns a disabled result and performs
+	// NO HTTP. Opt-in only.
+	EnableAnthropicOauth bool `protobuf:"varint,1,opt,name=enable_anthropic_oauth,json=enableAnthropicOauth,proto3" json:"enable_anthropic_oauth,omitempty"`
+	unknownFields        protoimpl.UnknownFields
+	sizeCache            protoimpl.SizeCache
+}
+
+func (x *AnthropicExchangeConfig) Reset() {
+	*x = AnthropicExchangeConfig{}
+	mi := &file_internal_contracts_auth_proto_msgTypes[92]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AnthropicExchangeConfig) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AnthropicExchangeConfig) ProtoMessage() {}
+
+func (x *AnthropicExchangeConfig) ProtoReflect() protoreflect.Message {
+	mi := &file_internal_contracts_auth_proto_msgTypes[92]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AnthropicExchangeConfig.ProtoReflect.Descriptor instead.
+func (*AnthropicExchangeConfig) Descriptor() ([]byte, []int) {
+	return file_internal_contracts_auth_proto_rawDescGZIP(), []int{92}
+}
+
+func (x *AnthropicExchangeConfig) GetEnableAnthropicOauth() bool {
+	if x != nil {
+		return x.EnableAnthropicOauth
+	}
+	return false
+}
+
+type AnthropicExchangeInput struct {
+	state       protoimpl.MessageState `protogen:"open.v1"`
+	Code        string                 `protobuf:"bytes,1,opt,name=code,proto3" json:"code,omitempty"`                                  // authorization code from the SPA redirect
+	RedirectUri string                 `protobuf:"bytes,2,opt,name=redirect_uri,json=redirectUri,proto3" json:"redirect_uri,omitempty"` // runtime SPA redirect_uri (NOT config)
+	// code_verifier is the PKCE verifier. Anthropic reuses the OAuth `state`
+	// parameter as the code_verifier; either field is accepted as the verifier.
+	CodeVerifier  string `protobuf:"bytes,3,opt,name=code_verifier,json=codeVerifier,proto3" json:"code_verifier,omitempty"`
+	State         string `protobuf:"bytes,4,opt,name=state,proto3" json:"state,omitempty"` // alias for code_verifier (PKCE quirk)
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *AnthropicExchangeInput) Reset() {
+	*x = AnthropicExchangeInput{}
+	mi := &file_internal_contracts_auth_proto_msgTypes[93]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AnthropicExchangeInput) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AnthropicExchangeInput) ProtoMessage() {}
+
+func (x *AnthropicExchangeInput) ProtoReflect() protoreflect.Message {
+	mi := &file_internal_contracts_auth_proto_msgTypes[93]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AnthropicExchangeInput.ProtoReflect.Descriptor instead.
+func (*AnthropicExchangeInput) Descriptor() ([]byte, []int) {
+	return file_internal_contracts_auth_proto_rawDescGZIP(), []int{93}
+}
+
+func (x *AnthropicExchangeInput) GetCode() string {
+	if x != nil {
+		return x.Code
+	}
+	return ""
+}
+
+func (x *AnthropicExchangeInput) GetRedirectUri() string {
+	if x != nil {
+		return x.RedirectUri
+	}
+	return ""
+}
+
+func (x *AnthropicExchangeInput) GetCodeVerifier() string {
+	if x != nil {
+		return x.CodeVerifier
+	}
+	return ""
+}
+
+func (x *AnthropicExchangeInput) GetState() string {
+	if x != nil {
+		return x.State
+	}
+	return ""
+}
+
+type AnthropicExchangeOutput struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
+	ApiKey        string                 `protobuf:"bytes,2,opt,name=api_key,json=apiKey,proto3" json:"api_key,omitempty"`                // permanent raw_key from create_api_key
+	AccessToken   string                 `protobuf:"bytes,3,opt,name=access_token,json=accessToken,proto3" json:"access_token,omitempty"` // ephemeral token from step 1 (debug only)
+	Error         string                 `protobuf:"bytes,100,opt,name=error,proto3" json:"error,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *AnthropicExchangeOutput) Reset() {
+	*x = AnthropicExchangeOutput{}
+	mi := &file_internal_contracts_auth_proto_msgTypes[94]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AnthropicExchangeOutput) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AnthropicExchangeOutput) ProtoMessage() {}
+
+func (x *AnthropicExchangeOutput) ProtoReflect() protoreflect.Message {
+	mi := &file_internal_contracts_auth_proto_msgTypes[94]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AnthropicExchangeOutput.ProtoReflect.Descriptor instead.
+func (*AnthropicExchangeOutput) Descriptor() ([]byte, []int) {
+	return file_internal_contracts_auth_proto_rawDescGZIP(), []int{94}
+}
+
+func (x *AnthropicExchangeOutput) GetSuccess() bool {
+	if x != nil {
+		return x.Success
+	}
+	return false
+}
+
+func (x *AnthropicExchangeOutput) GetApiKey() string {
+	if x != nil {
+		return x.ApiKey
+	}
+	return ""
+}
+
+func (x *AnthropicExchangeOutput) GetAccessToken() string {
+	if x != nil {
+		return x.AccessToken
+	}
+	return ""
+}
+
+func (x *AnthropicExchangeOutput) GetError() string {
+	if x != nil {
+		return x.Error
+	}
+	return ""
+}
+
 var File_internal_contracts_auth_proto protoreflect.FileDescriptor
 
 const file_internal_contracts_auth_proto_rawDesc = "" +
@@ -8094,6 +8287,18 @@ const file_internal_contracts_auth_proto_rawDesc = "" +
 	"\x05token\x18\x01 \x01(\tR\x05token\x12\x1d\n" +
 	"\n" +
 	"expires_at\x18\x02 \x01(\tR\texpiresAt\x12\x14\n" +
+	"\x05error\x18d \x01(\tR\x05error\"O\n" +
+	"\x17AnthropicExchangeConfig\x124\n" +
+	"\x16enable_anthropic_oauth\x18\x01 \x01(\bR\x14enableAnthropicOauth\"\x8a\x01\n" +
+	"\x16AnthropicExchangeInput\x12\x12\n" +
+	"\x04code\x18\x01 \x01(\tR\x04code\x12!\n" +
+	"\fredirect_uri\x18\x02 \x01(\tR\vredirectUri\x12#\n" +
+	"\rcode_verifier\x18\x03 \x01(\tR\fcodeVerifier\x12\x14\n" +
+	"\x05state\x18\x04 \x01(\tR\x05state\"\x85\x01\n" +
+	"\x17AnthropicExchangeOutput\x12\x18\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x17\n" +
+	"\aapi_key\x18\x02 \x01(\tR\x06apiKey\x12!\n" +
+	"\faccess_token\x18\x03 \x01(\tR\vaccessToken\x12\x14\n" +
 	"\x05error\x18d \x01(\tR\x05errorB@Z>github.com/GoCodeAlone/workflow-plugin-auth/internal/contractsb\x06proto3"
 
 var (
@@ -8108,7 +8313,7 @@ func file_internal_contracts_auth_proto_rawDescGZIP() []byte {
 	return file_internal_contracts_auth_proto_rawDescData
 }
 
-var file_internal_contracts_auth_proto_msgTypes = make([]protoimpl.MessageInfo, 92)
+var file_internal_contracts_auth_proto_msgTypes = make([]protoimpl.MessageInfo, 95)
 var file_internal_contracts_auth_proto_goTypes = []any{
 	(*CredentialModuleConfig)(nil),              // 0: workflow.plugins.auth.v1.CredentialModuleConfig
 	(*PasskeyStepConfig)(nil),                   // 1: workflow.plugins.auth.v1.PasskeyStepConfig
@@ -8202,7 +8407,10 @@ var file_internal_contracts_auth_proto_goTypes = []any{
 	(*JWTIssueConfig)(nil),                      // 89: workflow.plugins.auth.v1.JWTIssueConfig
 	(*JWTIssueInput)(nil),                       // 90: workflow.plugins.auth.v1.JWTIssueInput
 	(*JWTIssueOutput)(nil),                      // 91: workflow.plugins.auth.v1.JWTIssueOutput
-	(*structpb.Struct)(nil),                     // 92: google.protobuf.Struct
+	(*AnthropicExchangeConfig)(nil),             // 92: workflow.plugins.auth.v1.AnthropicExchangeConfig
+	(*AnthropicExchangeInput)(nil),              // 93: workflow.plugins.auth.v1.AnthropicExchangeInput
+	(*AnthropicExchangeOutput)(nil),             // 94: workflow.plugins.auth.v1.AnthropicExchangeOutput
+	(*structpb.Struct)(nil),                     // 95: google.protobuf.Struct
 }
 var file_internal_contracts_auth_proto_depIdxs = []int32{
 	77, // 0: workflow.plugins.auth.v1.AuthAdminConfig.providers:type_name -> workflow.plugins.auth.v1.AuthProviderDescriptor
@@ -8211,27 +8419,27 @@ var file_internal_contracts_auth_proto_depIdxs = []int32{
 	45, // 3: workflow.plugins.auth.v1.AuthAdminControl.options:type_name -> workflow.plugins.auth.v1.AuthAdminControlOption
 	46, // 4: workflow.plugins.auth.v1.AuthAdminControlGroup.controls:type_name -> workflow.plugins.auth.v1.AuthAdminControl
 	51, // 5: workflow.plugins.auth.v1.AuthAdminContributionConfig.permissions:type_name -> workflow.plugins.auth.v1.AuthAdminContributionPermission
-	92, // 6: workflow.plugins.auth.v1.AuthAdminContributionConfig.metadata:type_name -> google.protobuf.Struct
+	95, // 6: workflow.plugins.auth.v1.AuthAdminContributionConfig.metadata:type_name -> google.protobuf.Struct
 	52, // 7: workflow.plugins.auth.v1.AuthAdminContributionInput.contribution:type_name -> workflow.plugins.auth.v1.AuthAdminContribution
 	51, // 8: workflow.plugins.auth.v1.AuthAdminContribution.permissions:type_name -> workflow.plugins.auth.v1.AuthAdminContributionPermission
-	92, // 9: workflow.plugins.auth.v1.AuthAdminContribution.metadata:type_name -> google.protobuf.Struct
+	95, // 9: workflow.plugins.auth.v1.AuthAdminContribution.metadata:type_name -> google.protobuf.Struct
 	52, // 10: workflow.plugins.auth.v1.AuthAdminContributionOutput.contribution:type_name -> workflow.plugins.auth.v1.AuthAdminContribution
 	51, // 11: workflow.plugins.auth.v1.AuthAdminIdentityContributionConfig.permissions:type_name -> workflow.plugins.auth.v1.AuthAdminContributionPermission
-	92, // 12: workflow.plugins.auth.v1.AuthAdminIdentityContributionConfig.metadata:type_name -> google.protobuf.Struct
+	95, // 12: workflow.plugins.auth.v1.AuthAdminIdentityContributionConfig.metadata:type_name -> google.protobuf.Struct
 	52, // 13: workflow.plugins.auth.v1.AuthAdminIdentityDescribeInput.contribution:type_name -> workflow.plugins.auth.v1.AuthAdminContribution
 	52, // 14: workflow.plugins.auth.v1.AuthAdminIdentityDescribeOutput.contribution:type_name -> workflow.plugins.auth.v1.AuthAdminContribution
 	47, // 15: workflow.plugins.auth.v1.AuthAdminDescribeOutput.groups:type_name -> workflow.plugins.auth.v1.AuthAdminControlGroup
-	92, // 16: workflow.plugins.auth.v1.AuthAdminDescribeOutput.effective_config:type_name -> google.protobuf.Struct
-	92, // 17: workflow.plugins.auth.v1.AuthAdminDescribeOutput.methods_policy:type_name -> google.protobuf.Struct
+	95, // 16: workflow.plugins.auth.v1.AuthAdminDescribeOutput.effective_config:type_name -> google.protobuf.Struct
+	95, // 17: workflow.plugins.auth.v1.AuthAdminDescribeOutput.methods_policy:type_name -> google.protobuf.Struct
 	48, // 18: workflow.plugins.auth.v1.AuthAdminDescribeOutput.warnings:type_name -> workflow.plugins.auth.v1.AuthAdminDiagnostic
-	92, // 19: workflow.plugins.auth.v1.AuthAdminValidateInput.desired_config:type_name -> google.protobuf.Struct
+	95, // 19: workflow.plugins.auth.v1.AuthAdminValidateInput.desired_config:type_name -> google.protobuf.Struct
 	77, // 20: workflow.plugins.auth.v1.AuthAdminValidateInput.providers:type_name -> workflow.plugins.auth.v1.AuthProviderDescriptor
-	92, // 21: workflow.plugins.auth.v1.AuthAdminValidateOutput.accepted_config:type_name -> google.protobuf.Struct
-	92, // 22: workflow.plugins.auth.v1.AuthAdminValidateOutput.methods_policy:type_name -> google.protobuf.Struct
+	95, // 21: workflow.plugins.auth.v1.AuthAdminValidateOutput.accepted_config:type_name -> google.protobuf.Struct
+	95, // 22: workflow.plugins.auth.v1.AuthAdminValidateOutput.methods_policy:type_name -> google.protobuf.Struct
 	48, // 23: workflow.plugins.auth.v1.AuthAdminValidateOutput.errors:type_name -> workflow.plugins.auth.v1.AuthAdminDiagnostic
 	48, // 24: workflow.plugins.auth.v1.AuthAdminValidateOutput.warnings:type_name -> workflow.plugins.auth.v1.AuthAdminDiagnostic
-	92, // 25: workflow.plugins.auth.v1.OAuthExchangeOutput.raw_tokens:type_name -> google.protobuf.Struct
-	92, // 26: workflow.plugins.auth.v1.OAuthUserinfoOutput.raw_claims:type_name -> google.protobuf.Struct
+	95, // 25: workflow.plugins.auth.v1.OAuthExchangeOutput.raw_tokens:type_name -> google.protobuf.Struct
+	95, // 26: workflow.plugins.auth.v1.OAuthUserinfoOutput.raw_claims:type_name -> google.protobuf.Struct
 	74, // 27: workflow.plugins.auth.v1.AuthProviderConfigField.options:type_name -> workflow.plugins.auth.v1.AuthProviderConfigOption
 	75, // 28: workflow.plugins.auth.v1.AuthProviderCapability.config_fields:type_name -> workflow.plugins.auth.v1.AuthProviderConfigField
 	76, // 29: workflow.plugins.auth.v1.AuthProviderDescriptor.capabilities:type_name -> workflow.plugins.auth.v1.AuthProviderCapability
@@ -8240,7 +8448,7 @@ var file_internal_contracts_auth_proto_depIdxs = []int32{
 	77, // 32: workflow.plugins.auth.v1.AuthProviderCatalogOutput.providers:type_name -> workflow.plugins.auth.v1.AuthProviderDescriptor
 	48, // 33: workflow.plugins.auth.v1.AuthProviderCatalogOutput.warnings:type_name -> workflow.plugins.auth.v1.AuthAdminDiagnostic
 	82, // 34: workflow.plugins.auth.v1.CredentialListOutput.credentials:type_name -> workflow.plugins.auth.v1.CredentialSummary
-	92, // 35: workflow.plugins.auth.v1.JWTIssueInput.claims:type_name -> google.protobuf.Struct
+	95, // 35: workflow.plugins.auth.v1.JWTIssueInput.claims:type_name -> google.protobuf.Struct
 	36, // [36:36] is the sub-list for method output_type
 	36, // [36:36] is the sub-list for method input_type
 	36, // [36:36] is the sub-list for extension type_name
@@ -8269,7 +8477,7 @@ func file_internal_contracts_auth_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_internal_contracts_auth_proto_rawDesc), len(file_internal_contracts_auth_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   92,
+			NumMessages:   95,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

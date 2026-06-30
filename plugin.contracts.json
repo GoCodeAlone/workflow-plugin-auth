@@ -286,6 +286,14 @@
       "config": "workflow.plugins.auth.v1.JWTIssueConfig",
       "input": "workflow.plugins.auth.v1.JWTIssueInput",
       "output": "workflow.plugins.auth.v1.JWTIssueOutput"
+    },
+    {
+      "kind": "step",
+      "type": "step.auth_anthropic_exchange",
+      "mode": "strict",
+      "config": "workflow.plugins.auth.v1.AnthropicExchangeConfig",
+      "input": "workflow.plugins.auth.v1.AnthropicExchangeInput",
+      "output": "workflow.plugins.auth.v1.AnthropicExchangeOutput"
     }
   ]
 }

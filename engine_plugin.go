@@ -37,7 +37,7 @@ func NewAuthEnginePlugin() plugin.EnginePlugin {
 				Author:      "GoCodeAlone",
 				Description: "Passwordless authentication plugin: WebAuthn/passkeys, TOTP, email magic links",
 				ModuleTypes: []string{"auth.credential"},
-				StepTypes:   []string{"step.auth_password_hash", "step.auth_password_verify"},
+				StepTypes:   []string{"step.auth_password_hash", "step.auth_password_verify", "step.auth_anthropic_exchange"},
 			},
 		},
 	}
@@ -54,8 +54,9 @@ func (p *AuthEnginePlugin) StepFactories() map[string]plugin.StepFactory {
 		panic("workflow-plugin-auth: sdk provider does not implement sdk.StepProvider")
 	}
 	return map[string]plugin.StepFactory{
-		"step.auth_password_hash":   wrapSDKStep(stepProvider, "step.auth_password_hash"),
-		"step.auth_password_verify": wrapSDKStep(stepProvider, "step.auth_password_verify"),
+		"step.auth_password_hash":      wrapSDKStep(stepProvider, "step.auth_password_hash"),
+		"step.auth_password_verify":    wrapSDKStep(stepProvider, "step.auth_password_verify"),
+		"step.auth_anthropic_exchange": wrapSDKStep(stepProvider, "step.auth_anthropic_exchange"),
 	}
 }
 

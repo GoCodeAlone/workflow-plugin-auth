@@ -3,6 +3,7 @@ module github.com/GoCodeAlone/workflow-plugin-auth
 go 1.26.4
 
 require (
+	github.com/GoCodeAlone/modular v1.13.4
 	github.com/GoCodeAlone/workflow v0.80.25
 	github.com/go-webauthn/webauthn v0.16.0
 	github.com/golang-jwt/jwt/v5 v5.3.1
@@ -17,7 +18,6 @@ require (
 	github.com/BurntSushi/toml v1.6.0 // indirect
 	github.com/DataDog/datadog-go/v5 v5.8.3 // indirect
 	github.com/GoCodeAlone/go-plugin v1.7.0 // indirect
-	github.com/GoCodeAlone/modular v1.13.4 // indirect
 	github.com/GoCodeAlone/modular/modules/auth v1.17.0 // indirect
 	github.com/GoCodeAlone/modular/modules/cache v1.17.0 // indirect
 	github.com/GoCodeAlone/modular/modules/eventbus/v2 v2.10.0 // indirect
