@@ -10,6 +10,8 @@ import (
 	"database/sql/driver"
 	"encoding/hex"
 	"errors"
+	"fmt"
+	"net/http"
 	"strings"
 	"sync/atomic"
 	"testing"
@@ -19,6 +21,8 @@ import (
 )
 
 const syntheticLeak = "postgres://synthetic-secret@example.invalid/db Bearer synthetic-token -----BEGIN PRIVATE KEY-----"
+
+const fixtureManagementPath = "/api/v1/admin/agent-grants"
 
 var driverOpens atomic.Int64
 var driverCalls atomic.Int64
@@ -67,6 +71,63 @@ func fixtureGrant(t *testing.T, id string, tenant int64) agentidentity.Grant {
 func fixtureHash(label string) string {
 	h := sha256.Sum256([]byte("synthetic-fixture:" + label))
 	return hex.EncodeToString(h[:])
+}
+
+// Source tests and PG tests use the same declarative routes. No database or
+// environment-dependent skip precedes this configuration's source check.
+func fixtureTenantConfigs(grants ...agentidentity.Grant) []agentidentity.TenantConfig {
+	configs := make([]agentidentity.TenantConfig, 0, len(grants))
+	for _, g := range grants {
+		pages := fmt.Sprintf("/api/v1/admin/tenants/%d/pages", g.TenantID)
+		configs = append(configs, agentidentity.TenantConfig{TenantID: g.TenantID, APIAudience: g.APIAudience, PagesPath: pages, HistoryPath: pages + "/history", Scopes: g.Scopes, UpdatePageIDs: g.UpdatePageIDs, Preview: g.Preview})
+	}
+	return configs
+}
+
+type fixtureNoOpOwnerPolicy struct{}
+
+func (fixtureNoOpOwnerPolicy) ResolveOwner(*http.Request) (agentidentity.Owner, error) {
+	return agentidentity.Owner{}, agentidentity.ErrDenied
+}
+func (fixtureNoOpOwnerPolicy) AuthorizeOwner(context.Context, agentidentity.Owner, string, agentidentity.Grant) error {
+	return agentidentity.ErrDenied
+}
+
+func TestPGFixtureTenantAndManagementConfigurationWithoutDatabase(t *testing.T) {
+	one, two := fixtureGrant(t, "source-one", 501), fixtureGrant(t, "source-two", 502)
+	two.UpdatePageIDs = []string{"20"}
+	two.Preview = &agentidentity.PreviewGrant{Audience: "https://second.example.test/audience", Origin: "https://second.example.test", Paths: []string{"/", "/music"}}
+	configs := fixtureTenantConfigs(one, two)
+	policy, err := agentidentity.NewTenantPolicy(configs)
+	if err != nil {
+		t.Fatal("shared PG fixture tenant configuration invalid before database skip")
+	}
+	for i, g := range []agentidentity.Grant{one, two} {
+		if policy.AllowGrant(context.Background(), g) != nil {
+			t.Fatal("shared PG fixture grant ceiling invalid")
+		}
+		resource := agentidentity.Resource{TenantID: g.TenantID, Audience: g.APIAudience, Scope: agentidentity.PagesRead, Method: "GET", Path: configs[i].PagesPath}
+		if policy.AllowResource(context.Background(), g, resource) != nil {
+			t.Fatal("shared PG fixture route invalid")
+		}
+	}
+	db, err := sql.Open("agentidentity-postgres-redaction-fixture", "synthetic-unused")
+	if err != nil {
+		t.Fatal("driver fixture unavailable")
+	}
+	defer db.Close()
+	store, _ := New(db, "agent_fixture")
+	before := driverOpens.Load()
+	service, err := agentidentity.NewService(agentidentity.Options{IssuerURL: "https://issuer.example.test", TokenEndpoint: "https://issuer.example.test/agent/token", IssuerKeys: map[string]*ecdsa.PublicKey{"issuer-kid": one.PublicKey}, Store: store, Audit: store, Policy: policy, Issuer: agentidentity.IssuerFunc(func(context.Context, agentidentity.IssueRequest) (string, error) { return "", agentidentity.ErrDenied })})
+	if err != nil {
+		t.Fatal("shared PG fixture service configuration invalid")
+	}
+	if _, err := service.ManagementHandler(agentidentity.ManagementOptions{Path: fixtureManagementPath, OwnerOrigin: "https://owner.example.test", Owners: fixtureNoOpOwnerPolicy{}}); err != nil {
+		t.Fatal("shared PG fixture management path invalid")
+	}
+	if driverOpens.Load() != before {
+		t.Fatal("fixture configuration source check performed database I/O")
+	}
 }
 
 func TestConstructorHasNoIOAndValidatesNamespace(t *testing.T) {

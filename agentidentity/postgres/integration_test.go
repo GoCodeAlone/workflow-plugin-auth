@@ -454,29 +454,28 @@ func (p additionalOwnerPolicy) AuthorizeOwner(_ context.Context, owner agentiden
 }
 
 func TestPostgresOwnerListAndResourcePolicyApplyCurrentTenantAuthority(t *testing.T) {
-	f := newPGFixture(t)
 	ctx := context.Background()
 	one, two := fixtureGrant(t, "fixture-owner-one", 501), fixtureGrant(t, "fixture-owner-two", 502)
 	two.PublicKey = one.PublicKey
 	two.UpdatePageIDs = []string{"20"}
 	two.Preview = &agentidentity.PreviewGrant{Audience: "https://second.example.test/audience", Origin: "https://second.example.test", Paths: []string{"/", "/music"}}
-	configs := []agentidentity.TenantConfig{}
+	configs := fixtureTenantConfigs(one, two)
+	policy, err := agentidentity.NewTenantPolicy(configs)
+	if err != nil {
+		t.Fatal("two-tenant policy failed before database skip")
+	}
+	f := newPGFixture(t)
 	for _, g := range []agentidentity.Grant{one, two} {
 		if f.store.CreateGrant(ctx, g) != nil {
 			t.Fatal("owner list fixture create failed")
 		}
-		configs = append(configs, agentidentity.TenantConfig{TenantID: g.TenantID, APIAudience: g.APIAudience, PagesPath: "/admin/pages", HistoryPath: "/admin/pages/history", Scopes: g.Scopes, UpdatePageIDs: g.UpdatePageIDs, Preview: g.Preview})
 	}
-	policy, err := agentidentity.NewTenantPolicy(configs)
-	if err != nil {
-		t.Fatal("two-tenant policy failed")
-	}
-	for _, g := range []agentidentity.Grant{one, two} {
+	for i, g := range []agentidentity.Grant{one, two} {
 		loaded, err := f.reconnect(t).GetGrant(ctx, g.ID)
 		if err != nil || policy.AllowGrant(ctx, loaded) != nil {
 			t.Fatal("tenant policy positive failed")
 		}
-		resource := agentidentity.Resource{TenantID: g.TenantID, Audience: g.APIAudience, Scope: agentidentity.PagesUpdate, PageID: g.UpdatePageIDs[0], Path: "/admin/pages/" + g.UpdatePageIDs[0]}
+		resource := agentidentity.Resource{TenantID: g.TenantID, Audience: g.APIAudience, Scope: agentidentity.PagesUpdate, PageID: g.UpdatePageIDs[0], Path: configs[i].PagesPath + "/" + g.UpdatePageIDs[0]}
 		if policy.AllowResource(ctx, loaded, resource) != nil {
 			t.Fatal("tenant resource positive failed")
 		}
@@ -485,7 +484,7 @@ func TestPostgresOwnerListAndResourcePolicyApplyCurrentTenantAuthority(t *testin
 			t.Fatal("cross-tenant resource admitted")
 		}
 		resource.TenantID = g.TenantID
-		resource.PageID, resource.Path = "999", "/admin/pages/999"
+		resource.PageID, resource.Path = "999", configs[i].PagesPath+"/999"
 		if policy.AllowResource(ctx, loaded, resource) != agentidentity.ErrDenied {
 			t.Fatal("other tenant/page ceiling admitted")
 		}
@@ -495,12 +494,12 @@ func TestPostgresOwnerListAndResourcePolicyApplyCurrentTenantAuthority(t *testin
 	if err != nil {
 		t.Fatal("durable management fixture service failed")
 	}
-	handler, err := service.ManagementHandler(agentidentity.ManagementOptions{Path: "/admin/agent-grants", OwnerOrigin: "https://owner.example.test", Owners: owners})
+	handler, err := service.ManagementHandler(agentidentity.ManagementOptions{Path: fixtureManagementPath, OwnerOrigin: "https://owner.example.test", Owners: owners})
 	if err != nil {
 		t.Fatal("management fixture handler failed")
 	}
 	for _, owner := range []string{"current-one", "current-two"} {
-		r := httptest.NewRequest("GET", "https://owner.example.test/admin/agent-grants", nil)
+		r := httptest.NewRequest("GET", "https://owner.example.test"+fixtureManagementPath, nil)
 		r = r.WithContext(context.WithValue(r.Context(), ownerContextKey{}, agentidentity.Owner{ID: owner}))
 		w := httptest.NewRecorder()
 		handler.ServeHTTP(w, r)
@@ -510,7 +509,7 @@ func TestPostgresOwnerListAndResourcePolicyApplyCurrentTenantAuthority(t *testin
 		}
 	}
 	// Request metadata cannot substitute for the verified owner context.
-	r := httptest.NewRequest("GET", "https://owner.example.test/admin/agent-grants", nil)
+	r := httptest.NewRequest("GET", "https://owner.example.test"+fixtureManagementPath, nil)
 	r.Header.Set("X-Owner-ID", "current-one")
 	w := httptest.NewRecorder()
 	handler.ServeHTTP(w, r)
@@ -541,7 +540,6 @@ type fixtureAccessClaims struct {
 }
 
 func TestPostgresServiceExchangeAuthorizeAcrossTenantsAndRevocations(t *testing.T) {
-	f := newPGFixture(t)
 	ctx := context.Background()
 	issuerKey, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
 	if err != nil {
@@ -553,16 +551,16 @@ func TestPostgresServiceExchangeAuthorizeAcrossTenantsAndRevocations(t *testing.
 	}
 	one, two := fixtureGrant(t, "service-one", 501), fixtureGrant(t, "service-two", 502)
 	one.PublicKey, two.PublicKey = &workload.PublicKey, &workload.PublicKey
-	configs := []agentidentity.TenantConfig{}
+	configs := fixtureTenantConfigs(one, two)
+	policy, err := agentidentity.NewTenantPolicy(configs)
+	if err != nil {
+		t.Fatal("service tenant fixture policy failed before database skip")
+	}
+	f := newPGFixture(t)
 	for _, g := range []agentidentity.Grant{one, two} {
 		if f.store.CreateGrant(ctx, g) != nil {
 			t.Fatal("service grant fixture create failed")
 		}
-		configs = append(configs, agentidentity.TenantConfig{TenantID: g.TenantID, APIAudience: g.APIAudience, PagesPath: "/admin/pages", HistoryPath: "/admin/pages/history", Scopes: g.Scopes, UpdatePageIDs: g.UpdatePageIDs, Preview: g.Preview})
-	}
-	policy, err := agentidentity.NewTenantPolicy(configs)
-	if err != nil {
-		t.Fatal("service tenant fixture policy failed")
 	}
 	const endpoint = "https://issuer.example.test/agent/token"
 	issuer := agentidentity.IssuerFunc(func(_ context.Context, r agentidentity.IssueRequest) (string, error) {
@@ -614,7 +612,7 @@ func TestPostgresServiceExchangeAuthorizeAcrossTenantsAndRevocations(t *testing.
 		if i == 1 {
 			raw = second.AccessToken
 		}
-		resource := agentidentity.Resource{TenantID: g.TenantID, Audience: g.APIAudience, Scope: agentidentity.PagesRead, Method: "GET", Path: "/admin/pages"}
+		resource := agentidentity.Resource{TenantID: g.TenantID, Audience: g.APIAudience, Scope: agentidentity.PagesRead, Method: "GET", Path: configs[i].PagesPath}
 		principal, err := newService().Authorize(ctx, raw, resource)
 		if err != nil || principal.TenantID != g.TenantID {
 			t.Fatal("durable current tenant service authorization failed")
@@ -631,13 +629,13 @@ func TestPostgresServiceExchangeAuthorizeAcrossTenantsAndRevocations(t *testing.
 	if f.store.RevokeToken(ctx, firstPrincipal.JTIHash, "current-owner", now, now.Add(time.Minute)) != nil {
 		t.Fatal("service token revocation fixture failed")
 	}
-	if _, err := newService().Authorize(ctx, first.AccessToken, agentidentity.Resource{TenantID: one.TenantID, Audience: one.APIAudience, Scope: agentidentity.PagesRead, Method: "GET", Path: "/admin/pages"}); err != agentidentity.ErrDenied {
+	if _, err := newService().Authorize(ctx, first.AccessToken, agentidentity.Resource{TenantID: one.TenantID, Audience: one.APIAudience, Scope: agentidentity.PagesRead, Method: "GET", Path: configs[0].PagesPath}); err != agentidentity.ErrDenied {
 		t.Fatal("durable revoked token admitted after new service/pool")
 	}
 	if f.store.RevokeGrant(ctx, two.ID, 1, "current-owner", time.Now()) != nil {
 		t.Fatal("service grant revoke fixture failed")
 	}
-	if _, err := newService().Authorize(ctx, second.AccessToken, agentidentity.Resource{TenantID: two.TenantID, Audience: two.APIAudience, Scope: agentidentity.PagesRead, Method: "GET", Path: "/admin/pages"}); err != agentidentity.ErrDenied {
+	if _, err := newService().Authorize(ctx, second.AccessToken, agentidentity.Resource{TenantID: two.TenantID, Audience: two.APIAudience, Scope: agentidentity.PagesRead, Method: "GET", Path: configs[1].PagesPath}); err != agentidentity.ErrDenied {
 		t.Fatal("durable revoked grant token admitted after new service/pool")
 	}
 }
