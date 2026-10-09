@@ -251,6 +251,12 @@ true`.
 
 ## Auth Use Cases & Combinations
 
+Tenant-scoped agent access is proposed in
+[the agent access design](docs/plans/2026-10-09-tenant-scoped-agent-access-design.md).
+It documents current component gaps and an owner-approved, revocable grant with
+short-lived access. It is not a deployed capability or permission to reuse a
+personal admin session.
+
 `workflow-plugin-auth` is a library of stateless auth primitives; complete auth
 flows are composed from these steps plus the engine's built-in `auth.*` modules
 and the provider plugins. Which combination covers which use case:
