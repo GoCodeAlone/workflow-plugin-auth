@@ -360,6 +360,35 @@ func TestTokenAndGrantCurrentState(t *testing.T) {
 	}
 }
 
+func TestStorageValidationRetainsHistoricalRowsWithoutAuthorizingThem(t *testing.T) {
+	f := setup(t)
+	g := f.store.grant
+	g.Revoked = true
+	if err := ValidateGrantForStorage(g); err != nil || !g.Revoked {
+		t.Fatal("revoked durable row rejected or mutated", err)
+	}
+	g.Revoked = false
+	g.CreatedAt = f.now.Add(-2 * time.Hour)
+	g.ExpiresAt = f.now.Add(-time.Hour)
+	if err := ValidateGrantForStorage(g); err != nil || validGrant(g, f.now) {
+		t.Fatal("historical structural check became access admission", err)
+	}
+	for _, mutate := range []func(*Grant){
+		func(g *Grant) { g.CreatedAt = time.Time{} },
+		func(g *Grant) { g.ExpiresAt = g.CreatedAt },
+		func(g *Grant) { g.ExpiresAt = g.CreatedAt.Add(MaxGrantLifetime + time.Second) },
+		func(g *Grant) { g.Scopes = []string{"admin:auth.users:update"} },
+		func(g *Grant) { g.PublicKey = nil },
+		func(g *Grant) { g.Version = 0 },
+	} {
+		bad := g
+		mutate(&bad)
+		if err := ValidateGrantForStorage(bad); err != ErrDenied {
+			t.Fatal("malformed durable grant accepted", err)
+		}
+	}
+}
+
 func TestBodyOnlyRootPageBoundary(t *testing.T) {
 	cases := map[string]func(*Resource){
 		"page": func(r *Resource) { r.PageID = "4" }, "version": func(r *Resource) { r.ExpectedVersion = 0 }, "blocks": func(r *Resource) { r.HasCanonicalBlocks = true }, "overlay": func(r *Resource) { r.RootPage = false }, "status": func(r *Resource) { r.Fields = append(r.Fields, "status") }, "only status": func(r *Resource) { r.Fields = []string{"status"} }, "delete": func(r *Resource) { r.Method = "DELETE" }, "create": func(r *Resource) { r.Scope = "admin:multisite.pages:create" }, "live": func(r *Resource) { r.TenantID = 42 }, "users": func(r *Resource) { r.Path = "/api/v1/admin/auth/users" }, "read token": func(r *Resource) { r.Scope = PagesRead },

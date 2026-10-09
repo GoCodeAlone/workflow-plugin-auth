@@ -71,7 +71,6 @@ type ManagementOptions struct {
 	OwnerOrigin string
 	PagePath    string
 	Owners      OwnerPolicy
-	Store       GrantManager
 }
 
 type proposal struct {
@@ -95,7 +94,11 @@ type proposal struct {
 // are responsible for a durable transaction plus audit/outbox for management
 // mutations; no rollback can safely erase an already applied revoke.
 func (s *Service) ManagementHandler(o ManagementOptions) (http.Handler, error) {
-	if o.Owners == nil || o.Store == nil || !managementPath(o.Path) || !httpsOrigin(o.OwnerOrigin) {
+	// Management and validation must use the same authoritative adapter. A
+	// separately configured manager could report a successful revoke while the
+	// store used by Authorize still admits the old grant and its tokens.
+	manager, ok := s.options.Store.(GrantManager)
+	if !ok || o.Owners == nil || !managementPath(o.Path) || !httpsOrigin(o.OwnerOrigin) {
 		return nil, ErrUnavailable
 	}
 	if o.PagePath != "" && (!managementPagePath(o.PagePath) || o.PagePath == o.Path) {
@@ -154,7 +157,7 @@ func (s *Service) ManagementHandler(o ManagementOptions) (http.Handler, error) {
 				httpError(w, ErrDenied)
 				return
 			}
-			grants, err := o.Store.ListGrants(r.Context(), owner)
+			grants, err := manager.ListGrants(r.Context(), owner)
 			if err != nil {
 				httpError(w, ErrUnavailable)
 				return
@@ -212,7 +215,7 @@ func (s *Service) ManagementHandler(o ManagementOptions) (http.Handler, error) {
 				httpError(w, err)
 				return
 			}
-			if err = o.Store.RevokeGrant(r.Context(), g.ID, g.Version, owner.ID, s.now()); err != nil {
+			if err = manager.RevokeGrant(r.Context(), g.ID, g.Version, owner.ID, s.now()); err != nil {
 				if err != ErrConflict {
 					err = ErrUnavailable
 				}
@@ -264,7 +267,7 @@ func (s *Service) ManagementHandler(o ManagementOptions) (http.Handler, error) {
 			httpError(w, err)
 			return
 		}
-		if err = o.Store.CreateGrant(r.Context(), g); err != nil {
+		if err = manager.CreateGrant(r.Context(), g); err != nil {
 			if err != ErrConflict {
 				err = ErrUnavailable
 			}

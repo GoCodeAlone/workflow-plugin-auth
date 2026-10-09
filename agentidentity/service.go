@@ -194,6 +194,18 @@ func (s *Service) reject(ctx context.Context, operation string, g Grant, err err
 	return err
 }
 
+// ValidateGrantForStorage checks the structural grant and resource bounds.
+// It permits expired or revoked rows so durable adapters can load historical
+// state; it does not authorize access, apply the host policy, or approve a new
+// grant. Create adapters must additionally require Version 1 and !Revoked.
+func ValidateGrantForStorage(g Grant) error {
+	g.Revoked = false
+	if !validGrant(g, g.CreatedAt) {
+		return ErrDenied
+	}
+	return nil
+}
+
 func validGrant(g Grant, now time.Time) bool {
 	if !identifier(g.ID) || !identifier(g.Subject) || !identifier(g.KeyID) || !identifier(g.ApprovedBy) || !httpsURL(g.AssertionIssuer) || !httpsURL(g.APIAudience) || !publicKey(g.PublicKey) || g.Version <= 0 || g.TenantID <= 0 || g.Revoked || g.CreatedAt.IsZero() || g.CreatedAt.After(now) || !g.ExpiresAt.After(now) || g.ExpiresAt.Sub(g.CreatedAt) > MaxGrantLifetime || !canonicalScopes(g.Scopes) {
 		return false

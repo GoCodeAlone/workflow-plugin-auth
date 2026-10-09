@@ -84,9 +84,26 @@ func manageRequest(p string, body map[string]any) *http.Request {
 	return r
 }
 
+// A read-only wrapper deliberately hides GrantManager even if its underlying
+// store can manage grants. Management cannot be mounted against another store.
+type validationOnlyStore struct{ Store }
+
+func TestOwnerManagementRequiresValidationStoreManagement(t *testing.T) {
+	f := setup(t)
+	opts := f.s.options
+	opts.Store = validationOnlyStore{f.store}
+	s, err := NewService(opts)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if h, err := s.ManagementHandler(ManagementOptions{Path: "/api/v1/admin/auth/agent-grants", OwnerOrigin: "https://owner.example.test", Owners: &ownerFixture{}}); err != ErrUnavailable || h != nil {
+		t.Fatal("management mounted without the validation authority's manager", err)
+	}
+}
+
 func TestOwnerRegistrationAndRevocationUseExistingHumanSession(t *testing.T) {
 	f := setup(t)
-	h, e := f.s.ManagementHandler(ManagementOptions{Path: "/api/v1/admin/auth/agent-grants", OwnerOrigin: "https://owner.example.test", Owners: &ownerFixture{}, Store: f.store})
+	h, e := f.s.ManagementHandler(ManagementOptions{Path: "/api/v1/admin/auth/agent-grants", OwnerOrigin: "https://owner.example.test", Owners: &ownerFixture{}})
 	if e != nil {
 		t.Fatal(e)
 	}
@@ -133,7 +150,7 @@ func TestOwnerGrantMutationDenialsAndNoPersonalCredentialFallback(t *testing.T) 
 	for _, kind := range []string{"agent", "no-owner", "wrong-origin", "missing-origin", "wrong-host", "cross-site", "not-confirmed", "role", "live-tenant", "grant-overlong", "privileged-scope", "private-key", "unapproved-page", "audit-down"} {
 		t.Run(kind, func(t *testing.T) {
 			f := setup(t)
-			h, e := f.s.ManagementHandler(ManagementOptions{Path: "/api/v1/admin/auth/agent-grants", OwnerOrigin: "https://owner.example.test", Owners: &ownerFixture{}, Store: f.store})
+			h, e := f.s.ManagementHandler(ManagementOptions{Path: "/api/v1/admin/auth/agent-grants", OwnerOrigin: "https://owner.example.test", Owners: &ownerFixture{}})
 			if e != nil {
 				t.Fatal(e)
 			}
@@ -195,7 +212,7 @@ func TestOwnerPageUsesConfiguredTenantsAndExistingSession(t *testing.T) {
 	if e != nil {
 		t.Fatal(e)
 	}
-	h, e := s.ManagementHandler(ManagementOptions{Path: "/api/v1/admin/auth/agent-grants", OwnerOrigin: "https://owner.example.test", PagePath: "/admin/agent-access", Owners: &ownerFixture{}, Store: f.store})
+	h, e := s.ManagementHandler(ManagementOptions{Path: "/api/v1/admin/auth/agent-grants", OwnerOrigin: "https://owner.example.test", PagePath: "/admin/agent-access", Owners: &ownerFixture{}})
 	if e != nil {
 		t.Fatal(e)
 	}

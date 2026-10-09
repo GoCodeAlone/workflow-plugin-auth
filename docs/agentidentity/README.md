@@ -70,14 +70,17 @@ revocation, never silent key generation. This package is not another issuer/IDP.
    protected hosts and content; service QA cannot substitute for owner login.
 2. Use the existing signed-in owner account on the reusable **Agent access** page.
    `ManagementHandler` mounts an optional `PagePath`, API `Path` and pinned
-   `OwnerOrigin`. The human `OwnerPolicy` authorizes `propose/list/read/create/revoke`
+   `OwnerOrigin`; its manager is the same authoritative `Store` supplied to
+   `NewService`, which must also implement `GrantManager`. A separate management
+   database cannot be wired to report a revoke that validation never observes.
+   The human `OwnerPolicy` authorizes `propose/list/read/create/revoke`
    for current tenant authority. POSTs require exact Origin/Host and same-origin
    fetch metadata; agent bearers cannot be projected into the human resolver.
    Ordinary owner cookies stay in the browser and are never exported to an agent.
 3. Select a configured preview, stable assistant subject and registered public
    workload key. Approve finite expiry and permissions. Read/history are selected
    initially; body edits and protected viewing are separate unchecked options.
-   The page shows the exact page/origin boundaries. It rejects private-key PEM.
+   The page shows the exact page/origin/route boundaries. It rejects private-key PEM.
 4. Activate only the separately approved protected workload custody path. Reuse
    one approved workload identity/public key for additional separately approved
    tenant grants when appropriate; each grant can expire/revoke independently.
