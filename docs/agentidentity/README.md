@@ -77,6 +77,11 @@ revocation, never silent key generation. This package is not another issuer/IDP.
    for current tenant authority. POSTs require exact Origin/Host and same-origin
    fetch metadata; agent bearers cannot be projected into the human resolver.
    Ordinary owner cookies stay in the browser and are never exported to an agent.
+   Hosts wrapping the required service `Policy` with current preview-domain
+   checks can supply `ManagementOptions.Tenants` for immutable UI declarations.
+   Each displayed tenant/audience proposal still passes that wrapped policy and
+   owner authorization. If omitted, declarations come from `Policy` when it is a
+   `*TenantPolicy`; this option never replaces the service's authority.
 3. Select a configured preview, stable assistant subject and registered public
    workload key. Approve finite expiry and permissions. Read/history are selected
    initially; body edits and protected viewing are separate unchecked options.
@@ -89,6 +94,9 @@ revocation, never silent key generation. This package is not another issuer/IDP.
 5. Revoke from the same page. The durable store checks the loaded grant version
    and records the change transactionally. Rotation uses a separately approved
    public key/new grant and revokes the old grant; there is no implicit renewal.
+   Revocation also requires the current service policy. If its preview gate is
+   closed, owner cleanup requires a current approved preview declaration or a
+   separately approved offline cleanup; the handler never bypasses that gate.
 
 For an approved local workload, existing `wfctl secrets set --provider keychain
 --service <approved-workload> <KEY_NAME>` offers hidden entry, and `--from-file`

@@ -230,3 +230,150 @@ func TestOwnerPageUsesConfiguredTenantsAndExistingSession(t *testing.T) {
 		t.Fatal("anonymous owner page admitted")
 	}
 }
+
+// The declarations remain fixed while the host's current domain authority can
+// change independently. UI declarations must never replace this policy.
+type currentPreviewPolicyFixture struct {
+	Policy
+	live        map[int64]bool
+	unavailable bool
+	proposed    []Grant
+}
+
+func (p *currentPreviewPolicyFixture) AllowGrant(ctx context.Context, g Grant) error {
+	p.proposed = append(p.proposed, g)
+	if p.unavailable {
+		return ErrUnavailable
+	}
+	if p.live[g.TenantID] {
+		return ErrDenied
+	}
+	return p.Policy.AllowGrant(ctx, g)
+}
+
+func (p *currentPreviewPolicyFixture) AllowResource(ctx context.Context, g Grant, r Resource) error {
+	if err := p.AllowGrant(ctx, g); err != nil {
+		return err
+	}
+	return p.Policy.AllowResource(ctx, g, r)
+}
+
+type tenantOwnerFixture struct {
+	ownerFixture
+	allowed map[int64]bool
+}
+
+func (p *tenantOwnerFixture) AuthorizeOwner(_ context.Context, o Owner, _ string, g Grant) error {
+	if p.deny || o.ID != "verified-human-owner" || (g.TenantID != 0 && !p.allowed[g.TenantID]) {
+		return ErrDenied
+	}
+	return nil
+}
+
+func TestOwnerPageUsesDeclarationsThroughCurrentWrappedPolicy(t *testing.T) {
+	f := setup(t)
+	tenants, err := NewTenantPolicy(tenantConfigs())
+	if err != nil {
+		t.Fatal(err)
+	}
+	gate := &currentPreviewPolicyFixture{Policy: tenants, live: map[int64]bool{345: true}}
+	opts := f.s.options
+	opts.Policy = gate
+	s, err := NewService(opts)
+	if err != nil {
+		t.Fatal(err)
+	}
+	owners := &tenantOwnerFixture{allowed: map[int64]bool{234: true, 345: true}}
+	management := ManagementOptions{Path: "/api/v1/admin/auth/agent-grants", OwnerOrigin: "https://owner.example.test", PagePath: "/admin/agent-access", Owners: owners, Tenants: tenants}
+	h, err := s.ManagementHandler(management)
+	if err != nil {
+		t.Fatal(err)
+	}
+	r := httptest.NewRequest("GET", "https://owner.example.test/admin/agent-access", nil)
+	r.Header.Set("Cookie", "existing-human-session=test-fixture")
+	check := func(handler http.Handler, status int, visible, hidden string) {
+		t.Helper()
+		w := httptest.NewRecorder()
+		handler.ServeHTTP(w, r)
+		if w.Code != status || (visible != "" && !strings.Contains(w.Body.String(), visible)) || (hidden != "" && strings.Contains(w.Body.String(), hidden)) {
+			t.Fatal("declarations bypassed current policy or owner authority", w.Code)
+		}
+	}
+	check(h, http.StatusOK, testAPI, "https://other-preview.example.test/api")
+	if len(gate.proposed) != 2 {
+		t.Fatal("both declared proposals must consume the wrapped policy")
+	}
+	for _, g := range gate.proposed {
+		if g.TenantID == 0 || g.APIAudience == "" || g.ID != "" || g.Subject != "" || len(g.Scopes) != 0 || g.Preview != nil {
+			t.Fatal("owner UI did not use a minimal tenant/audience proposal")
+		}
+	}
+	gate.live[234] = true
+	delete(gate.live, 345)
+	check(h, http.StatusOK, "https://other-preview.example.test/api", testAPI)
+	owners.allowed[345] = false
+	check(h, http.StatusUnauthorized, "", "https://other-preview.example.test/api")
+	owners.allowed[345] = true
+	gate.unavailable = true
+	check(h, http.StatusUnauthorized, "", testAPI)
+	management.Tenants = nil
+	unavailable, err := s.ManagementHandler(management)
+	if err != nil {
+		t.Fatal(err)
+	}
+	check(unavailable, http.StatusServiceUnavailable, "", testAPI)
+}
+
+func TestOwnerManagementAndAuthorizationRetainWrappedPolicy(t *testing.T) {
+	f := setup(t)
+	tenants, err := NewTenantPolicy(tenantConfigs())
+	if err != nil {
+		t.Fatal(err)
+	}
+	gate := &currentPreviewPolicyFixture{Policy: tenants, live: map[int64]bool{}}
+	opts := f.s.options
+	opts.Policy = gate
+	s, err := NewService(opts)
+	if err != nil {
+		t.Fatal(err)
+	}
+	h, err := s.ManagementHandler(ManagementOptions{Path: "/api/v1/admin/auth/agent-grants", OwnerOrigin: "https://owner.example.test", PagePath: "/admin/agent-access", Owners: &tenantOwnerFixture{allowed: map[int64]bool{234: true, 345: true}}, Tenants: tenants})
+	if err != nil {
+		t.Fatal(err)
+	}
+	g := f.store.grant
+	token, err := s.Exchange(context.Background(), ExchangeRequest{GrantID: g.ID, Assertion: f.assertion(t, "wrapped-policy-before", nil), Audience: testAPI, Scopes: []string{PagesRead}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	gate.live[234] = true
+	list := httptest.NewRequest("GET", "https://owner.example.test/api/v1/admin/auth/agent-grants", nil)
+	list.Header.Set("Cookie", "existing-human-session=test-fixture")
+	w := httptest.NewRecorder()
+	h.ServeHTTP(w, list)
+	if w.Code != http.StatusOK || strings.TrimSpace(w.Body.String()) != "[]" {
+		t.Fatal("inventory exposed a currently live tenant")
+	}
+	for _, r := range []*http.Request{
+		manageRequest("/api/v1/admin/auth/agent-grants", publicProposal(t, f)),
+		manageRequest("/api/v1/admin/auth/agent-grants/revoke", map[string]any{"id": g.ID, "expected_version": g.Version, "confirmed": true}),
+	} {
+		w = httptest.NewRecorder()
+		h.ServeHTTP(w, r)
+		if w.Code != http.StatusUnauthorized || f.store.grants != nil {
+			t.Fatal("management bypassed the current wrapped policy", w.Code)
+		}
+	}
+	if _, err := s.Authorize(context.Background(), token.AccessToken, apiRead()); err != ErrDenied {
+		t.Fatal("issued token bypassed the current domain gate", err)
+	}
+	if _, err := s.Exchange(context.Background(), ExchangeRequest{GrantID: g.ID, Assertion: f.assertion(t, "wrapped-policy-after", nil), Audience: testAPI, Scopes: []string{PagesRead}}); err != ErrDenied {
+		t.Fatal("exchange bypassed the current domain gate", err)
+	}
+	delete(gate.live, 234)
+	w = httptest.NewRecorder()
+	h.ServeHTTP(w, manageRequest("/api/v1/admin/auth/agent-grants/revoke", map[string]any{"id": g.ID, "expected_version": g.Version, "confirmed": true}))
+	if w.Code != http.StatusNoContent {
+		t.Fatal("approved owner revoke denied after current gate reopened", w.Code)
+	}
+}
