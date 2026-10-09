@@ -107,7 +107,9 @@ The host must mount the exact TLS exchange path and current durable adapters.
 Store replay uniqueness is global for issuer/subject/key/JTI, and its current-grant
 test plus consume is one transaction. Management create/revoke uses a durable
 transactional audit/outbox; plugin approval logs do not alone prove persistence.
-Database schema application is explicit and separate; constructors apply no DDL.
+The [PostgreSQL adapter](postgres.md) supplies current grants, global assertion
+replay, token revocation and transactional retained management audit. Database
+schema application is explicit and separate; constructors apply no DDL.
 No grant can be created until the human owner policy and persistence are mounted.
 
 The existing CMS Basic alternate-host gate does not accept this token yet. Its
