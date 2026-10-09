@@ -17,15 +17,15 @@ func managementHTML(o ManagementOptions, tenants []TenantConfig) ([]byte, error)
 }
 
 const managementTemplate = `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Agent access</title>
-<style>body{font:15px/1.5 system-ui;background:#f7f8fa;color:#172033;margin:0}main{max-width:880px;padding:24px;margin:auto}section{background:white;border:1px solid #c4cad5;border-radius:8px;padding:20px;margin:16px 0}label{display:block;margin:10px 0}input,select,textarea,button{font:inherit;max-width:100%%;box-sizing:border-box;padding:8px}input[type=text],textarea{width:100%%}button{background:#0f766e;color:white;border:0;border-radius:4px;cursor:pointer}textarea{min-height:140px}small{display:block;color:#414c61}pre{white-space:pre-wrap;overflow-wrap:anywhere}ul{padding-left:24px}:focus-visible{outline:3px solid #2563eb;outline-offset:3px}</style></head>
+<style>body{font:15px/1.5 system-ui;background:#f7f8fa;color:#172033;margin:0}main{max-width:880px;padding:24px;margin:auto}section{background:white;border:1px solid #c4cad5;border-radius:8px;padding:20px;margin:16px 0}label{display:block;margin:10px 0}input,select,textarea,button{font:inherit;max-width:100%%;box-sizing:border-box;padding:8px}input[type=text],input[type=url],textarea{width:100%%}button{background:#0f766e;color:white;border:0;border-radius:4px;cursor:pointer}textarea{min-height:140px}small{display:block;color:#414c61}pre{white-space:pre-wrap;overflow-wrap:anywhere}ul{padding-left:24px}:focus-visible{outline:3px solid #2563eb;outline-offset:3px}</style></head>
 <body data-agent-grant-admin="1"><main><h1>Agent access</h1><p>Approve a separate assistant for a preview site. Access expires automatically and can be revoked here. Your personal account and login stay separate.</p>
 <section><h2>Approve access</h2><form id="grant-form">
-<label>Preview site <select id="tenant" required></select></label><p id="boundary"></p>
+<label for="tenant">Preview site</label><select id="tenant" required></select><p id="boundary"></p>
 <label>Assistant subject <input id="subject" type="text" required maxlength="128" placeholder="agent-preview-assistant"></label>
 <label>Assertion issuer <input id="issuer" type="url" required placeholder="https://workload.example.com"></label>
 <label>Public key identifier <input id="key-id" type="text" required maxlength="128"></label>
 <label>Public workload key <textarea id="public-key" required placeholder="-----BEGIN PUBLIC KEY-----"></textarea></label><small>Use the public key from the approved protected workload. Its private key stays in the configured protected store; it is never entered here.</small>
-<label>Expires in <select id="days"><option value="1">1 day</option><option value="7" selected>7 days</option><option value="30">30 days</option></select></label>
+<label for="days">Expires in</label><select id="days"><option value="1">1 day</option><option value="7" selected>7 days</option><option value="30">30 days</option></select>
 <fieldset><legend>Permissions</legend><div id="permissions"></div></fieldset>
 <label><input id="confirmed" type="checkbox" required> I approve this assistant, site, permissions and expiry.</label><button type="submit">Approve access</button></form></section>
 <section><h2>Current grants</h2><button id="reload" type="button">Refresh</button><ul id="grants"></ul></section><p id="status" role="status" aria-live="polite"></p>
