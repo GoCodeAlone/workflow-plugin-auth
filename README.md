@@ -257,6 +257,13 @@ It documents current component gaps and an owner-approved, revocable grant with
 short-lived access. It is not a deployed capability or permission to reuse a
 personal admin session.
 
+The opt-in native Go [agentidentity package](docs/agentidentity/README.md)
+implements registered grants, assertion exchange, strict service-token
+authorization and reusable owner management. Per-preview policies are
+declarative; adding a site does not require a code fork. Its durable host
+adapters, managed Workflow issuer and matched staging adoption must be reviewed
+and explicitly activated before any credentials or grants are created.
+
 `workflow-plugin-auth` is a library of stateless auth primitives; complete auth
 flows are composed from these steps plus the engine's built-in `auth.*` modules
 and the provider plugins. Which combination covers which use case:

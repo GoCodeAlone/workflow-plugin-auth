@@ -3,6 +3,14 @@
 Status: proposed source design. No client, key, credential, grant, secret, token,
 deployment or persistent permission has been created. Owner activation is held.
 
+Source implementation and reuse amendment: the opt-in native `agentidentity`
+package implements grants/exchange/strict authorization and owner management;
+Workflow retains managed ES256 issuance. Tenant/page/origin rules are declarative
+configuration, not compiled Tina-specific policy. Positive tests cover two sites
+and cross-tenant refusals. See `docs/agentidentity/README.md` for the bounded
+activation path and explicit matched host/SQL/issuer/view adoption requirements.
+This source amendment creates no hosted access or deployment.
+
 ## Problem and observed boundary
 
 Jon wants agents to verify saved CMS edits and make authorized preview changes
