@@ -226,7 +226,7 @@ func validGrant(g Grant, now time.Time) bool {
 		}
 		seen = map[string]bool{}
 		for _, p := range g.Preview.Paths {
-			if !previewPath(p) || seen[p] {
+			if !previewTarget(p) || seen[p] {
 				return false
 			}
 			seen[p] = true
@@ -259,11 +259,12 @@ func audienceScopes(g Grant, a string, scopes []string) bool {
 func resourceAllowed(g Grant, r Resource) bool {
 	switch r.Scope {
 	case PagesRead, HistoryRead:
-		return (r.Method == "GET" || r.Method == "HEAD") && len(r.Fields) == 0 && r.Audience == g.APIAudience && (r.PageID == "" || pageIdentifier(r.PageID))
+		return r.Query == "" && (r.Method == "GET" || r.Method == "HEAD") && len(r.Fields) == 0 && r.Audience == g.APIAudience && (r.PageID == "" || pageIdentifier(r.PageID))
 	case PagesUpdate:
-		return r.Method == "PUT" && r.RootPage && !r.HasCanonicalBlocks && r.ExpectedVersion > 0 && len(r.Fields) == 1 && r.Fields[0] == "body_html" && slices.Contains(g.UpdatePageIDs, r.PageID) && r.Audience == g.APIAudience
+		return r.Query == "" && r.Method == "PUT" && r.RootPage && !r.HasCanonicalBlocks && r.ExpectedVersion > 0 && len(r.Fields) == 1 && r.Fields[0] == "body_html" && slices.Contains(g.UpdatePageIDs, r.PageID) && r.Audience == g.APIAudience
 	case PreviewRead:
-		return g.Preview != nil && r.Audience == g.Preview.Audience && r.Origin == g.Preview.Origin && (r.Method == "GET" || r.Method == "HEAD") && len(r.Fields) == 0 && previewPath(r.Path) && slices.Contains(g.Preview.Paths, r.Path)
+		target, valid := previewResourceTarget(r)
+		return valid && g.Preview != nil && r.Audience == g.Preview.Audience && r.Origin == g.Preview.Origin && (r.Method == "GET" || r.Method == "HEAD") && len(r.Fields) == 0 && slices.Contains(g.Preview.Paths, target)
 	}
 	return false
 }

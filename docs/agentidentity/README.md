@@ -35,7 +35,18 @@ require PUT, the granted root page, exactly `body_html`, positive loaded
 library cannot manufacture one. Reads cannot become writes, and no create/delete,
 publish-status, schedule, identity, bootstrap, platform, domain, reload or live
 authority is supported. Preview access permits exact-origin GET/HEAD only on
-declared paths and never forwards a token to another origin.
+declared targets and never forwards a token to another origin.
+
+`PreviewGrant.Paths` contains finite exact canonical request targets. For example,
+`/contact?interest=voice-study` must be listed explicitly; `/contact` alone grants
+no query variants. Hosts build preview resources with the actual matched
+`Resource.Path` and literal raw `Resource.Query`. The complete target must match
+both the current persisted grant and the tenant declaration. Targets are bounded
+to 2048 bytes, queries to 512 bytes and eight unique sorted keys; names and values
+use unreserved ASCII, with no empty values, encoding aliases or fragments. API
+and saved-history query handling remains separate and unchanged. The CMS gate
+also needs its finite per-tenant query ceiling before a queried target can reach
+this service's authorization callback.
 
 ## Workflow issuer adapter
 
