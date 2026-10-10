@@ -68,7 +68,7 @@ func NewTenantPolicy(config []TenantConfig) (*TenantPolicy, error) {
 			}
 			seen = map[string]bool{}
 			for _, route := range c.Preview.Paths {
-				if !previewPath(route) || seen[route] {
+				if !previewTarget(route) || seen[route] {
 					return nil, ErrUnavailable
 				}
 				seen[route] = true
@@ -122,7 +122,8 @@ func (p *TenantPolicy) AllowResource(ctx context.Context, g Grant, r Resource) e
 	}
 	c := p.tenants[g.TenantID]
 	if r.Scope == PreviewRead {
-		if c.Preview == nil || r.Origin != c.Preview.Origin || !slices.Contains(c.Preview.Paths, r.Path) {
+		target, valid := previewResourceTarget(r)
+		if !valid || c.Preview == nil || r.Origin != c.Preview.Origin || !slices.Contains(c.Preview.Paths, target) {
 			return ErrDenied
 		}
 		return nil
@@ -130,7 +131,7 @@ func (p *TenantPolicy) AllowResource(ctx context.Context, g Grant, r Resource) e
 	// Resource paths must come from canonical host route resolution. Reject
 	// encoded aliases, trailing slashes, query strings and accidental auth/admin
 	// routes even if a host misclassifies one as a page-read permission.
-	if strings.ContainsAny(r.Path, "%?#\\") || path.Clean(r.Path) != r.Path {
+	if r.Query != "" || strings.ContainsAny(r.Path, "%?#\\") || path.Clean(r.Path) != r.Path {
 		return ErrDenied
 	}
 	switch r.Scope {
