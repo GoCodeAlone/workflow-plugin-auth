@@ -1,0 +1,28 @@
+[
+  {
+    "tenant_id": 234,
+    "api_audience": "https://gocodealone.tech/api/v1/admin/agent-cms",
+    "pages_path": "/api/v1/admin/tenants/234/pages",
+    "history_path": "/api/v1/admin/tenants/234/pages/history",
+    "scopes": ["admin:multisite.pages:read", "admin:multisite.pages:history:read", "admin:multisite.pages:update", "admin:multisite.preview:read"],
+    "update_page_ids": ["3", "6"],
+    "preview": {
+      "audience": "https://tinalangevin-review.preview.gocodealone.tech/agent-view",
+      "origin": "https://tinalangevin-review.preview.gocodealone.tech",
+      "paths": ["/", "/voice-studio", "/rock-metal", "/calendar", "/media", "/contact", "/robots.txt", "/assets/tina.css", "/assets/tina.js", "/assets/classical.jpg", "/assets/metal.jpg"]
+    }
+  },
+  {
+    "tenant_id": 345,
+    "api_audience": "https://admin.example.test/api/agent-cms",
+    "pages_path": "/api/v1/admin/tenants/345/pages",
+    "history_path": "/api/v1/admin/tenants/345/pages/history",
+    "scopes": ["admin:multisite.pages:read", "admin:multisite.pages:history:read", "admin:multisite.pages:update", "admin:multisite.preview:read"],
+    "update_page_ids": ["17", "18"],
+    "preview": {
+      "audience": "https://other-review.example.test/agent-view",
+      "origin": "https://other-review.example.test",
+      "paths": ["/", "/about", "/contact", "/assets/site.css"]
+    }
+  }
+]

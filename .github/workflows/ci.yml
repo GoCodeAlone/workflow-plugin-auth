@@ -11,6 +11,19 @@ env:
 jobs:
   test:
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_DB: agentidentity_test
+          POSTGRES_USER: agentidentity_test
+          POSTGRES_PASSWORD: isolated-test-only
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U agentidentity_test -d agentidentity_test"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      AGENTIDENTITY_TEST_DATABASE_URL: postgres://agentidentity_test:isolated-test-only@127.0.0.1:5432/agentidentity_test?sslmode=disable
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-go@v5
@@ -23,7 +36,7 @@ jobs:
           if [ -n "$RELEASES_TOKEN" ]; then
             git config --global url."https://x-access-token:${RELEASES_TOKEN}@github.com/".insteadOf "https://github.com/"
           fi
-      - run: go test -race ./...
+      - run: go test -race -v ./...
       - run: go vet ./...
 
   plugin-contracts:

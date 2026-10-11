@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 ### Added
+- Opt-in native `agentidentity` service grants, registered RFC7523 exchange,
+  strict tenant/resource/field authorization, owner approval/revocation UI and
+  declarative multi-preview configuration and explicit PostgreSQL persistence
+  with atomic replay/revocation and retained audit; no human-session or issuer-key reuse.
 - README verified-status banner per workflow#714 (multi-repo QoL sweep).
 - CONTRIBUTING.md, examples/minimal/config.yaml, and GitHub issue/PR templates.
 - Admin auth config now exposes a `passkey_auth_enabled` toggle, and auth
