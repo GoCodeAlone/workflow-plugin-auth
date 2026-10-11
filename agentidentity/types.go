@@ -28,9 +28,11 @@ var (
 )
 
 type PreviewGrant struct {
-	Audience string   `json:"audience"`
-	Origin   string   `json:"origin"`
-	Paths    []string `json:"paths"`
+	Audience string `json:"audience"`
+	Origin   string `json:"origin"`
+	// Paths are exact canonical request targets, optionally including a finite
+	// literal query. A bare path never grants its query variants.
+	Paths []string `json:"paths"`
 }
 
 // Grant is a host-owned durable row. Rotation and any permission edit MUST
@@ -177,6 +179,9 @@ type Resource struct {
 	RootPage                bool
 	HasCanonicalBlocks      bool
 	Method, Origin, Path    string
+	// Query is the raw canonical query of a preview request only. Path stays
+	// the matched path; API/history query authorization remains host-owned.
+	Query string
 }
 
 type Principal struct {

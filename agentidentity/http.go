@@ -71,6 +71,11 @@ type ManagementOptions struct {
 	OwnerOrigin string
 	PagePath    string
 	Owners      OwnerPolicy
+	// Tenants supplies immutable owner-UI declarations when Policy is wrapped
+	// by a host's current preview gate. It confers no authority: every visible
+	// proposal must also pass the service's required Policy and OwnerPolicy.
+	// If omitted, the UI uses Policy directly when it is a *TenantPolicy.
+	Tenants *TenantPolicy
 }
 
 type proposal struct {
@@ -124,14 +129,18 @@ func (s *Service) ManagementHandler(o ManagementOptions) (http.Handler, error) {
 				w.WriteHeader(http.StatusMethodNotAllowed)
 				return
 			}
-			policy, ok := s.options.Policy.(*TenantPolicy)
-			if !ok {
+			policy := o.Tenants
+			if policy == nil {
+				policy, _ = s.options.Policy.(*TenantPolicy)
+			}
+			if policy == nil {
 				httpError(w, ErrUnavailable)
 				return
 			}
 			visible := []TenantConfig{}
 			for _, c := range policy.configs() {
-				if o.Owners.AuthorizeOwner(r.Context(), owner, "propose", Grant{TenantID: c.TenantID, APIAudience: c.APIAudience}) == nil {
+				proposed := Grant{TenantID: c.TenantID, APIAudience: c.APIAudience}
+				if o.Owners.AuthorizeOwner(r.Context(), owner, "propose", proposed) == nil && s.options.Policy.AllowGrant(r.Context(), proposed) == nil {
 					visible = append(visible, c)
 				}
 			}
@@ -208,6 +217,10 @@ func (s *Service) ManagementHandler(o ManagementOptions) (http.Handler, error) {
 				return
 			}
 			if err = o.Owners.AuthorizeOwner(r.Context(), owner, "revoke", g); err != nil {
+				httpError(w, ErrDenied)
+				return
+			}
+			if err = s.options.Policy.AllowGrant(r.Context(), g); err != nil {
 				httpError(w, ErrDenied)
 				return
 			}
